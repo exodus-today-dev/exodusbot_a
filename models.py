@@ -9,8 +9,6 @@ from datetime import datetime, date
 
 db_string = "postgres://exodusdb:666777@localhost:5432/exodusdb"
 
-#db_string = "mysql://exodusdb:Vtuf,kzgfhjkm@mysql.mysql.svc.cluster.local:3306/exodusdb"
-
 
 db = create_engine(db_string)  
 base = declarative_base()
