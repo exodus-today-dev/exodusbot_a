@@ -9,6 +9,9 @@ from datetime import datetime, date
 
 db_string = "postgres://exodusdb:666777@localhost:5432/exodusdb"
 
+#db_string = "mysql://exodusdb:Vtuf,kzgfhjkm@mysql.mysql.svc.cluster.local:3306/exodusdb"
+
+
 db = create_engine(db_string)  
 base = declarative_base()
 
@@ -64,9 +67,13 @@ class Intention (base):
     currency = Column(String)
     create_date = Column(DateTime)
     status = Column(Integer)
-	
+#	
+#Статусы, пока что не доконца продуманные
+#	0 - отменённое намерение
+#	1 - созданное намерение
+#	11 - созданное обязательство (намерение переведено в обязательство)
+#	10 - отменённое обязательство
 
-	
 class Rings_Help(base):
     __tablename__ = 'rings_help'
 
@@ -234,4 +241,11 @@ def read_intention_by_id(intention_id, from_id=None, status=None):
         else:
             intention = session.query(Intention).filter_by(intention_id=intention_id).first()
     return intention    
-    
+
+def update_intention(intention_id, status=None, payment=None):
+    intention = session.query(Intention).filter_by(intention_id=intention_id).first()
+    if status is not None:
+        intention.status = status
+    if payment is not None:
+        intention.payment = payment
+    session.commit()    
