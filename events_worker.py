@@ -11,9 +11,9 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 import time
 
-API_TOKEN = '1218179983:AAG2JLfJyGDCVbsDwpucvNnkrPWosSXr3Fk'
+import config
 
-bot = telebot.TeleBot(API_TOKEN)
+bot = telebot.TeleBot(config.API_TOKEN)
 
 #bot.remove_webhook()
 

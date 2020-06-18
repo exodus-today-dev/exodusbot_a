@@ -1,9 +1,9 @@
 import telebot
 from telebot import types
 from datetime import datetime, date
-API_TOKEN = '1218179983:AAG2JLfJyGDCVbsDwpucvNnkrPWosSXr3Fk'
+import config
 
-bot = telebot.TeleBot(API_TOKEN)
+bot = telebot.TeleBot(config.API_TOKEN)
 
 from models import read_exodus_user, read_event
 from models import session, Exodus_Users
