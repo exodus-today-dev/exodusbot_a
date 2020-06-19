@@ -415,15 +415,16 @@ def for_other_wizard_intention_check(message):
 
 def intention_for_needy(message):
     """6.7"""
-    
+    bot.delete_message(message.chat.id, message.message_id)    
     intention_id = transaction[message.chat.id]
     intention = read_intention_by_id(intention_id)
     user_to = read_exodus_user(telegram_id=intention.to_id)
     status = get_status(user_to.status)
     
-    bot_text='Ваше намерение в пользу:\n\
+    bot_text='Ваше намерение-{intention_id} в пользу:\n\
 участника {first_name} {last_name} со статусом {status}\n\
-На сумму {payment} {currency}'.format(  first_name=user_to.first_name,
+На сумму {payment} {currency}'.format(  intention_id=intention_id,
+										first_name=user_to.first_name,
                                         last_name=user_to.last_name,
                                         status=status,
                                         payment=intention.payment,
