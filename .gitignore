@@ -4,3 +4,6 @@ config.py
 *.sql
 .handler-saves/
 venv/
+
+
+.ssl
