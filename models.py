@@ -6,11 +6,11 @@ from sqlalchemy.sql import text
 
 from datetime import datetime, date
 
+import config
 
 db_string = "postgres://exodusdb:666777@localhost:5432/exodusdb"
 
-
-db = create_engine(db_string)  
+db = create_engine(config.DATABASE_URL)
 base = declarative_base()
 
 Session = sessionmaker(db)  
@@ -232,6 +232,7 @@ def read_intention(from_id=None, to_id=None, status=None):
 def read_intention_by_id(intention_id):
     intention = session.query(Intention).filter_by(intention_id=intention_id).first()
     return intention    
+
 
 def update_intention(intention_id, status=None, payment=None):
     intention = session.query(Intention).filter_by(intention_id=intention_id).first()
