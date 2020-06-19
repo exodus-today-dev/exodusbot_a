@@ -69,10 +69,11 @@ class Intention (base):
 #Статусы, пока что не доконца продуманные
 #	0 - отменённое намерение
 #	1 - созданное намерение
-#	11 - созданное обязательство (намерение переведено в обязательство)
 #	10 - отменённое обязательство
-#   12 - деньги на обязательство отправлены, но не подтверждены получателем
-
+#	11 - созданное обязательство (намерение переведено в обязательство)
+#	12 - деньги на обязательство отправлены, но не подтверждены получателем
+#	13 - деньги подтверждены отправка и получение
+#	15 - запрос получателя на исполнение (дай денег)
 class Rings_Help(base):
     __tablename__ = 'rings_help'
 
@@ -228,17 +229,8 @@ def read_intention(from_id=None, to_id=None, status=None):
             intention = session.query(Intention).filter_by(to_id=to_id)
     return intention
     
-def read_intention_by_id(intention_id, from_id=None, status=None):
-    if from_id is not None:
-        if status is not None:
-            intention = session.query(Intention).filter_by(intention_id=intention_id, from_id=from_id, status=status).first()
-        else:
-            intention = session.query(Intention).filter_by(intention_id=intention_id, from_id=from_id).first()
-    else:
-        if status is not None:
-            intention = session.query(Intention).filter_by(intention_id=intention_id, status=status).first()
-        else:
-            intention = session.query(Intention).filter_by(intention_id=intention_id).first()
+def read_intention_by_id(intention_id):
+    intention = session.query(Intention).filter_by(intention_id=intention_id).first()
     return intention    
 
 def update_intention(intention_id, status=None, payment=None):

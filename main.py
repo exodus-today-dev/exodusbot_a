@@ -330,12 +330,24 @@ def members_check(message):
 
 def for_other_wizard(message):
     """4.1"""
+
+    members = []
+    user_id = message.chat.id
+    intentions = read_intention(from_id = user_id, status=1)
+    intentions_count = intentions.count()
+    for inten in intentions:
+        members.append(inten.to_id)
+    obligations = read_intention(from_id = user_id, status=11)
+    obligations_count = obligations.count()
+    for obligation in obligations:
+        members.append(obligation.to_id)
+    count = len(set(members))
     
-    bot_text = 'Вами записано {} намерений и {} обязательств в пользу {} участников:'.format(0,0,0)        # TODO
+    bot_text = f"Вами записано {intentions_count} намерений и {obligations_count} обязательств в пользу {count} участников:" 
     bot.clear_step_handler(message)
     markup = types.ReplyKeyboardMarkup()
-    btn1 = types.KeyboardButton(text='Намерения')
-    btn2 = types.KeyboardButton(text='Обязательства')
+    btn1 = types.KeyboardButton(text=f"Намерения ({intentions_count})")
+    btn2 = types.KeyboardButton(text=f"Обязательства ({obligations_count})")
     btn3 = types.KeyboardButton(text='Назад')
     markup.row(btn1,btn2)
     markup.row(btn3)
@@ -382,8 +394,7 @@ def for_other_wizard_intention(message):
     btn2 = types.KeyboardButton(text='Назад')
 #    markup.row(btn1,btn2)
     markup.row(btn2)
-    bot.send_message(message.chat.id, bot_text, reply_markup=markup)	
-	
+    bot.send_message(message.chat.id, bot_text, reply_markup=markup)		
 	
     bot_text = 'Введите номер, чтобы посмотреть подробную информацию или изменить:'
     msg = bot.send_message(message.chat.id, bot_text)	
@@ -399,7 +410,7 @@ def for_other_wizard_intention_check(message):
         msg = bot.send_message(message.chat.id, 'Номер должен быть в виду цифры:')
         bot.register_next_step_handler(msg, for_other_wizard_intention_check)
         return
-    intention = read_intention_by_id(intention_id=intention_number, from_id=message.chat.id, status=1)
+    intention = read_intention_by_id(intention_id=intention_number)
     if intention is None:
         msg = bot.send_message(message.chat.id, 'Введённый номер не соовпадает с существующими намерениями:')
         bot.register_next_step_handler(msg, for_other_wizard_intention_check)
@@ -674,11 +685,22 @@ def obligation_sent_confirm_yes(message):
 
 def for_my_wizard(message):
     """4.2"""
-    bot_text = '{} участников записали в вашу пользу {} намерений и {} обязательств:'.format(0,0,0)        # TODO
+    members = []
+    user_id = message.chat.id
+    intentions = read_intention(to_id = user_id, status=1)
+    intentions_count = intentions.count()
+    for inten in intentions:
+        members.append(inten.from_id)
+    obligations = read_intention(to_id = user_id, status=11)
+    obligations_count = obligations.count()
+    for obligation in obligations:
+        members.append(obligation.from_id)
+    count = len(set(members))
+    bot_text = f"{count} участников записали в вашу пользу {intentions_count} намерений и {obligations_count} обязательств:"        # TODO
 
     markup = types.ReplyKeyboardMarkup()
-    btn1 = types.KeyboardButton(text='Намерения')
-    btn2 = types.KeyboardButton(text='Обязательства')
+    btn1 = types.KeyboardButton(text=f"Намерения ({intentions_count})")
+    btn2 = types.KeyboardButton(text=f"Обязательства ({obligations_count})")
     btn3 = types.KeyboardButton(text='Назад')
     markup.row(btn1,btn2)
     markup.row(btn3)
@@ -691,11 +713,9 @@ def for_my_check(message):
     text = message.text
     bot.delete_message(message.chat.id, message.message_id)
     if text[0:9] == 'Намерения':
-        bot.send_message(message.chat.id, 'Намерения')                    # TODO
-        global_menu(message)
-    elif text[0:13] == 'Обязательства':
-        bot.send_message(message.chat.id, 'Обязательства')                # TODO
-        global_menu(message)
+        for_my_wizard_intention(message)
+    elif text[0:13] == 'Обязательства':             
+        for_my_wizard_obligation(message)
     elif text == 'Назад':
         bot.clear_step_handler(message)
         transactions_menu(message)
@@ -708,71 +728,163 @@ def for_my_check(message):
 
 
 def for_my_wizard_intention(message):
-    intentions = read_intention(from_id=message.chat.id, status=1)
+    intentions = read_intention(to_id=message.chat.id, status=1)
     n = 0
-    bot_text = ''
+    bot_text = f"Намерения в мою пользу:\n"
     for intent in intentions:
         n = n + 1
-        user_to = read_exodus_user(telegram_id = intent.to_id)
-        text = '{n}. {first_name} {last_name} {payment} {currency}, \
-осталось <D1> дней:\n'.format(n=n,
-							first_name=user_to.first_name,
-							last_name=user_to.last_name,
-							payment=intent.payment,
-							currency=intent.currency)
+        user = read_exodus_user(telegram_id = intent.from_id)
+        text = f"{intent.intention_id}. {user.first_name} {user.last_name} {intent.payment} {intent.currency}\n"
         bot_text = bot_text + text
-    markup = types.ReplyKeyboardMarkup()
-    btn1 = types.KeyboardButton(text='Показать еще 10')
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+#    btn1 = types.KeyboardButton(text='Показать еще 10')
     btn2 = types.KeyboardButton(text='Назад')
-    markup.row(btn1,btn2)
-    bot.send_message(message.chat.id, bot_text, reply_markup=markup)	
-	
-	
+#    markup.row(btn1,btn2)
+    markup.row(btn2)
+    bot.send_message(message.chat.id, bot_text, reply_markup=markup)		
     bot_text = 'Введите номер, чтобы посмотреть подробную информацию или изменить:'
     msg = bot.send_message(message.chat.id, bot_text)	
     bot.register_next_step_handler(msg,for_my_wizard_intention_check)  
     return
 
 def for_my_wizard_intention_check(message):
-    global_menu(message)
+    intention_number = message.text
+    if intention_number == 'Назад':
+        for_my_wizard(message)
+        return    
+    if not intention_number.isdigit():
+        msg = bot.send_message(message.chat.id, 'Номер должен быть в виде цифры:')
+        bot.register_next_step_handler(msg, for_my_wizard_intention_check)
+        return
+    intention = read_intention_by_id(intention_id=intention_number)
+    if intention is None:
+        msg = bot.send_message(message.chat.id, 'Введённый номер не соовпадает с существующими намерениями:')
+        bot.register_next_step_handler(msg, for_my_wizard_intention_check)
+        return        
+    transaction[message.chat.id] = intention_number   
+    intention_for_me(message)
     return
 
 
+def intention_for_me(message):
+    intention_id = transaction[message.chat.id]
+    intention = read_intention_by_id(intention_id)
+    user = read_exodus_user(telegram_id = intention.from_id)	
+    bot_text = f"{intention.create_date.strftime('%d %B %Y %I:%M%p')}\n\
+Участник {user.first_name} {user.last_name} записал свое намерение помогать вам на {intention.payment} {intention.currency}"
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    btn1 = types.KeyboardButton(text='Назад')
+    markup.row(btn1)
+    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)	
+    bot.register_next_step_handler(msg,intention_for_me_check)
+    return
+	
+
+def intention_for_me_check(message):	
+    bot.delete_message(message.chat.id, message.message_id)
+    obligation_number = message.text
+    if obligation_number == 'Назад':
+        for_my_wizard_intention(message)
+        return
+    msg = bot.send_message(message.chat.id, 'Что б вернутся назад нажмите назад')
+    bot.register_next_step_handler(msg, intention_for_me_check) 
+    return	
+	
+	
 def for_my_wizard_obligation(message):
-    intentions = read_intention(from_id=message.chat.id, status=1)
+    intentions = read_intention(to_id=message.chat.id, status=11)
     n = 0
-    bot_text = ''
+    bot_text = f"Обязательства в мою пользу:\n"
     for intent in intentions:
         n = n + 1
-        user_to = read_exodus_user(telegram_id = intent.to_id)
-        text = '{n}. {first_name} {last_name} {payment} {currency}, \
-осталось <D1> дней:\n'.format(n=n,
-							first_name=user_to.first_name,
-							last_name=user_to.last_name,
-							payment=intent.payment,
-							currency=intent.currency)
+        user = read_exodus_user(telegram_id = intent.from_id)
+        text = f"{intent.intention_id}. {user.first_name} {user.last_name} {intent.payment} {intent.currency}\n"
         bot_text = bot_text + text
-    markup = types.ReplyKeyboardMarkup()
-    btn1 = types.KeyboardButton(text='Показать еще 10')
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+#    btn1 = types.KeyboardButton(text='Показать еще 10')
     btn2 = types.KeyboardButton(text='Назад')
-    markup.row(btn1,btn2)
-    bot.send_message(message.chat.id, bot_text, reply_markup=markup)	
-	
-	
+#    markup.row(btn1,btn2)
+    markup.row(btn2)
+    bot.send_message(message.chat.id, bot_text, reply_markup=markup)		
     bot_text = 'Введите номер, чтобы посмотреть подробную информацию или изменить:'
     msg = bot.send_message(message.chat.id, bot_text)	
     bot.register_next_step_handler(msg,for_my_wizard_intention_check)  
     return
+	
 
 def for_my_wizard_obligation_check(message):
-    global_menu(message)
+    intention_number = message.text
+    if intention_number == 'Назад':
+        for_my_wizard(message)
+        return    
+    if not intention_number.isdigit():
+        msg = bot.send_message(message.chat.id, 'Номер должен быть в виде цифры:')
+        bot.register_next_step_handler(msg, for_my_wizard_obligation_check)
+        return
+    intention = read_intention_by_id(intention_id=intention_number)
+    if intention is None:
+        msg = bot.send_message(message.chat.id, 'Введённый номер не соовпадает с существующими обязательством:')
+        bot.register_next_step_handler(msg, for_my_wizard_obligation_check)
+        return        
+    transaction[message.chat.id] = intention_number   
+    intention_for_me(message)
+    return
+    
+
+def for_me_obligation(message):
+    """6.8"""
+    intention_id = transaction[message.chat.id]
+    intention = read_intention_by_id(intention_id=intention_id)
+    user = read_exodus_user(telegram_id=intention.from_id)
+	
+    bot_text = f"Участник {user.first_name} {user.last_name} записал обязательство в вашу пользу на сумму {intent.payment} {intent.currency}"
+		
+    markup = types.ReplyKeyboardMarkup()
+    btn1 = types.KeyboardButton(text='Запрос на исполнение')
+    btn2 = types.KeyboardButton(text='Хранить')
+    btn3 = types.KeyboardButton(text='Напомнить позже')
+    markup.row(btn1)
+    markup.row(btn2,btn3)
+    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)	
+    bot.register_next_step_handler(msg,for_me_obligation_check)      
     return
 
 
+def for_me_obligation_check(message):
+    text = message.text
+    bot.delete_message(message.chat.id, message.message_id)
+    if text == 'Запрос на исполнение':
+        bot.send_message(message.chat.id, 'not work yet')
+        global_menu(message)
+    elif text == 'Хранить':
+        keep_obligation(message)
+    elif text == 'Напомнить позже':
+        remind_later(message)
+    else:
+        msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
+        bot.register_next_step_handler(msg, for_me_obligation_check)    
+    return
 
-
-
-
+	
+def obligation_to_execution(message):
+    intention_id = transaction[message.chat.id]
+    intention = read_intention_by_id(intention_id=intention_id)
+    user = read_exodus_user(telegram_id=intention.from_id)
+    update_intention(intention_id=intention_id,status=15)
+    bot_text = f'Участнику {user.first_name} {user.last_name} отправлено ваше решение исполнить обязательство на сумму {intent.payment} {intent.currency}.'
+# create_event().....         #TODO
+    global_menu(message)
+    return
+	
+	
+def keep_obligation(message):
+    intention_id = transaction[message.chat.id]
+    intention = read_intention_by_id(intention_id=intention_id)
+    user = read_exodus_user(telegram_id=intention.from_id)    
+    bot_text = f'Обязательство участника {user.first_name} {user.last_name} на сумму  {intent.payment} {intent.currency} будет хранится у вас, пока вы не примите решение.\n\
+Посмотреть все обязательства можно в разделе главного меню "транзакции" > "обязательства"'
+    global_menu(message)
+    return
 
 
 	
