@@ -1618,8 +1618,8 @@ def executed_was_sent(message):
 	
 	
 	
-def members_menu_profile_link(message):
-    user = read_exodus_user(message.chat.id)
+def members_menu_profile_link(message, member_id):
+    user = read_exodus_user(member_id)
     bot.delete_message(message.chat.id, message.message_id)
     if user.status == 'green':	
         bot_text = 'Имя участника {} {}\n\
