@@ -1363,10 +1363,10 @@ def not_executed_wizard_for_all(message):
 
 def not_executed_wizard_for_all_check(message):
     global_menu(message)
-    return	
-	
-def members_menu_profile_link(message):
-    user = read_exodus_user(message.chat.id)
+    return
+
+def members_menu_profile_link(message, member_id):
+    user = read_exodus_user(member_id)
     bot.delete_message(message.chat.id, message.message_id)
     if user.status == 'green':	
         bot_text = 'Имя участника {} {}\n\
