@@ -74,12 +74,23 @@ class Intention (base):
 #	12 - деньги на обязательство отправлены, но не подтверждены получателем
 #	13 - деньги подтверждены отправка и получение
 #	15 - запрос получателя на исполнение (дай денег)
+
+
 class Rings_Help(base):
     __tablename__ = 'rings_help'
 
     rings_id = Column(Integer, primary_key=True)
     needy_id = Column(Integer,unique=True)
     help_array = Column(ARRAY(Integer))
+
+class Requisites(base):
+    __tablename__ = 'requisites'
+
+    requisites_id = Column(Integer, primary_key=True)
+    telegram_id = Column(Integer)
+    name = Column(String(128), nullable=False)
+    value = Column(String(128), nullable=False)
+
 	
 Session = sessionmaker(db)  
 session = Session()
@@ -241,3 +252,39 @@ def update_intention(intention_id, status=None, payment=None):
     if payment is not None:
         intention.payment = payment
     session.commit()    
+	
+	
+
+#-----------------------requisites-------------------
+# Create
+def create_requisites_user(requisites_id, telegram_id, name='', value=''):
+    requisites = Requisites(requisites_id=requisites_id,
+                               telegram_id=telegram_id,
+                               name=name,
+                               value=value)
+
+    session.add(requisites)
+    session.commit()
+
+
+# Read
+def read_requisites_user(requisites_id):
+    requisites_user = session.query(Requisites).filter_by(requisites_id=requisites_id).first()
+    return requisites_user
+
+
+# Update
+def update_requisites_user(requisites_id, telegram_id, name='', value=''):
+    requisites_user = session.query(Requisites).filter_by(requisites_id=requisites_id).first()
+    requisites_user.name = name
+    requisites_user.value = value
+
+    session.commit()
+
+
+# Delete
+def delete_requisites_user(requisites_id):
+    requisites_user = session.query(Requisites).filter_by(requisites_id=requisites_id).first()
+
+    session.delete(requisites_user)
+    session.commit()  
