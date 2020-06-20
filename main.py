@@ -294,21 +294,52 @@ def members_menu(message):
     markup.row(btn2)
     markup.row(btn3)                   
     markup.row(btn4)                    # ________________ TODO
-    bot_text = 'Я сети Эксодус с {data}\n\
-Меня пригласил: {ref}\n\
-\n\
-В мою пользу (12):\n\
-Намерений: <сумма> <валюта>\n\
-Обязательств: <сумма> <валюта>\n\
-Исполнено: <сумма> <валюта>\n\
-\n\
-В пользу других (123):\n\
-Намерений: <сумма> <валюта>\n\
-Обязательств: <сумма> <валюта>\n\
-Исполнено: <сумма> <валюта>'.format(	data=user.create_date.strftime("%d %B %Y %I:%M%p"),
-										ref=ref)
-    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
-    bot.register_next_step_handler(msg,members_check)  
+
+    currency = user.currency
+
+    user_id = message.chat.id
+
+    intentions_out_sum = sum_out_intentions(user_id)
+    intentions_in_sum = sum_in_intentions(user_id)
+    obligations_in_sum = sum_in_obligations(user_id)
+    executed_in_sum = sum_in_executed(user_id)
+    obligations_out_sum = sum_out_obligations(user_id)
+    executed_out_sum = sum_out_executed(user_id)
+
+    transactions_in_count = count_in_transactions(user_id)
+    transactions_out_count = count_out_transactions(user_id)
+
+    bot_text = 'Я в сети Эксодус с {data}\n '\
+               'Меня пригласил: {ref}\n' \
+               '\n' \
+               'В мою пользу ({tr_in}):\n' \
+               '  Намерений: {int_in} {currency}\n' \
+               '  Обязательств: {obl_in} {currency}\n' \
+               '  Исполнено: {exe_in} {currency}\n' \
+               '\n' \
+               'В пользу других ({tr_out}):\n' \
+               '  Намерений: {int_out} {currency}\n' \
+               '  Обязательств: {obl_out} {currency}\n' \
+               '  Исполнено: {exe_out} {currency}'.format(
+                    data=user.create_date.strftime("%d %B %Y %I:%M%p"),
+					ref=ref, currency=currency, int_in=intentions_in_sum,
+                    obl_in=obligations_in_sum, exe_in=executed_in_sum,
+                    int_out=intentions_out_sum, obl_out=obligations_out_sum,
+                    exe_out=executed_out_sum, tr_in=transactions_in_count,
+                    tr_out=transactions_out_count)
+
+    bot.send_message(message.chat.id, bot_text)
+
+    list_in = get_members_list(message.chat.id, 'in')
+    list_out = get_members_list(message.chat.id, 'out')
+    thering = set(list_in + list_out)
+    thering.remove(0)
+    for user_id in thering:
+        user_info = generate_user_info_preview(user_id)
+        bot.send_message(message.chat.id, user_info)
+
+    msg = bot.send_message(message.chat.id, 'Меню:', reply_markup=markup)
+    bot.register_next_step_handler(msg, members_check)
     return
 
 # new # >>>
@@ -486,6 +517,53 @@ def generate_status_info_text(user):
                            min_payment_text + '\n'
 
     return status_info_text
+
+
+def generate_user_info_preview(user_id):
+
+    user = read_exodus_user(user_id)
+
+    ref = user.ref
+    data = user.create_date
+    first_name = user.first_name
+    last_name = user.last_name
+    status = get_status(user.status)
+    currency = user.currency
+
+    intentions_out_sum = sum_out_intentions(user_id)
+    intentions_in_sum = sum_in_intentions(user_id)
+    obligations_in_sum = sum_in_obligations(user_id)
+    executed_in_sum = sum_in_executed(user_id)
+    obligations_out_sum = sum_out_obligations(user_id)
+    executed_out_sum = sum_out_executed(user_id)
+
+    transactions_in_count = count_in_transactions(user_id)
+    transactions_out_count = count_out_transactions(user_id)
+
+    user_info_preview = 'Имя участника {first_name} {last_name}\n' \
+                        'В сети Эксодус с {data}\n' \
+                        'Пригласил: {ref}\n' \
+                        '\n' \
+                        'Статус: {status}\n' \
+                        '\n' \
+                        'В его пользу ({tr_in}):\n' \
+                        '  Намерений: {int_in} {currency}\n' \
+                        '  Обязательств: {obl_in} {currency}\n' \
+                        '  Исполнено: {exe_in} {currency}\n' \
+                        '\n' \
+                        'В пользу других ({tr_out}):\n' \
+                        '  Намерений: {int_out} {currency}\n' \
+                        '  Обязательств: {obl_out} {currency}\n' \
+                        '  Исполнено: {exe_out} {currency}'.format(
+                                data=data.strftime("%d %B %Y %I:%M%p"), ref=ref,
+                                first_name=first_name, last_name=last_name,
+                                status=status, currency=currency, int_in=intentions_in_sum,
+                                obl_in=obligations_in_sum, exe_in=executed_in_sum,
+                                int_out=intentions_out_sum, obl_out=obligations_out_sum,
+                                exe_out=executed_out_sum, tr_in=transactions_in_count,
+                                tr_out=transactions_out_count)
+
+    return user_info_preview
 
 def generate_user_info_text(user, self_id):
     """ 5.2 """
