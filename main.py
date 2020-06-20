@@ -4,7 +4,7 @@
 # It echoes any incoming text messages.
 
 
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 
 import telebot
 from aiohttp import web
@@ -282,9 +282,13 @@ def members_menu(message):
     if user.ref != '': 
         referal = read_exodus_user(user.ref)
         ref='{} {}'.format(referal.first_name,referal.last_name)
+
+    transactions_in_count = count_in_transactions(message.chat.id)
+    transactions_out_count = count_out_transactions(message.chat.id)
+
     btn1 = types.KeyboardButton(text='Ссылка на мой профиль')
-    btn2 = types.KeyboardButton(text='В мою пользу ({})'.format(0))
-    btn3 = types.KeyboardButton(text='В пользу других ({})'.format(0))
+    btn2 = types.KeyboardButton(text='В мою пользу ({})'.format(transactions_in_count))
+    btn3 = types.KeyboardButton(text='В пользу других ({})'.format(transactions_out_count))
     btn4 = types.KeyboardButton(text='Главное меню')
     markup.row(btn1)
     markup.row(btn2)
@@ -306,18 +310,344 @@ def members_menu(message):
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
     bot.register_next_step_handler(msg,members_check)  
     return
-	
+
+# new # >>>
+
+def print_members_list_in_network(message, member_id, direction):
+    #""" 5.2 """
+
+    #alert #empty.check
+
+    intentions = None
+
+    if direction == 'in':
+        intentions = read_intention(to_id=member_id).distinct("from_id")
+    elif direction == 'out':
+        intentions = read_intention(from_id=member_id).distinct("to_id")
+
+    for i, row in enumerate(intentions.all()):
+            #warning
+            #  no.pagination.by.10
+
+            #warning
+            #  crash: if no user found
+
+            user = None
+
+            if direction == 'in':
+                user = read_exodus_user(row.from_id)
+            elif direction == 'out':
+                user = read_exodus_user(row.to_id)
+
+            status = get_status(user.status)
+            msg_text = '{i}. {first_name} {last_name}, {status}'.format(
+                i=i+1, first_name=user.first_name,
+                last_name=user.last_name, status=status)
+            msg = bot.send_message(message.chat.id, msg_text)
+
+    return
+
+
+def get_members_list(member_id, direction):
+    intentions = None
+
+    if direction == 'in':
+        intentions = read_intention(to_id=member_id).distinct('from_id')
+    elif direction == 'out':
+        intentions = read_intention(from_id=member_id).distinct('to_id')
+
+    output_list = [0, ]
+
+    for i, row in enumerate(intentions.all()):
+        if direction == 'in':
+            output_list.append(row.from_id)
+        elif direction == 'out':
+            output_list.append(row.to_id)
+
+    return output_list
+
+
+def sum_in_intentions(user_id):
+    sum = 0
+    intentions = read_intention(to_id=user_id, status=1)
+    for row in intentions:
+        sum += row.payment
+    return sum
+
+
+def sum_out_intentions(user_id):
+    sum = 0
+    intentions = read_intention(from_id=user_id, status=1)
+    for row in intentions:
+        sum += row.payment
+    return sum
+
+
+def count_in_transactions(user_id):
+    count = 0
+    intentions = read_intention(to_id=user_id, status=1)
+    count += intentions.count()
+    obligations = read_intention(to_id=user_id, status=11)
+    count += obligations.count()
+    obligations = read_intention(to_id=user_id, status=12)
+    count += obligations.count()
+    executed = read_intention(to_id=user_id, status=13)
+    count += executed.count()
+    return count
+
+def count_out_transactions(user_id):
+    count = 0
+    intentions = read_intention(from_id=user_id, status=1)
+    count += intentions.count()
+    obligations = read_intention(from_id=user_id, status=11)
+    count += obligations.count()
+    obligations = read_intention(from_id=user_id, status=12)
+    count += obligations.count()
+    executed = read_intention(from_id=user_id, status=13)
+    count += executed.count()
+    return count
+
+
+def sum_in_obligations(user_id):
+    sum = 0
+    obligations = read_intention(to_id=user_id, status=11)
+    for row in obligations:
+        sum += row.payment
+    obligations = read_intention(to_id=user_id, status=12)
+    for row in obligations:
+        sum += row.payment
+    return sum
+
+
+def sum_out_obligations(user_id):
+    sum = 0
+    obligations = read_intention(from_id=user_id, status=11)
+    for row in obligations:
+        sum += row.payment
+    obligations = read_intention(from_id=user_id, status=12)
+    for row in obligations:
+        sum += row.payment
+    return sum
+
+
+def sum_in_executed(user_id):
+    sum = 0
+    executed = read_intention(to_id=user_id, status=13)
+    for row in executed:
+        sum += row.payment
+    return sum
+
+
+def sum_out_executed(user_id):
+    sum = 0
+    executed = read_intention(from_id=user_id, status=13)
+    for row in executed:
+        sum += row.payment
+    return sum
+
+
+def in_my_circle_alpha(other_id, self_id):
+    result = False
+    out_trans = read_intention(from_id=self_id,
+                               to_id=other_id)
+    in_trans = read_intention(from_id=other_id,
+                              to_id=self_id)
+    if in_trans.count() > 0 or out_trans.count() > 0:
+        result = True
+    return result
+
+
+def generate_status_info_text(user):
+    #warning
+    # ТЗ. какая математика у этих подсчётов?
+    #     перепроверить все
+
+    status_info_text = ''
+    max_payment_text = ''
+    min_payment_text = ''
+
+    to_collect = float(user.max_payments) - \
+                 float(sum_in_obligations(user.telegram_id)) - \
+                 float(sum_in_intentions(user.telegram_id))
+
+    to_collect_text = '  сколько ещё нужно собрать: {}'.format(to_collect)
+
+    if user.status == 'red':
+        days = timedelta(days=user.days)
+        end_date = user.start_date + days
+        end_date_text = '  до какой даты: {}'.format(end_date)
+
+        status_info_text = to_collect_text + '\n' + end_date_text + '\n'
+    elif user.status == 'orange':
+        max_payment_text = '  сколько нужно в месяц: {}'.format(user.max_payments)
+        min_payment_text = '  минимальный платёж: {}'.format(user.min_payments)
+        status_info_text = max_payment_text + '\n' + \
+                           to_collect_text + '\n' + \
+                           min_payment_text + '\n'
+
+    return status_info_text
+
+def generate_user_info_text(user, self_id):
+    """ 5.2 """
+
+    ref = user.ref
+    data = user.create_date
+    first_name = user.first_name
+    last_name = user.last_name
+    status = get_status(user.status)
+    currency = user.currency
+
+    intentions_out_sum = sum_out_intentions(user.telegram_id)
+    intentions_in_sum = sum_in_intentions(user.telegram_id)
+    obligations_in_sum = sum_in_obligations(user.telegram_id)
+    executed_in_sum = sum_in_executed(user.telegram_id)
+    obligations_out_sum = sum_out_obligations(user.telegram_id)
+    executed_out_sum = sum_out_executed(user.telegram_id)
+
+    transactions_in_count = count_in_transactions(user.telegram_id)
+    transactions_out_count = count_out_transactions(user.telegram_id)
+
+    user_info_text = 'В сети Эксодус с {data}\n' \
+                     'Пригласил: {ref}\n' \
+                     'Со мной в круге:\n' \
+                     '\n' \
+                     'Имя участника {first_name} {last_name}\n' \
+                     'Статус: {status}\n' \
+                     '\n'.format(data=data.strftime("%d %B %Y %I:%M%p"), ref=ref,
+                                 first_name=first_name, last_name=last_name,
+                                 status=status)
+
+    if user.status != 'green':
+        status_info_text = generate_status_info_text(user)
+        user_info_text += status_info_text + '\n'
+
+    if in_my_circle_alpha(user.telegram_id, self_id):
+        user_info_text += 'В его пользу ({tr_in}):\n' \
+                          '  Намерений: {int_in} {currency}\n' \
+                          '  Обязательств: {obl_in} {currency}\n' \
+                          '  Исполнено: {exe_in} {currency}\n' \
+                          '\n' \
+                          'В пользу других ({tr_out}):\n' \
+                          '  Намерений: {int_out} {currency}\n' \
+                          '  Обязательств: {obl_out} {currency}\n' \
+                          '  Исполнено: {exe_out} {currency}'.format(
+                                currency=currency, int_in=intentions_in_sum,
+                                obl_in=obligations_in_sum, exe_in=executed_in_sum,
+                                int_out=intentions_out_sum, obl_out=obligations_out_sum,
+                                exe_out=executed_out_sum, tr_in=transactions_in_count,
+                                tr_out=transactions_out_count)
+    else:
+        user_info_text += 'Информация о намерениях и обязательствах доступна ' \
+                          'только для участников в моей сети.'
+    return user_info_text
+
+
+def members_list_in_network_menu(message, member_id, direction):
+    """ 5.2 """
+
+    print_members_list_in_network(message, member_id, direction)
+
+    markup = types.ReplyKeyboardMarkup()
+
+    btn1 = types.KeyboardButton(text='Показать ещё 10')
+    btn2 = types.KeyboardButton(text='Назад')
+    markup.row(btn1, btn2)
+
+    bot_text = '\n' \
+               'Введите номер Участника, чтобы ' \
+               'посмотреть подробную информацию:'
+    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
+
+    bot.register_next_step_handler(msg, members_list_in_network_check,
+                                   member_id, direction)
+
+
+def selected_member_action_menu(message, member_id):
+    """ 5.2 """
+    markup = types.ReplyKeyboardMarkup()
+
+    transactions_in_count = count_in_transactions(member_id)
+    transactions_out_count = count_out_transactions(member_id)
+
+    btn1 = types.KeyboardButton(text='Ссылка на профиль')
+    btn2 = types.KeyboardButton(text='В пользу этого участника '
+                                     '({tr_in})'.format(
+                                     tr_in=transactions_in_count))
+    btn3 = types.KeyboardButton(text='Этот участник в пользу других '
+                                     '({tr_out})'.format(
+                                     tr_out=transactions_out_count))
+    btn4 = types.KeyboardButton(text='Главное меню')
+    markup.row(btn1)
+    markup.row(btn2)
+    markup.row(btn3)
+    markup.row(btn4)
+
+    bot_text = '\nВыберите пункт меню'
+    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
+
+    bot.register_next_step_handler(msg, selected_member_action_check,
+                                   member_id)
+
+
+def selected_member_action_check(message, member_id): #bookmark
+    """ 5.2 """
+    text = message.text
+
+    if text == 'Ссылка на профиль':
+        members_menu_profile_link(message, member_id)
+    elif text[:24] == 'В пользу этого участника':
+        members_list_in_network_menu(message, member_id, 'in')
+    elif text[:29] == 'Этот участник в пользу других':
+        members_list_in_network_menu(message, member_id, 'out')
+    elif text == 'Главное меню':
+        global_menu(message)
+    else:
+        selected_member_action_menu(message, member_id)
+
+
+def members_list_in_network_check(message, member_id, direction):
+    """ 5.2 """
+    text = message.text
+
+    if text == 'Показать ещё 10': #bug # дважды печатает список
+        print_members_list_in_network(message, member_id, direction)
+        members_list_in_network_menu(message, member_id, direction)
+        return
+    elif text == 'Назад':
+        members_menu(message)
+        return
+    else:
+        try:
+            #bookmark #debug.bookmark #dev.bookmark
+
+            members_list = get_members_list(member_id, direction)
+            selected_id = int(text)
+            user = read_exodus_user(members_list[selected_id])
+            user_info_text = generate_user_info_text(user, message.chat.id)
+            msg = bot.send_message(message.chat.id, user_info_text)
+            selected_member_action_menu(message, members_list[selected_id])
+        except:
+            msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
+            bot.register_next_step_handler(msg,
+                                           members_list_in_network_check,
+                                           member_id, direction)
+        return
+    return
+
+
+# new # <<<
+
 def members_check(message):
     text = message.text
 #    bot.delete_message(message.chat.id, message.message_id)
     if text == 'Ссылка на мой профиль':
-        members_menu_profile_link(message)
+        members_menu_profile_link(message, message.chat.id)
         return
-    elif text[0:12] == 'В мою пользу': 
-        global_menu(message)					# TODO
+    elif text[0:12] == 'В мою пользу':
+        members_list_in_network_menu(message, message.chat.id, 'in')
         return
     elif text[0:15] == 'В пользу других':
-        global_menu(message)					# TODO
+        members_list_in_network_menu(message, message.chat.id, 'out')
         return
     elif text == 'Главное меню':
         global_menu(message)
