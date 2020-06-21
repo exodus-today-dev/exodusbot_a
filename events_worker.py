@@ -23,7 +23,7 @@ bot = telebot.TeleBot(config.API_TOKEN)
 
 
 from models import session, Exodus_Users, Events, update_event
-from events import invitation_help_orange, invitation_help_red
+from events import invitation_help_orange, invitation_help_red, notice_of_intent
 
 
 user_dict = {}
@@ -39,7 +39,9 @@ def read():
         if event.type == 'red':
             update_event(event.event_id,True)
             invitation_help_red(event.event_id)
-
+        if event.type == 'notice':
+            update_event(event.event_id,True)
+            notice_of_intent(event.event_id)		
 
 
 
