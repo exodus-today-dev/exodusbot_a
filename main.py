@@ -1170,7 +1170,7 @@ def for_my_wizard_intention(message):
     intentions = read_intention(to_id=message.chat.id, status=1)
     bot_text = f"Намерения в мою пользу:\n"
     for intent in intentions:
-        user = read_exodus_user(telegram_id = intent.to_id)
+        user = read_exodus_user(telegram_id = intent.from_id)
         text = f"{intent.intention_id}. {user.first_name} {user.last_name} {intent.payment} {intent.currency}\n"
         bot_text = bot_text + text
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
