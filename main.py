@@ -102,10 +102,11 @@ def global_menu(message, dont_show_status=False):
     markup = types.ReplyKeyboardMarkup()
     btn1 = types.KeyboardButton(text='Мой статус')
     btn2 = types.KeyboardButton(text='Транзакции')
-    btn3 = types.KeyboardButton(text='Настройки')
+#    btn3 = types.KeyboardButton(text='Настройки')
     btn4 = types.KeyboardButton(text='Участники')
     markup.row(btn1, btn2)
-    markup.row(btn3, btn4)
+    markup.row(btn4)
+#    markup.row(btn3, btn4)
     if not dont_show_status:
         bot.send_message(message.chat.id, 'Ваш текущий статус {}'.format(status))
     bot.send_message(message.chat.id, 'Меню:', reply_markup=markup)
