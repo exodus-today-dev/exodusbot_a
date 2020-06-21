@@ -25,7 +25,7 @@ from models import (read_exodus_user, create_event, session,
                     update_rings_help, read_intention, read_intention_by_id,
                     update_intention)
 
-from events import show_all_members, invitation_help_orange, invitation_help_red
+from events import invitation_help_orange, invitation_help_red
 
 
 user_dict = {}
@@ -1873,9 +1873,8 @@ def start_without_invitation(message):
 #----------------------------- 6.1 ORANGE ----------------------			
 def start_orange_invitation(message,user_to):
     """6.1"""
-
-    user = user_to
-    ring = read_rings_help(user_to.telegram_id)
+    user = read_exodus_user(telegram_id=user_to)
+    ring = read_rings_help(user.telegram_id)
     if ring is None:
         users_count = 0
     else:
@@ -1906,7 +1905,7 @@ def start_orange_invitation(message,user_to):
     markup.row(btn1)
     markup.row(btn2, btn3)
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
-    temp_dict[message.chat.id] = user_to        # TODO ---------- убрать этот костыль, так как при большом кол-во пользователей будет съедать память
+    temp_dict[message.chat.id] = user       # TODO ---------- убрать этот костыль, так как при большом кол-во пользователей будет съедать память
     temp_dict[message.chat.id].step = 'orange'        # TODO ---------- убрать этот костыль, так как при большом кол-во пользователей будет съедать память
 
     bot.register_next_step_handler(msg, orange_invitation_check)    
@@ -2032,9 +2031,9 @@ def show_all_members_check(message):
     bot.delete_message(message.chat.id, message.message_id)
     if message.text == 'Назад':
         if temp_dict[message.chat.id].step == 'orange':
-            start_orange_invitation(message,temp_dict[message.chat.id])
+            start_orange_invitation(message,temp_dict[message.chat.id].telegram_id)
         elif temp_dict[message.chat.id].step == 'red':
-            start_red_invitation(message,temp_dict[message.chat.id])
+            start_red_invitation(message,temp_dict[message.chat.id].telegram_id)
     else: 
         msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
         bot.register_next_step_handler(msg, show_all_members_check)
@@ -2645,12 +2644,43 @@ def orange_step_final(message):
 	
 
 	
-	
-	
+@bot.message_handler(commands=['add'])
+def welcome(message):
+    """1.0"""
+    create_event(	from_id = message.chat.id, 
+					first_name = 'Loh',             # TODO не нужно
+					last_name = 'Pidr',             # TODO не нужно
+					status = 'orange',              
+					type = 'orange', 
+					min_payments = 1,
+					current_payments = 4, 
+					max_payments = 100,
+					currency = 'USD', 
+					users = 0, 
+					to_id = message.chat.id, 
+					sent=False)	
+    return
 	
 
+	
+	
+@bot.callback_query_handler(func=lambda call: call.data[0:18] == 'orange_invitation-')
+def get_day(call):
+    global_menu(call.message)
+    bot.delete_message(call.message.chat.id,call.message.message_id)
+    user_id = call.data[18:]    
+    start_orange_invitation(call.message,user_id)
+    return
 
-		
+@bot.callback_query_handler(func=lambda call: call.data[0:15] == 'red_invitation-')
+def get_day(call):
+    global_menu(call.message)
+    bot.delete_message(call.message.chat.id,call.message.message_id)
+    user_id = call.data[15:]    
+    start_red_invitation(call.message,user_id)
+    return
+
+
 
 @bot.message_handler(func=lambda message: True, content_types=['text'])
 def menu(message):
