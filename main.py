@@ -946,7 +946,7 @@ def edit_intention_check(message):
 def cancel_intention(message):
     intention_id = transaction[message.chat.id]
     intention = read_intention_by_id(intention_id)
-    user_to = read_exodus_user(telegram_id=intention.user_to)
+    user_to = read_exodus_user(telegram_id=intention.to_id)
     bot_text = f"Вы хотите отменить свое намерение помогать участнику {user_to.first_name} {user_to.last_name} на {intention.payment} {intention.currency}?"
     markup = types.ReplyKeyboardMarkup()
     btn1 = types.KeyboardButton(text='Нет')
@@ -1168,11 +1168,9 @@ def for_my_check(message):
 
 def for_my_wizard_intention(message):
     intentions = read_intention(to_id=message.chat.id, status=1)
-    n = 0
     bot_text = f"Намерения в мою пользу:\n"
     for intent in intentions:
-        n = n + 1
-        user = read_exodus_user(telegram_id = intent.from_id)
+        user = read_exodus_user(telegram_id = intent.to_id)
         text = f"{intent.intention_id}. {user.first_name} {user.last_name} {intent.payment} {intent.currency}\n"
         bot_text = bot_text + text
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
