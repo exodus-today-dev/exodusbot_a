@@ -959,7 +959,7 @@ def cancel_intention(message):
 def cancel_intention_check(message):
     intention_id = transaction[message.chat.id]
     intention = read_intention_by_id(intention_id)
-    user_to = read_exodus_user(telegram_id=intention.user_to)
+    user_to = read_exodus_user(telegram_id=intention.to_id)
     bot_text = f"Ваше намерение помогать участнику {user_to.first_name} {user_to.last_name} на {intention.payment} {intention.currency} отменено."
     text = message.text
     bot.delete_message(message.chat.id, message.message_id)
