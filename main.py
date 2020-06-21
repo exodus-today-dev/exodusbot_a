@@ -53,8 +53,9 @@ def ref_info(text):
 
 
 def create_link(from_id, to_id):
+    botname = bot.get_me().username
     ref = '{}+{}'.format(from_id, to_id)
-    link = 'https://t.me/exodus_official_bot?start={}'.format(make_hash(ref))
+    link = f"https://t.me/{botname}?start={make_hash(ref)}"
     return link
 
 
