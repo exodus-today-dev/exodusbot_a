@@ -782,7 +782,13 @@ def for_other_wizard(message):
 def for_other_check(message):
     text = message.text
     bot.delete_message(message.chat.id, message.message_id)
-    if text[0:9] == 'Намерения':
+    if text == 'Намерения (0)':
+        msg = bot.send_message(message.chat.id, 'у Вас нет намерений')
+        bot.register_next_step_handler(msg, for_other_check)
+    elif text == 'Обязательства (0)':
+        msg = bot.send_message(message.chat.id, 'у Вас нет обязательств')
+        bot.register_next_step_handler(msg, for_other_check)
+    elif text[0:9] == 'Намерения':
         for_other_wizard_intention(message)
     elif text[0:13] == 'Обязательства':
         bot.send_message(message.chat.id, 'Обязательства')
@@ -1136,7 +1142,13 @@ def for_my_wizard(message):
 def for_my_check(message):
     text = message.text
     bot.delete_message(message.chat.id, message.message_id)
-    if text[0:9] == 'Намерения':
+    if text == 'Намерения (0)':
+        msg = bot.send_message(message.chat.id, 'у Вас нет намерений')
+        bot.register_next_step_handler(msg, for_my_check)
+    elif text == 'Обязательства (0)':
+        msg = bot.send_message(message.chat.id, 'у Вас нет обязательств')
+        bot.register_next_step_handler(msg, for_my_check)
+    elif text[0:9] == 'Намерения':
         for_my_wizard_intention(message)
     elif text[0:13] == 'Обязательства':
         for_my_wizard_obligation(message)
