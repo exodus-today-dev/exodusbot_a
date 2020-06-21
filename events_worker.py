@@ -15,7 +15,7 @@ import config
 
 bot = telebot.TeleBot(config.API_TOKEN)
 
-#bot.remove_webhook()
+
 
 
 #--------------------------------- DB ------------------------------
@@ -27,25 +27,28 @@ from events import invitation_help_orange, invitation_help_red
 
 
 user_dict = {}
+bot.remove_webhook()
 
 def read():
     all_users = session.query(Exodus_Users).count()
     all = session.query(Events).filter_by(sent = False)
     for event in all:
         if event.type == 'orange':
+            update_event(event.event_id,True)
             invitation_help_orange(event.event_id)
-            update_event(event.event_id,True)
         if event.type == 'red':
-            invitation_help_red(event.event_id)
             update_event(event.event_id,True)
-
+            invitation_help_red(event.event_id)
 
 
 
 
 			
-while True:		
-    read()
-    time.sleep(5)
+while True:
+    try:
+        read()
+    except Exception as error:
+        print(error)
+    time.sleep(1)
 
 #bot.polling()
