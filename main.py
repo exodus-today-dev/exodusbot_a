@@ -1848,9 +1848,9 @@ def welcome(message):
 																					user_to.last_name)
         bot.send_message(message.chat.id,bot_text)
         if user_to.status == 'orange':
-            start_orange_invitation(message,user_to)
+            start_orange_invitation(message,user_to.telegram_id)
         elif user_to.status == 'red':
-            start_red_invitation(message,user_to)
+            start_red_invitation(message,user_to.telegram_id)
     else:
         start_without_invitation(message)
 
@@ -1993,6 +1993,18 @@ def orange_invitation_wizard_check(message):   #------------------ TODO
 			user.currency,
 			users_count)    
     create_intention(message.chat.id, user.telegram_id, invitation_sum, user.currency,status=1)
+    create_event(	from_id=message.chat.id, 
+					first_name=user.first_name,            # TODO not needed
+					last_name=user.last_name,             # TODO not needed
+					status='orange', 
+					type='notice', 
+					min_payments=user.min_payments, 
+					current_payments=user.current_payments, 
+					max_payments=user.max_payments,
+					currency=user.currency, 
+					users=0, 
+					to_id=user.telegram_id, 
+					sent=False)
     bot.send_message(message.chat.id, bot_text)
     global_menu(message,True)		
 			
@@ -2173,6 +2185,18 @@ def red_invitation_wizard_check(message):   #------------------ TODO
 			user.currency,
 			users_count)    
     create_intention(message.chat.id, user.telegram_id, invitation_sum, user.current_payments, status=1)
+    create_event(	from_id=message.chat.id, 
+					first_name=user.first_name,            # TODO not needed
+					last_name=user.last_name,             # TODO not needed
+					status='red', 
+					type='notice', 
+					min_payments=user.min_payments, 
+					current_payments=user.current_payments, 
+					max_payments=user.max_payments,
+					currency=user.currency, 
+					users=0, 
+					to_id=user.telegram_id, 
+					sent=False)
     bot.send_message(message.chat.id, bot_text)
     global_menu(message,True)	
 	
@@ -2617,10 +2641,10 @@ def orange_step_final(message):
         bot.send_message(message.chat.id, 'Настройки сохранены')
         update_exodus_user(message.chat.id,status='orange')
         user = read_exodus_user(message.chat.id)
-        all_users = rows = session.query(Exodus_Users).all()
+        all_users = session.query(Exodus_Users).all()
         users_count = session.query(Exodus_Users).count()
         for users in all_users:
-						#TODO
+						#TODO           пока что рассылка всем
             if users.telegram_id != message.chat.id:
                 create_event(	from_id = message.chat.id, 
 								first_name = user.first_name, 
