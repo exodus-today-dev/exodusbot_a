@@ -341,17 +341,7 @@ def members_menu(message):
                     exe_out=executed_out_sum, tr_in=transactions_in_count,
                     tr_out=transactions_out_count)
 
-    bot.send_message(message.chat.id, bot_text)
-
-    list_in = get_members_list(message.chat.id, 'in')
-    list_out = get_members_list(message.chat.id, 'out')
-    thering = set(list_in + list_out)
-    thering.remove(0)
-    for user_id in thering:
-        user_info = generate_user_info_preview(user_id)
-        bot.send_message(message.chat.id, user_info)
-
-    msg = bot.send_message(message.chat.id, 'Меню:', reply_markup=markup)
+    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
     bot.register_next_step_handler(msg, members_check)
     return
 
