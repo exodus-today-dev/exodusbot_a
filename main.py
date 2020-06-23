@@ -1016,7 +1016,7 @@ def for_other_wizard_obligation_check(message):
         msg = bot.send_message(message.chat.id, 'Номер должен быть в виду цифры:')
         bot.register_next_step_handler(msg, for_other_wizard_obligation_check)
         return
-    intention = read_intention_by_id(intention_id=obligation_number, from_id=message.chat.id, status=11)
+    intention = read_intention_by_id(intention_id=obligation_number)
     if intention is None:
         msg = bot.send_message(message.chat.id, 'Введённый номер не соовпадает с существующими намерениями:')
         bot.register_next_step_handler(msg, for_other_wizard_obligation_check)
@@ -2059,8 +2059,7 @@ def show_all_members_check(message):
 #----------------------- 6.2 RED ---------------------------			
 def start_red_invitation(message,user_to):
     """6.2"""
-
-    user = user_to
+    user = read_exodus_user(telegram_id=user_to)
     ring = read_rings_help(user_to.telegram_id)
     if ring is None:
         users_count = 0
