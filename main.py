@@ -2065,28 +2065,21 @@ def start_red_invitation(message,user_to):
         users_count = 0
     else:
         users_count = len(ring.help_array)
-
-    status = 'Красный \U0001F534'                  #_____________________ ДНИ ВЪЕБИ СЮДА
-    bot_text = 'Участник {} {} - {}\n\
+    d0 = user.start_date
+    d1 = date.today()
+    delta = d1 - d0
+    days_end = user.days - delta.days
+    status = get_status(user.status)
+    bot_text = f'Участник {user.first_name} {user.last_name} - {status}\n\
 Период: Ежемесячно\n\
-Собрано {} из {} {}\n\
-Ожидается {} {}\n\
-Всего участников: {}\n\
-Осталось <C> дней из <D>\n\
-Обсуждение: <Ссылка>\n\
+Собрано {user.current_payments} из {user.max_payments} {user.currency}\n\
+Ожидается {user.max_payments-user.current_payments} {user.currency}\n\
+Всего участников: {users_count}\n\
+Осталось {days_end} дней из {user.days}\n\
+Обсуждение: {user.link}\n\
 \n\
 Вы можете помочь этому участнику?\n\
-Минимальная сумма {} {}'.format(	user.first_name, 
-											user.last_name,
-											status,
-											user.current_payments,
-											user.max_payments,
-											user.currency,
-											user.max_payments-user.current_payments,
-											user.currency,
-											users_count,
-											user.min_payments,
-											user.currency)
+Минимальная сумма {user.min_payments} {user.currency}'
 
     markup = types.ReplyKeyboardMarkup()
     btn1 = types.KeyboardButton(text='Показать участников ({})'.format(users_count))
@@ -2380,15 +2373,15 @@ def red_status_wizard(message):
     d1 = date.today()
     delta = d1 - d0
     days_end = user.days - delta.days
-    bot_text = 'Ваш текущий статус: Красный \U0001F534\n\
+    bot_text = f'Ваш текущий статус: Красный \U0001F534\n\
 \n\
-Собрано {} из {} {}\n\
-Ожидается {} {}\n\
-Всего участников: {}\n\
-Осталось {} дней из {}\n\
-Обсуждение: <Ссылка>\n\
+Собрано {user.current_payments} из {user.max_payments} {user.currency}\n\
+Ожидается {user.max_payments-user.current_payments} {user.currency}\n\
+Всего участников: {all_users}\n\
+Осталось {days_end} дней из {user.days}\n\
+Обсуждение: {user.link}\n\
 \n\
-Если вы хотите пригласить кого-то помогать вам, перешлите ему эту ссылку:'.format(user.current_payments,user.max_payments,user.currency,user.max_payments-user.current_payments,user.currency,all_users,days_end,user.days)		
+Если вы хотите пригласить кого-то помогать вам, перешлите ему эту ссылку:'
     bot.send_message(message.chat.id, bot_text)
     markup = types.ReplyKeyboardMarkup()
     btn1 = types.KeyboardButton(text='Редактировать')
@@ -2441,6 +2434,7 @@ def red_edit_wizard_step1(message):
     msg = bot.send_message(message.chat.id, 'Введите минимальную сумму помощи в {}'.format(user.currency))
     bot.register_next_step_handler(msg, red_edit_wizard_step2)
 
+	
 def red_edit_wizard_step2(message):
     user = read_exodus_user(message.chat.id)
     chat_id = message.chat.id
@@ -2453,6 +2447,7 @@ def red_edit_wizard_step2(message):
     msg = bot.send_message(message.chat.id, 'Введите кол-во дней, в течение которых вам необходимо собрать эту сумму:')
     bot.register_next_step_handler(msg, red_edit_wizard_step3)
 
+	
 def red_edit_wizard_step3(message):
     user = read_exodus_user(message.chat.id)
     chat_id = message.chat.id
@@ -2462,15 +2457,21 @@ def red_edit_wizard_step3(message):
         bot.register_next_step_handler(msg, red_edit_wizard_step3)
         return
     user_dict[message.chat.id].days = days
-    bot.send_message(message.chat.id, 'Ссылка на чат:\n В РАЗРАБОТКЕ TODO')
+    msg = bot.send_message(message.chat.id, 'Ссылка на чат:')
+    bot.register_next_step_handler(msg, red_edit_wizard_step35)	
+
+	
+
+def red_edit_wizard_step35(message):
+    link = message.text
     user = user_dict[message.chat.id]
-    bot_text = 'Пожалуйста проверьте введенные данные:\n\
+    bot_text = f'Пожалуйста проверьте введенные данные:\n\
 \n\
 Статус: Красный\n\
-Обсуждение: <ссылка на чат>\n\
-В течение {}\n\
-Минимально: {} {}\n\
-Необходимая сумма: {} {}'.format(user.days,user.min_payments,user.currency,user.max_payments,user.currency)
+Обсуждение: {link}\n\
+В течение {user.days}\n\
+Минимально: {user.min_payments} {user.currency}\n\
+Необходимая сумма: {user.max_payments} {user.currency}'
     bot.send_message(message.chat.id, bot_text)
 
     markup = types.ReplyKeyboardMarkup()
@@ -2483,11 +2484,11 @@ def red_edit_wizard_step3(message):
 \n\
 Все пользователи, которые связаны с вами внутри Эксодус бота, получат уведомление.'
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)		
-    bot.register_next_step_handler(msg, red_edit_wizard_step4)	
+    bot.register_next_step_handler(msg, red_edit_wizard_step4, link)	
 
 
 
-def red_edit_wizard_step4(message):
+def red_edit_wizard_step4(message, link):
     bot.delete_message(message.chat.id, message.message_id)
     text = message.text
     if text == 'Редактировать':
@@ -2497,11 +2498,11 @@ def red_edit_wizard_step4(message):
         global_menu(message)
     elif text == 'Сохранить статус':
         bot.send_message(message.chat.id, 'Настройки сохранены')
-        update_exodus_user(telegram_id = message.chat.id, status = 'red', start_date = date.today(), days = user_dict[message.chat.id].days, min_payments = user_dict[message.chat.id].min_payments, max_payments = user_dict[message.chat.id].max_payments)
+        update_exodus_user(telegram_id = message.chat.id, status = 'red',link=link, start_date = date.today(), days = user_dict[message.chat.id].days, min_payments = user_dict[message.chat.id].min_payments, max_payments = user_dict[message.chat.id].max_payments)
         global_menu(message)	
     else: 
         msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
-        bot.register_next_step_handler(msg, red_edit_wizard_step4) 
+        bot.register_next_step_handler(msg, red_edit_wizard_step4, link) 
 
 
 
