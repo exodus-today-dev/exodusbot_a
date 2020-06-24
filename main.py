@@ -91,15 +91,15 @@ def global_menu(message, dont_show_status=False):
 
     if user is None:
         welcome(message)
-
-    if user.status == "green":
-        status = 'Зелёный \U0001F7E2'
-    elif user.status == "orange":
-        status = 'Оранжевый \U0001f7e0'
-    elif user.status == "red":
-        status = 'Красный \U0001F534'
     else:
-        orange_green_wizard(message)
+        if user.status == "green":
+            status = 'Зелёный \U0001F7E2'
+        elif user.status == "orange":
+            status = 'Оранжевый \U0001f7e0'
+        elif user.status == "red":
+            status = 'Красный \U0001F534'
+        else:
+            orange_green_wizard(message)
     markup = types.ReplyKeyboardMarkup()
     btn1 = types.KeyboardButton(text='Мой статус')
     btn2 = types.KeyboardButton(text='Транзакции')
@@ -845,7 +845,10 @@ def for_other_wizard_intention_check(message):
 
 def intention_for_needy(message):
     """6.7"""
-    bot.delete_message(message.chat.id, message.message_id)    
+    try:
+        bot.delete_message(message.chat.id, message.message_id)
+    except:
+        pass	
     intention_id = transaction[message.chat.id]
     intention = read_intention_by_id(intention_id)
     user_to = read_exodus_user(telegram_id=intention.to_id)
