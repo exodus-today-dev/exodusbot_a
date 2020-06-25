@@ -23,7 +23,7 @@ from models import (read_exodus_user, create_event, session,
                     Exodus_Users, update_exodus_user, create_exodus_user,
                     read_rings_help, create_rings_help, create_intention,
                     update_rings_help, read_intention, read_intention_by_id,
-                    update_intention)
+                    update_intention,read_requisites_user, create_requisites_user)
 
 from events import invitation_help_orange, invitation_help_red
 
@@ -103,11 +103,10 @@ def global_menu(message, dont_show_status=False):
     markup = types.ReplyKeyboardMarkup()
     btn1 = types.KeyboardButton(text='Мой статус')
     btn2 = types.KeyboardButton(text='Транзакции')
-#    btn3 = types.KeyboardButton(text='Настройки')
+    btn3 = types.KeyboardButton(text='Настройки')
     btn4 = types.KeyboardButton(text='Участники')
     markup.row(btn1, btn2)
-    markup.row(btn4)
-#    markup.row(btn3, btn4)
+    markup.row(btn3, btn4)
     if not dont_show_status:
         bot.send_message(message.chat.id, 'Ваш текущий статус {}'.format(status))
     bot.send_message(message.chat.id, 'Меню:', reply_markup=markup)
@@ -152,46 +151,44 @@ def status_check(message):
 	
 def configuration_menu(message):
     """2.3-3"""
-    
+    user = read_exodus_user(message.chat.id) 
     markup = types.ReplyKeyboardMarkup()
     btn1 = types.KeyboardButton(text='Редактировать реквизиты')
-    btn2 = types.KeyboardButton(text='Настройки уведомлений')
+#    btn2 = types.KeyboardButton(text='Настройки уведомлений')
 #    btn3 = types.KeyboardButton(text='Валюта')
     btn4 = types.KeyboardButton(text='Главное меню')
     markup.row(btn1)
-    markup.row(btn2)
+#    markup.row(btn2)
 #    markup.row(btn3,btn4)                    # ________________ TODO
-    markup.row(btn4)                    # ________________ TODO
-    bot_text = 'Ваши текущие Настройки:\n\
+    markup.row(btn4)                   
+    bot_text = f'Ваши текущие Настройки:\n\
 \n\
-Валюта: <текущая валюта>\n\
+Валюта: {user.currency}\n\
 Уведомления: <статус уведомлений>\n\
 \n\
-Реквизиты:\n\
-\n\
-1. <название> <значение>  (по умолчанию)\n\
-2. <название> <значение>\n\
-...'
-    bot.send_message(message.chat.id, bot_text, reply_markup=markup)
+Реквизиты:'
+    requisites = read_requisites_user(message.chat.id)
+    if requisites == []:
+        bot_text = bot_text + '\nВы не указали реквезиты'
+    else:
+        n = 0
+        for requisite in requisites:
+            n += 1
+            bot_text += f'\n{n}. {requisite.name} - {requisite.value}'
+    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
+    bot.register_next_step_handler(msg, configuration_check)
 	
 def configuration_check(message):
     """3"""
-    
     text = message.text
     if text == 'Редактировать реквизиты':
-        markup = types.ReplyKeyboardMarkup()
-        btn1 = types.KeyboardButton('Карта Сбербанка (по умолчанию)')
-        btn2 = types.KeyboardButton('PayPal')
-        btn3 = types.KeyboardButton('Добавить реквизиты')
-        btn4 = types.KeyboardButton('Назад')
-        markup.row(btn1)
-        markup.row(btn2)
-        markup.row(btn3, btn4)
-        msg = bot.send_message(message.chat.id, 'Выберите реквизиты для редактирования:', reply_markup=markup)
-        bot.register_next_step_handler(msg, edit_details)
+        edit_requisites(message)
         return
     elif text == 'Настройки уведомлений':
         bot.send_message(message.chat.id, 'Настройки уведомлений')     # TODO
+        global_menu(message)
+        return
+    elif text == 'Главное меню':
         global_menu(message)
         return
     elif text == 'Валюта':
@@ -211,7 +208,103 @@ def configuration_check(message):
         bot.register_next_step_handler(msg, config_wizzard_currency)
         return	
 
+		
+def edit_requisites(message):
+    requisites = read_requisites_user(message.chat.id)
+    markup = types.ReplyKeyboardMarkup()
+    if requisites != []:
+        for requisite in requisites:
+            btn = types.KeyboardButton(requisite.name)
+            markup.row(btn)
+			
+    btn3 = types.KeyboardButton('Добавить реквизиты')
+    btn4 = types.KeyboardButton('Назад')
+    markup.row(btn3, btn4)
 	
+    msg = bot.send_message(message.chat.id, 'Выберите реквизиты для редактирования:', reply_markup=markup)
+    bot.register_next_step_handler(msg, edit_requisites_check)		
+
+	
+def edit_requisites_check(message):
+    bot.delete_message(message.chat.id, message.message_id)
+    text = message.text
+    if text == 'Добавить реквизиты':
+        add_requisite_name(message)
+        return
+    elif text == 'Назад':
+        configuration_menu(message)
+        return		
+    else: 
+        msg = bot.send_message(message.chat.id, 'Выберите пункт меню 222')
+        bot.register_next_step_handler(msg, edit_requisites_check)
+        return		
+    return
+	
+	
+def add_requisite_name(message):
+    bot_text = f'Введите название реквизита (например "Карта Сбербанка", "Счет в SKB" или "PayPal")'
+    markup = types.ReplyKeyboardRemove(selective=False)
+    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
+    bot.register_next_step_handler(msg, add_requisite_value)	
+    return
+	
+def add_requisite_value(message):
+    requisite_name = message.text
+    bot_text = f'Введите только номер счета, карты или идентификатор (чтобы его легче было скопировать)'
+    markup = types.ReplyKeyboardRemove(selective=False)
+    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
+    bot.register_next_step_handler(msg, pre_save_requisite, requisite_name)	    
+    return
+	
+
+def pre_save_requisite(message, requisite_name):
+    requisite_value = message.text
+    bot_text = f'Название: {requisite_name}\n\
+Значение: {requisite_value}\n\
+Данные введены верно?'
+    markup = types.ReplyKeyboardMarkup()
+    btn1 = types.KeyboardButton(text='Нет')
+    btn2 = types.KeyboardButton(text='Да')
+    btn3 = types.KeyboardButton(text='Да, сделать реквизитами по умолчанию')
+    btn4 = types.KeyboardButton(text='Отмена')
+    markup.row(btn1,btn2)
+    markup.row(btn3)
+    markup.row(btn4)
+    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
+    bot.register_next_step_handler(msg, pre_save_requisite_check, requisite_name, requisite_value)
+    return
+	
+
+def pre_save_requisite_check(message, requisite_name, requisite_value):
+    bot.delete_message(message.chat.id, message.message_id)
+    text = message.text
+    if text == 'Нет':
+        add_requisite_name(message)
+        return
+    elif text == 'Да':
+        save_requisite(message, requisite_name, requisite_value)
+        return
+    elif text == 'Да, сделать реквизитами по умолчанию':
+        save_requisite(message, requisite_name, requisite_value, default=True)
+        return	
+    elif text == 'Отмена':
+        configuration_menu(message)
+        return		
+    else: 
+        msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
+        bot.register_next_step_handler(msg, pre_save_requisite_check)
+        return		
+    return    
+		
+
+def save_requisite(message,requisite_name, requisite_value, default=False):
+    if default:
+        requisite_name = requisite_name + " (по умолчанию)"
+    create_requisites_user(telegram_id=message.chat.id, name=requisite_name, value=requisite_value)
+    bot.send_message(message.chat.id, 'Реквизиты сохранены')
+    global_menu(message)
+    return
+		
 def transactions_menu(message):
     """2.4"""
     
@@ -1704,119 +1797,6 @@ def config_wizzard_currency(message):
     else:
         msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
         bot.register_next_step_handler(msg, config_wizzard_currency)	
-
-
-
-
-details = {} #TODO, из бд
-def add_details(message):
-    """3.1"""
-    name = bot.send_message(message.chat.id, 'Введите название реквизита (например "Карта Сбербанка", "Счет в SKB" или "PayPal"):')
-    details[str(message.from_user.id)] = [name]
-    bot.register_next_step_handler(name, values_details)
-    return
-
-def add_paypal(message): #Нет
-    """3.1"""
-    global_menu(message)
-    return
-
-def add_savings_bank(message): #TODO
-    """3.1"""
-    markup = types.ReplyKeyboardMarkup()
-    btn1 = types.KeyboardButton('Редактировать данные')
-    btn2 = types.KeyboardButton('Сделать реквизитами по умолчанию')
-    btn3 = types.KeyboardButton('Удалить')
-    btn4 = types.KeyboardButton('Назад')
-    markup.row(btn1)
-    markup.row(btn2)
-    markup.row(btn3, btn4)
-    msg = bot.send_message(message.chat.id, 'Название: Карта Сбербанка\nЗначение: 0809 **** **** 6574', reply_markup=markup)
-    bot.register_next_step_handler(msg, make_savings_bank)
-    return
-
-def remove_details(message): #TODO
-    """3.1"""
-    markup = types.ReplyKeyboardMarkup()
-    btn1 = types.KeyboardButton('Да, удалить')
-    btn2 = types.KeyboardButton('Нет')
-    markup.row(btn1, btn2)
-    msg = bot.send_message(message.chat.id, 'Вы собираетесь удалить реквизиты:\n\nНазвание: Карта Сбербанка\nЗначение: 0809 **** **** 6574', reply_markup=markup)
-    bot.register_next_step_handler(msg, parameters_remove_details)
-    return
-
-def parameters_remove_details(message): #TODO
-    """3.1"""
-    text = message.text
-    if text == 'Да, удалить': #DB
-        configuration_check(message)
-    elif text == 'Нет':
-        add_savings_bank(message)
-    return
-
-
-def make_savings_bank(message): #TODO
-    """3.1"""
-    text = message.text
-    if text == 'Редактировать данные':
-        configuration_check(message)
-    elif text == 'Сделать реквизитами по умолчанию':
-        configuration_check(message)
-    elif text == 'Удалить':
-        remove_details(message)
-    elif text == 'Назад':
-        configuration_check(message)
-        return
-
-
-def edit_details(message):
-    """3.1"""
-    text = message.text
-    if text == 'Карта Сбербанка (по умолчанию)':
-        add_savings_bank(message)
-    elif text == 'PayPal':
-        global_menu(message)
-    elif text == 'Добавить реквизиты':
-        add_details(message)
-    elif text == 'Назад':
-        configuration_check(message)
-        return
-
-def values_details(message):
-    """3.1"""
-    values = bot.send_message(message.chat.id, 'Введите только номер счета, карты или идентификатор (чтобы его легче было скопировать):')
-    details[str(message.from_user.id)] += [values]
-    bot.register_next_step_handler(values, make_details)
-    return
-
-def make_details(message):
-    """3.1"""
-    markup = types.ReplyKeyboardMarkup()
-    btn1 = types.KeyboardButton('Нет')
-    btn2 = types.KeyboardButton('Да')
-    btn3 = types.KeyboardButton('Да, сделать реквизитами по умолчанию')
-    btn4 = types.KeyboardButton('Отмена')
-    markup.row(btn1, btn2)
-    markup.row(btn3)
-    markup.row(btn4)
-    msg = bot.send_message(message.chat.id, f'Название: {details[str(message.from_user.id)][0]}\nЗначение: {details[str(message.from_user.id)][1]}\n\nДанные введены верно?', reply_markup=markup)
-    details.pop(str(message.from_user.id), None)
-    bot.register_next_step_handler(msg, parameters_details)
-
-
-def parameters_details(message):
-    """3.1"""
-    text = message.text
-    if text == 'Нет':
-        add_details(message)
-    elif text == 'Да':
-        global_menu(message)
-    elif text == 'Да, сделать реквизитами по умолчанию':
-        global_menu(message)
-    elif text == 'Отмена':
-        global_menu(message)
-        return
-
 
 
 
