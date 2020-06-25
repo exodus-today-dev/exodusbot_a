@@ -257,9 +257,8 @@ def update_intention(intention_id, status=None, payment=None):
 
 #-----------------------requisites-------------------
 # Create
-def create_requisites_user(requisites_id, telegram_id, name='', value=''):
-    requisites = Requisites(requisites_id=requisites_id,
-                               telegram_id=telegram_id,
+def create_requisites_user(telegram_id, name='', value=''):
+    requisites = Requisites(telegram_id=telegram_id,
                                name=name,
                                value=value)
 
@@ -268,13 +267,13 @@ def create_requisites_user(requisites_id, telegram_id, name='', value=''):
 
 
 # Read
-def read_requisites_user(requisites_id):
-    requisites_user = session.query(Requisites).filter_by(requisites_id=requisites_id).first()
+def read_requisites_user(telegram_id):
+    requisites_user = session.query(Requisites).filter_by(telegram_id=telegram_id).all()
     return requisites_user
 
 
 # Update
-def update_requisites_user(requisites_id, telegram_id, name='', value=''):
+def update_requisites_user(requisites_id, name='', value=''):
     requisites_user = session.query(Requisites).filter_by(requisites_id=requisites_id).first()
     requisites_user.name = name
     requisites_user.value = value
