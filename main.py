@@ -23,7 +23,8 @@ from models import (read_exodus_user, create_event, session,
                     Exodus_Users, update_exodus_user, create_exodus_user,
                     read_rings_help, create_rings_help, create_intention,
                     update_rings_help, read_intention, read_intention_by_id,
-                    update_intention,read_requisites_user, create_requisites_user)
+                    update_intention,read_requisites_user, create_requisites_user,
+					read_requisites_name,update_requisites_user, delete_requisites_user)
 
 from events import invitation_help_orange, invitation_help_red
 
@@ -81,6 +82,7 @@ def get_left_days():
 
 
 # ------------------------------------------------------------------		
+
 
 
 # -------------- G L O B A L   M E N U ---------
@@ -180,9 +182,10 @@ def configuration_menu(message):
 	
 def configuration_check(message):
     """3"""
+    bot.delete_message(message.chat.id, message.message_id)
     text = message.text
     if text == 'Редактировать реквизиты':
-        edit_requisites(message)
+        requisites_wizard(message)
         return
     elif text == 'Настройки уведомлений':
         bot.send_message(message.chat.id, 'Настройки уведомлений')     # TODO
@@ -209,55 +212,153 @@ def configuration_check(message):
         return	
 
 		
-def edit_requisites(message):
+def requisites_wizard(message):
     requisites = read_requisites_user(message.chat.id)
     markup = types.ReplyKeyboardMarkup()
-    if requisites != []:
+    tmp_list = []
+    if requisites != []:          
         for requisite in requisites:
-            btn = types.KeyboardButton(requisite.name)
-            markup.row(btn)
+            if requisite.is_default:
+                tmp_list.append(requisite.name+' (по умолчанию)')
+            else:
+                tmp_list.append(requisite.name)
+        for word in tmp_list:
+            btn = types.KeyboardButton(word)
+            markup.row(btn)            
+
 			
+			
+			
+			
+
     btn3 = types.KeyboardButton('Добавить реквизиты')
     btn4 = types.KeyboardButton('Назад')
     markup.row(btn3, btn4)
 	
     msg = bot.send_message(message.chat.id, 'Выберите реквизиты для редактирования:', reply_markup=markup)
-    bot.register_next_step_handler(msg, edit_requisites_check)		
+    bot.register_next_step_handler(msg, requisites_wizard_check)		
 
 	
-def edit_requisites_check(message):
+def requisites_wizard_check(message):
     bot.delete_message(message.chat.id, message.message_id)
     text = message.text
-    if text == 'Добавить реквизиты':
+    requisites = read_requisites_user(message.chat.id)
+    tmp_list = []
+    if requisites != []:
+        for requisite in requisites:
+            if requisite.is_default:
+                tmp_list.append(requisite.name+' (по умолчанию)')
+            else:
+                tmp_list.append(requisite.name)
+    if text in tmp_list:
+        select_requisite(message)
+        return
+    elif text == 'Добавить реквизиты':
         add_requisite_name(message)
         return
     elif text == 'Назад':
         configuration_menu(message)
         return		
     else: 
-        msg = bot.send_message(message.chat.id, 'Выберите пункт меню 222')
-        bot.register_next_step_handler(msg, edit_requisites_check)
+        msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
+        bot.register_next_step_handler(msg, requisites_wizard_check)
         return		
+    return
+
+
+def select_requisite(message):
+    text = message.text
+
+    if text.find('по умолчанию') > -1:
+        bot.send_message(message.chat.id, 'Реквизиты по умолчанию:')
+        text = text[:-15]
+    requisite = read_requisites_name(message.chat.id, text)
+    text_bot = f"Название: {requisite.name}\n\
+Значение: {requisite.value}"
+    markup = types.ReplyKeyboardMarkup()
+    btn1 = types.KeyboardButton(text='Редактировать данные')
+    btn2 = types.KeyboardButton(text='Сделать реквизитами по умолчанию')
+    btn3 = types.KeyboardButton(text='Удалить')
+    btn4 = types.KeyboardButton(text='Назад')
+    markup.row(btn1,btn2)
+    markup.row(btn3)
+    markup.row(btn4)
+    msg = bot.send_message(message.chat.id, text_bot, reply_markup=markup)
+    bot.register_next_step_handler(msg, select_requisite_check, requisite)	
+    return
+	
+def select_requisite_check(message, requisite):
+    bot.delete_message(message.chat.id, message.message_id)
+    text = message.text
+    if text == 'Редактировать данные':
+        add_requisite_name(message, requisite.requisites_id)
+        return
+    elif text == 'Сделать реквизитами по умолчанию':
+        unmark_default_requisites(message.chat.id)
+        update_requisites_user(requisite.requisites_id,requisite.name,requisite.value, True)
+        bot.send_message(message.chat.id, 'Реквизиты сохранены')
+        requisites_wizard(message)
+        return
+    elif text == 'Удалить':
+        delete_requisite(message,requisite)
+        return	
+    elif text == 'Назад':
+        requisites_wizard(message)
+        return		
+    else: 
+        msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
+        bot.register_next_step_handler(msg, select_requisite_check)
+        return		        
+    return
+
+def delete_requisite(message,requisite):
+    bot_text = f"вы собираетесь удалить реквизиты:\n\
+\n\
+Название: {requisite.name}\n\
+Значение: {requisite.value}"
+    markup = types.ReplyKeyboardMarkup()
+    btn1 = types.KeyboardButton(text='Да, удалить')
+    btn2 = types.KeyboardButton(text='Нет')
+    markup.row(btn1,btn2)
+    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
+    bot.register_next_step_handler(msg, delete_requisite_check, requisite)
+
+	
+def delete_requisite_check(message, requisite):
+    text = message.text
+    if text == 'Да, удалить':
+        delete_requisites_user(requisite.requisites_id)
+        bot.send_message(message.chat.id, "Реквизит удалён")
+        bot.clear_step_handler(message)
+        requisites_wizard(message)
+        return
+    elif text == 'Нет':
+        select_requisite(message,requisite.name)
+        return
+    else: 
+        msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
+        bot.register_next_step_handler(msg, delete_requisite_check, requisite)
+        return	
     return
 	
 	
-def add_requisite_name(message):
+def add_requisite_name(message, edit_id=0):
     bot_text = f'Введите название реквизита (например "Карта Сбербанка", "Счет в SKB" или "PayPal")'
     markup = types.ReplyKeyboardRemove(selective=False)
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
-    bot.register_next_step_handler(msg, add_requisite_value)	
+    bot.register_next_step_handler(msg, add_requisite_value, edit_id)	
     return
 	
-def add_requisite_value(message):
+def add_requisite_value(message, edit_id=0):
     requisite_name = message.text
     bot_text = f'Введите только номер счета, карты или идентификатор (чтобы его легче было скопировать)'
     markup = types.ReplyKeyboardRemove(selective=False)
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
-    bot.register_next_step_handler(msg, pre_save_requisite, requisite_name)	    
+    bot.register_next_step_handler(msg, pre_save_requisite, requisite_name, edit_id)	    
     return
 	
 
-def pre_save_requisite(message, requisite_name):
+def pre_save_requisite(message, requisite_name, edit_id=0):
     requisite_value = message.text
     bot_text = f'Название: {requisite_name}\n\
 Значение: {requisite_value}\n\
@@ -271,22 +372,44 @@ def pre_save_requisite(message, requisite_name):
     markup.row(btn3)
     markup.row(btn4)
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
-    bot.register_next_step_handler(msg, pre_save_requisite_check, requisite_name, requisite_value)
+    bot.register_next_step_handler(msg, pre_save_requisite_check, requisite_name, requisite_value, edit_id)
     return
 	
 
-def pre_save_requisite_check(message, requisite_name, requisite_value):
+#---------------------
+def unmark_default_requisites(telegram_id):
+    all = read_requisites_user(telegram_id)
+    for row in all:
+        update_requisites_user(row.requisites_id, row.name, row.value, False)
+    return
+#---------------------	
+	
+	
+	
+def pre_save_requisite_check(message, requisite_name, requisite_value, edit_id=0):
     bot.delete_message(message.chat.id, message.message_id)
     text = message.text
+	
     if text == 'Нет':
         add_requisite_name(message)
         return
     elif text == 'Да':
-        save_requisite(message, requisite_name, requisite_value)
+        if edit_id != 0:
+            update_requisites_user(edit_id,requisite_name,requisite_value)
+        else:
+            create_requisites_user(telegram_id=message.chat.id, name=requisite_name, value=requisite_value)
+        bot.send_message(message.chat.id, 'Реквизиты сохранены')
+        requisites_wizard(message)
         return
     elif text == 'Да, сделать реквизитами по умолчанию':
-        save_requisite(message, requisite_name, requisite_value, default=True)
-        return	
+        unmark_default_requisites(message.chat.id)
+        if edit_id != 0:
+            update_requisites_user(edit_id,requisite_name,requisite_value, True)
+        else:
+            create_requisites_user(message.chat.id, requisite_name, requisite_value, True)
+        bot.send_message(message.chat.id, 'Реквизиты сохранены')
+        requisites_wizard(message)
+        return
     elif text == 'Отмена':
         configuration_menu(message)
         return		
@@ -297,14 +420,11 @@ def pre_save_requisite_check(message, requisite_name, requisite_value):
     return    
 		
 
-def save_requisite(message,requisite_name, requisite_value, default=False):
-    if default:
-        requisite_name = requisite_name + " (по умолчанию)"
-    create_requisites_user(telegram_id=message.chat.id, name=requisite_name, value=requisite_value)
-    bot.send_message(message.chat.id, 'Реквизиты сохранены')
-    global_menu(message)
-    return
-		
+	
+	
+	
+	
+	
 def transactions_menu(message):
     """2.4"""
     
@@ -465,8 +585,10 @@ def print_members_list_in_network(message, member_id, direction):
                 user = read_exodus_user(row.from_id)
             elif direction == 'out':
                 user = read_exodus_user(row.to_id)
-
-            status = get_status(user.status)
+            try:
+                status = get_status(user.status)                #TODO отваливается при пустом или не существующем пользователе
+            except:
+                status = ''
             msg_text = '{i}. {first_name} {last_name}, {status}'.format(
                 i=i+1, first_name=user.first_name,
                 last_name=user.last_name, status=status)

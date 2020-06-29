@@ -3,6 +3,7 @@ from sqlalchemy import Column, String, Integer, DateTime, Date, Float, Boolean, 
 from sqlalchemy.ext.declarative import declarative_base  
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import text
+from sqlalchemy import desc
 
 from datetime import datetime, date
 
@@ -90,6 +91,7 @@ class Requisites(base):
     telegram_id = Column(Integer)
     name = Column(String(128), nullable=False)
     value = Column(String(128), nullable=False)
+    is_default = Column(Boolean)
 
 	
 Session = sessionmaker(db)  
@@ -257,10 +259,11 @@ def update_intention(intention_id, status=None, payment=None):
 
 #-----------------------requisites-------------------
 # Create
-def create_requisites_user(telegram_id, name='', value=''):
+def create_requisites_user(telegram_id, name='', value='', is_default=False):
     requisites = Requisites(telegram_id=telegram_id,
                                name=name,
-                               value=value)
+                               value=value, 
+							   is_default=is_default)
 
     session.add(requisites)
     session.commit()
@@ -268,15 +271,21 @@ def create_requisites_user(telegram_id, name='', value=''):
 
 # Read
 def read_requisites_user(telegram_id):
-    requisites_user = session.query(Requisites).filter_by(telegram_id=telegram_id).all()
+    requisites_user = session.query(Requisites).filter_by(telegram_id=telegram_id).order_by(desc(Requisites.is_default)).all()
     return requisites_user
 
+def read_requisites_name(telegram_id, requisites_name):
+    search = f"%{requisites_name}%"
+    requisites_user = session.query(Requisites).filter(Requisites.name.like(search)).filter_by(telegram_id=telegram_id).first()
+    return requisites_user
+	
 
 # Update
-def update_requisites_user(requisites_id, name='', value=''):
+def update_requisites_user(requisites_id, name='', value='', is_default=False):
     requisites_user = session.query(Requisites).filter_by(requisites_id=requisites_id).first()
     requisites_user.name = name
     requisites_user.value = value
+    requisites_user.is_default = is_default
 
     session.commit()
 
