@@ -182,7 +182,10 @@ def configuration_menu(message):
 	
 def configuration_check(message):
     """3"""
-    bot.delete_message(message.chat.id, message.message_id)
+    try:
+        bot.delete_message(message.chat.id, message.message_id)
+    except:
+        pass
     text = message.text
     if text == 'Редактировать реквизиты':
         requisites_wizard(message)
@@ -1240,10 +1243,10 @@ def obligation_for_needy(message):
     intention_id = transaction[message.chat.id]
     intention = read_intention_by_id(intention_id)
     user_to = read_exodus_user(telegram_id=intention.to_id)
-    status = get_status(user_to.status)				  
+    status = get_status(user_to.status)
+    requisites = read_requisites_user(user_to.telegram_id)
     bot_text = f"У Вас обязательство перед участником {user_to.first_name} {user_to.last_name} статус {status} на сумму {intention.payment} {intention.currency}\n\
-Деньги можно отправить на реквизиты:\n\
-1. <название>"
+Деньги можно отправить на реквизиты:"
 # отдельное сообщени для реквизитов - 
 # <значение> (чтобы удобно скопировать)
     markup = types.ReplyKeyboardMarkup()
@@ -1253,7 +1256,12 @@ def obligation_for_needy(message):
     markup.row(btn1)
     markup.row(btn2)
     markup.row(btn3)
+    bot.send_message(message.chat.id, bot_text, reply_markup=markup)
+	
+    bot.send_message(message.chat.id, f"{requisites[0].name}")
+    bot_text = f"{requisites[0].value}"
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
+    
     bot.register_next_step_handler(msg,obligation_for_needy_check)  
     return
 
@@ -1283,9 +1291,10 @@ def obligation_sent_confirm(message):
     bot.delete_message(message.chat.id, message.message_id)    
     intention_id = transaction[message.chat.id]
     intention = read_intention_by_id(intention_id)
-    user_to = read_exodus_user(telegram_id=intention.to_id)		  
+    user_to = read_exodus_user(telegram_id=intention.to_id)	
+    requisites = read_requisites_user(user_to.telegram_id)	
     bot_text = f"Пожалуйста подтвердите, что вы отправили {intention.payment} {intention.currency}\
-	Участнику {user_to.first_name} {user_to.last_name} на реквизиты <название> <значение>:>"              # TODO сделать и подвязать реквизиты
+	Участнику {user_to.first_name} {user_to.last_name} на реквизиты {requisites[0].name} {requisites[0].value}:"              # TODO сделать и подвязать реквизиты
     markup = types.ReplyKeyboardMarkup()
     btn1 = types.KeyboardButton(text='Да')
     btn2 = types.KeyboardButton(text='Нет')
@@ -1704,13 +1713,14 @@ def executed_confirm(message):
     intention_id = transaction[message.chat.id]
     intention = read_intention_by_id(intention_id=intention_id)
     user = read_exodus_user(telegram_id=intention.from_id)
+    requisites = read_requisites_user(message.chat.id)
     bot_text = f"Пожалуйста подтвердите, что вы проверили свои реквизиты и убедились в том, что получили деньги:\n\
 \n\
 Дата: {intention.create_date.strftime('%d %B %Y')}\n\
 Время: {intention.create_date.strftime('%I:%M%p')}\n\
 Получатель: {user.first_name} {user.last_name} {get_status}\n\
 Сумма: {intention.payment} {intention.currency}\n\
-Реквизиты: <название> <значение>"
+Реквизиты: {requisites[0].name} {requisites[0].value}"
     markup = types.ReplyKeyboardMarkup()
     btn1 = types.KeyboardButton(text="Да, я получил")
     btn2 = types.KeyboardButton(text='Назад')
@@ -1795,13 +1805,14 @@ def executed_not_confirm(message):
     intention_id = transaction[message.chat.id]
     intention = read_intention_by_id(intention_id=intention_id)
     user = read_exodus_user(telegram_id=intention.to_id)
+    requisites = read_requisites_user(intention.to_id)
     bot_text = f"Исполненное мной обязательство не было подтверждено:\n\
 \n\
 Дата: {intention.create_date.strftime('%d %B %Y')}\n\
 Время: {intention.create_date.strftime('%I:%M%p')}\n\
 Получатель: {user.first_name} {user.last_name} {get_status(user.status)}\n\
 Сумма: {intention.payment} {intention.currency}\n\
-Реквизиты: <название> <значение>"                                       # TODO реквезиты
+Реквизиты: {requisites[0].name} {requisites[0].value}"                                       # TODO реквезиты
     markup = types.ReplyKeyboardMarkup()
     btn1 = types.KeyboardButton(text="Я отправил эту сумму")
     btn2 = types.KeyboardButton(text='Назад')
@@ -2784,7 +2795,7 @@ def welcome(message):
 	
 	
 @bot.callback_query_handler(func=lambda call: call.data[0:18] == 'orange_invitation-')
-def get_day(call):
+def orange_invitation(call):
     global_menu(call.message)
     bot.delete_message(call.message.chat.id,call.message.message_id)
     user_id = call.data[18:]    
@@ -2792,7 +2803,7 @@ def get_day(call):
     return
 
 @bot.callback_query_handler(func=lambda call: call.data[0:15] == 'red_invitation-')
-def get_day(call):
+def red_invitation(call):
     global_menu(call.message)
     bot.delete_message(call.message.chat.id,call.message.message_id)
     user_id = call.data[15:]    
