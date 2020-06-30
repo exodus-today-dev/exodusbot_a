@@ -2196,7 +2196,7 @@ def show_all_members_check(message):
 def start_red_invitation(message,user_to):
     """6.2"""
     user = read_exodus_user(telegram_id=user_to)
-    ring = read_rings_help(user_to.telegram_id)
+    ring = read_rings_help(user.telegram_id)
 	
     intention = read_intention(message.chat.id, user.telegram_id, 1)
     if intention is not None:
