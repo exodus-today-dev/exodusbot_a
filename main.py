@@ -1245,6 +1245,12 @@ def obligation_for_needy(message):
     user_to = read_exodus_user(telegram_id=intention.to_id)
     status = get_status(user_to.status)
     requisites = read_requisites_user(user_to.telegram_id)
+    if requisites == []:
+        req_name = 'не указан'
+        req_value = 'не указан'
+    else:
+        req_name = requisites[0].name
+        req_value = requisites[0].value
     bot_text = f"У Вас обязательство перед участником {user_to.first_name} {user_to.last_name} статус {status} на сумму {intention.payment} {intention.currency}\n\
 Деньги можно отправить на реквизиты:"
 # отдельное сообщени для реквизитов - 
@@ -1258,8 +1264,8 @@ def obligation_for_needy(message):
     markup.row(btn3)
     bot.send_message(message.chat.id, bot_text, reply_markup=markup)
 	
-    bot.send_message(message.chat.id, f"{requisites[0].name}")
-    bot_text = f"{requisites[0].value}"
+    bot.send_message(message.chat.id, f"{req_name}")
+    bot_text = f"{req_value}"
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
     
     bot.register_next_step_handler(msg,obligation_for_needy_check)  
@@ -1292,9 +1298,15 @@ def obligation_sent_confirm(message):
     intention_id = transaction[message.chat.id]
     intention = read_intention_by_id(intention_id)
     user_to = read_exodus_user(telegram_id=intention.to_id)	
-    requisites = read_requisites_user(user_to.telegram_id)	
+    requisites = read_requisites_user(user_to.telegram_id)
+    if requisites == []:
+        req_name = 'не указан'
+        req_value = 'не указан'
+    else:
+        req_name = requisites[0].name
+        req_value = requisites[0].value
     bot_text = f"Пожалуйста подтвердите, что вы отправили {intention.payment} {intention.currency}\
-	Участнику {user_to.first_name} {user_to.last_name} на реквизиты {requisites[0].name} {requisites[0].value}:"              # TODO сделать и подвязать реквизиты
+	Участнику {user_to.first_name} {user_to.last_name} на реквизиты {req_name} {req_value}:"
     markup = types.ReplyKeyboardMarkup()
     btn1 = types.KeyboardButton(text='Да')
     btn2 = types.KeyboardButton(text='Нет')
@@ -1674,13 +1686,19 @@ def executed_not_confirm_me(message):
     intention = read_intention_by_id(intention_id=intention_id)
     user = read_exodus_user(telegram_id=intention.to_id)
     requisites = read_requisites_user(intention.to_id)
+    if requisites == []:
+        req_name = 'не указан'
+        req_value = 'не указан'
+    else:
+        req_name = requisites[0].name
+        req_value = requisites[0].value
     bot_text = f"Я не подтвердил исполненное обязательство в мою пользу:\n\
 \n\
 Дата: {intention.create_date.strftime('%d %B %Y')}\n\
 Время: {intention.create_date.strftime('%I:%M%p')}\n\
 Отправитель: {user.first_name} {user.last_name} {get_status}\n\
 Сумма: {intention.payment} {intention.currency}\n\
-Реквизиты: {requisites[0].name} {requisites[0].value}"                                       # TODO реквезиты
+Реквизиты: {req_name} {req_value}"                                       # TODO реквезиты
     markup = types.ReplyKeyboardMarkup()
     btn1 = types.KeyboardButton(text="Я получил эту сумму")
     btn2 = types.KeyboardButton(text="Повторный запрос на исполнение")
@@ -1715,13 +1733,19 @@ def executed_confirm(message):
     intention = read_intention_by_id(intention_id=intention_id)
     user = read_exodus_user(telegram_id=intention.from_id)
     requisites = read_requisites_user(message.chat.id)
+    if requisites == []:
+        req_name = 'не указан'
+        req_value = 'не указан'
+    else:
+        req_name = requisites[0].name
+        req_value = requisites[0].value
     bot_text = f"Пожалуйста подтвердите, что вы проверили свои реквизиты и убедились в том, что получили деньги:\n\
 \n\
 Дата: {intention.create_date.strftime('%d %B %Y')}\n\
 Время: {intention.create_date.strftime('%I:%M%p')}\n\
 Получатель: {user.first_name} {user.last_name} {get_status}\n\
 Сумма: {intention.payment} {intention.currency}\n\
-Реквизиты: {requisites[0].name} {requisites[0].value}"
+Реквизиты: {req_name} {req_value}"
     markup = types.ReplyKeyboardMarkup()
     btn1 = types.KeyboardButton(text="Да, я получил")
     btn2 = types.KeyboardButton(text='Назад')
@@ -1807,13 +1831,19 @@ def executed_not_confirm(message):
     intention = read_intention_by_id(intention_id=intention_id)
     user = read_exodus_user(telegram_id=intention.to_id)
     requisites = read_requisites_user(intention.to_id)
+    if requisites == []:
+        req_name = 'не указан'
+        req_value = 'не указан'
+    else:
+        req_name = requisites[0].name
+        req_value = requisites[0].value
     bot_text = f"Исполненное мной обязательство не было подтверждено:\n\
 \n\
 Дата: {intention.create_date.strftime('%d %B %Y')}\n\
 Время: {intention.create_date.strftime('%I:%M%p')}\n\
 Получатель: {user.first_name} {user.last_name} {get_status(user.status)}\n\
 Сумма: {intention.payment} {intention.currency}\n\
-Реквизиты: {requisites[0].name} {requisites[0].value}"                                       # TODO реквезиты
+Реквизиты: {req_name} {req_value}"                                       # TODO реквезиты
     markup = types.ReplyKeyboardMarkup()
     btn1 = types.KeyboardButton(text="Я отправил эту сумму")
     btn2 = types.KeyboardButton(text='Назад')
