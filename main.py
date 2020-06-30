@@ -1673,13 +1673,14 @@ def executed_not_confirm_me(message):
     intention_id = transaction[message.chat.id]
     intention = read_intention_by_id(intention_id=intention_id)
     user = read_exodus_user(telegram_id=intention.to_id)
+    requisites = read_requisites_user(intention.to_id)
     bot_text = f"Я не подтвердил исполненное обязательство в мою пользу:\n\
 \n\
 Дата: {intention.create_date.strftime('%d %B %Y')}\n\
 Время: {intention.create_date.strftime('%I:%M%p')}\n\
 Отправитель: {user.first_name} {user.last_name} {get_status}\n\
 Сумма: {intention.payment} {intention.currency}\n\
-Реквизиты: <название> <значение>"                                       # TODO реквезиты
+Реквизиты: {requisites[0].name} {requisites[0].value}"                                       # TODO реквезиты
     markup = types.ReplyKeyboardMarkup()
     btn1 = types.KeyboardButton(text="Я получил эту сумму")
     btn2 = types.KeyboardButton(text="Повторный запрос на исполнение")
