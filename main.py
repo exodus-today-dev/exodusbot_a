@@ -2012,6 +2012,15 @@ def start_orange_invitation(message,user_to):
     """6.1"""
     user = read_exodus_user(telegram_id=user_to)
     ring = read_rings_help(user.telegram_id)
+	
+    intention = read_intention(message.chat.id, user.telegram_id, 1)
+    if intention is not None:
+        bot_text = f'Вы уже помогаете участнику {user.first_name} {user.last_name}.'
+        bot.send_message(message.chat.id, bot_text)
+        transaction[message.chat.id] = intention.intention_id
+        intention_for_needy(message)
+        return		
+	
     if ring is None:
         users_count = 0
     else:
@@ -2108,40 +2117,35 @@ def orange_invitation_wizard_check(message):   #------------------ TODO
     ring = read_rings_help(user.telegram_id)
     users_count = len(ring.help_array)
     status = 'Оранжевый \U0001f7e0'
-    bot_text = f'Записано Ваше намерение помогать участнику {user.first_name} {user.last_name} на сумму {invitation_sum} {user.currency}\n\
-\n\
-Участник {user.first_name} {user.last_name} {status}\n\
+    bot_text = f'Участник {user.first_name} {user.last_name} - {status}\n\
+Период: Ежемесячно\n\
 Собрано {user.current_payments} из {user.max_payments} {user.currency}\n\
-Ожидается {invitation_sum} {user.currency}\n\
+Ожидается {user.max_payments-user.current_payments} {user.currency}\n\
 Всего участников: {users_count}\n\
+Осталось {days_end} дней из {user.days}\n\
+Обсуждение: {user.link}\n\
 \n\
-За три дня до наступления периода бот напомнит о намерении и попросит перевести его в статус "обязательства".'
+Вы можете помочь этому участнику?\n\
+Минимальная сумма {user.min_payments} {user.currency}'
+ 
+    create_intention(message.chat.id, user.telegram_id, invitation_sum, user.currency,status=1)
+    create_event(	from_id=message.chat.id, 
+					first_name=user.first_name,            # TODO not needed
+					last_name=user.last_name,             # TODO not needed
+					status='orange', 
+					type='notice', 
+					min_payments=user.min_payments, 
+					current_payments=user.current_payments, 
+					max_payments=user.max_payments,
+					currency=user.currency, 
+					users=0, 
+					to_id=user.telegram_id, 
+					sent=False)
     bot.send_message(message.chat.id, bot_text)
-	
-    intention = read_intention(message.chat.id, user.telegram_id, 1)
-    if intention is not None:
-        bot_text = f'Вы уже помогаете участнику {user.first_name} {user.last_name}.'
-        bot.send_message(message.chat.id, bot_text)
-        transaction[message.chat.id] = intention.intention_id
-        intention_for_needy(message)
-        return
-    else:
-        create_intention(message.chat.id, user.telegram_id, invitation_sum, user.currency,status=1)
-        create_event(	from_id=message.chat.id, 
-						first_name=user.first_name,            # TODO not needed
-						last_name=user.last_name,             # TODO not needed
-						status='orange', 
-						type='notice', 
-						min_payments=user.min_payments, 
-						current_payments=user.current_payments, 
-						max_payments=user.max_payments,
-						currency=user.currency, 
-						users=0, 
-						to_id=user.telegram_id, 
-						sent=False)
-        global_menu(message,True)		
+    global_menu(message,True)		
 			
 #------------------------------------------------------		
+
 
 
 
@@ -2193,6 +2197,15 @@ def start_red_invitation(message,user_to):
     """6.2"""
     user = read_exodus_user(telegram_id=user_to)
     ring = read_rings_help(user_to.telegram_id)
+	
+    intention = read_intention(message.chat.id, user.telegram_id, 1)
+    if intention is not None:
+        bot_text = f'Вы уже помогаете участнику {user.first_name} {user.last_name}.'
+        bot.send_message(message.chat.id, bot_text)
+        transaction[message.chat.id] = intention.intention_id
+        intention_for_needy(message)
+        return	
+
     if ring is None:
         users_count = 0
     else:
@@ -2296,18 +2309,8 @@ def red_invitation_wizard_check(message):   #------------------ TODO
 \n\
 За три дня до наступления периода бот напомнит о намерении и попросит перевести его в статус "обязательства".'
 
-    bot.send_message(message.chat.id, bot_text)
-	
-    intention = read_intention(message.chat.id, user.telegram_id, 1)
-    if intention is not None:
-        bot_text = f'Вы уже помогаете участнику {user.first_name} {user.last_name}.'
-        bot.send_message(message.chat.id, bot_text)
-        transaction[message.chat.id] = intention.intention_id
-        intention_for_needy(message)
-        return
-    else:		
-        create_intention(message.chat.id, user.telegram_id, invitation_sum, user.current_payments, status=1)
-        create_event(	from_id=message.chat.id, 
+    create_intention(message.chat.id, user.telegram_id, invitation_sum, user.current_payments, status=1)
+    create_event(	from_id=message.chat.id, 
 					first_name=user.first_name,            # TODO not needed
 					last_name=user.last_name,             # TODO not needed
 					status='red', 
@@ -2319,8 +2322,8 @@ def red_invitation_wizard_check(message):   #------------------ TODO
 					users=0, 
 					to_id=user.telegram_id, 
 					sent=False)
-        global_menu(message,True)
-        return
+    bot.send_message(message.chat.id, bot_text)
+    global_menu(message,True)	
 	
 #---------------------------------------------------------			
 		
