@@ -90,6 +90,9 @@ def get_left_days():
 def global_menu(message, dont_show_status=False):
     """2.0"""
     bot.clear_step_handler(message)
+    user = read_exodus_user(message.chat.id)
+    if user is None:
+        create_exodus_user(message.from_user.id, message.from_user.first_name, message.from_user.last_name, message.from_user.username)
     user = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
 
     if user is None:
@@ -2591,7 +2594,7 @@ def red_edit_wizard_step3(message):
         bot.register_next_step_handler(msg, red_edit_wizard_step3)
         return
     user_dict[message.chat.id].days = days
-    msg = bot.send_message(message.chat.id, 'Ссылка на чат:')
+    msg = bot.send_message(message.chat.id, 'Введите ссылку на чат:')
     bot.register_next_step_handler(msg, red_edit_wizard_step35)	
 
 	
