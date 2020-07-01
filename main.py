@@ -24,7 +24,8 @@ from models import (read_exodus_user, create_event, session,
                     read_rings_help, create_rings_help, create_intention,
                     update_rings_help, read_intention, read_intention_by_id,
                     update_intention,read_requisites_user, create_requisites_user,
-					read_requisites_name,update_requisites_user, delete_requisites_user)
+					read_requisites_name,update_requisites_user, delete_requisites_user,
+					read_intention_one)
 
 from events import invitation_help_orange, invitation_help_red
 
@@ -2013,7 +2014,7 @@ def start_orange_invitation(message,user_to):
     user = read_exodus_user(telegram_id=user_to)
     ring = read_rings_help(user.telegram_id)
 	
-    intention = read_intention(message.chat.id, user.telegram_id, 1)
+    intention = read_intention_one(message.chat.id, user.telegram_id, 1)
     if intention is not None:
         bot_text = f'Вы уже помогаете участнику {user.first_name} {user.last_name}.'
         bot.send_message(message.chat.id, bot_text)
@@ -2198,7 +2199,7 @@ def start_red_invitation(message,user_to):
     user = read_exodus_user(telegram_id=user_to)
     ring = read_rings_help(user.telegram_id)
 	
-    intention = read_intention(message.chat.id, user.telegram_id, 1)
+    intention = read_intention_one(message.chat.id, user.telegram_id, 1)
     if intention is not None:
         bot_text = f'Вы уже помогаете участнику {user.first_name} {user.last_name}.'
         bot.send_message(message.chat.id, bot_text)
