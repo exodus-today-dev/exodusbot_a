@@ -2126,7 +2126,6 @@ def orange_invitation_wizard_check(message):   #------------------ TODO
 Собрано {user.current_payments} из {user.max_payments} {user.currency}\n\
 Ожидается {user.max_payments-user.current_payments} {user.currency}\n\
 Всего участников: {users_count}\n\
-Осталось {days_end} дней из {user.days}\n\
 Обсуждение: {user.link}\n\
 \n\
 Вы можете помочь этому участнику?\n\
