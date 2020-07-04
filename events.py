@@ -47,9 +47,63 @@ def notice_of_intent(event_id):
 Участник {user.first_name} {user.last_name} записал свое намерение помогать вам на сумму: {intent.payment} {event.currency}"
     bot.send_message(event.to_id, bot_text)
 
-	
-	
-	
+# 6.4
+def obligation_sended_notice(event_id):
+    event = read_event(event_id)
+
+    user = read_exodus_user(telegram_id=event.from_id)
+    first_name = user.first_name
+    last_name = user.last_name
+    intent = read_intention(event.from_id, event.to_id, 12).first() # check status
+    sum = intent.payment
+    currency = intent.currency
+
+    requisites = read_requisites_by_user_id(telegram_id=event.to_id)
+    requisites_name = requisites.name
+    requisites_value = requisites.value
+
+    message = 'Участник {first_name} {last_name} исполнил ' \
+              'обязательства на сумму {sum} {currency}.\n\n' \
+              'Пожалуйста, проверьте ваши реквизиты {req_name} {req_value} и ' \
+              'подтвердите получение:'.format(first_name=first_name,
+                                              last_name=last_name,
+                                              sum=sum, currency=currency,
+                                              req_name=requisites_name,
+                                              req_value=requisites_value)
+
+    keyboard = types.InlineKeyboardMarkup()
+    row = []
+    row.append(types.InlineKeyboardButton('Напомнить позже',
+                                          callback_data='remind_later_{}'))
+    row.append(types.InlineKeyboardButton('Да, я получил',
+                                          callback_data='send_confirmation_{}'. \
+                                          format(event.to_id)))
+    keyboard.row(*row)
+
+    bot.send_message(event.to_id, message, reply_markup=keyboard)
+    return True
+
+
+def obligation_recieved_notice(event_id):
+    pass # 6.9
+
+
+def obligation_money_requested_notice(event_id):
+    pass # 6.3
+
+
+def reminder(event_id):
+    event = read_event(event_id)
+    user = read_exodus_user(telegram_id=event.from_id)
+
+    message = "Для вас есть уведомление:"
+    keyboard = types.InlineKeyboardMarkup()
+    row = []
+    row.append(types.InlineKeyboardButton('Прочитать',
+                                          callback_data='reminder_{}'))
+    keyboard.row(*row)
+    bot.send_message(event.to_id, message, reply_markup=keyboard)
+
 
 def confirmation_of_an_obligation(message, name: str, amount: int, currency: int) -> None:
     """Information about a function.

@@ -54,7 +54,11 @@ class Events(base):
     currency = Column(String)	
     users = Column(Integer)
     to_id = Column(Integer)
+    reminder_date = Column(Date)
+    # intention_id = Column(Integer)
     sent = Column(Boolean)
+
+
 	
 class Intention (base):
     __tablename__ = 'intention'
@@ -177,7 +181,8 @@ def delete_exodus_user(telegram_id):
 	
 	
 	
-def create_event(from_id, first_name, last_name, status, type, min_payments, current_payments, max_payments, currency, users, to_id, sent=False):
+def create_event(from_id, first_name, last_name, status, type, min_payments, current_payments,
+                 max_payments, currency, users, to_id, reminder_date, sent=False):
     event = Events(	from_id = from_id, 
 					first_name = first_name, 
 					last_name = last_name, 
@@ -188,9 +193,11 @@ def create_event(from_id, first_name, last_name, status, type, min_payments, cur
 					max_payments = max_payments, 
 					currency = currency, 
 					users = users, 
-					to_id = to_id, 
+					to_id = to_id,
+                    reminder_date = reminder_date,
+                    # intention_id = intention_id,
 					sent=False)
-    session.add(event)  
+    session.add(event)
     session.commit()
 
 def update_event(event_id,sent):
@@ -198,7 +205,15 @@ def update_event(event_id,sent):
     event.sent = sent			
     session.commit()
 
-	
+def update_event_reminder_date(event_id, reminder_date):
+    event = session.query(Events).filter_by(event_id=event_id).first()
+    event.reminder_date = reminder_date
+    session.commit()
+
+def update_event_type(event_id, type):
+    event = session.query(Events).filter_by(event_id=event_id).first()
+    event.type = type
+    session.commit()
 	
 def read_event(event_id):
     event = session.query(Events).filter_by(event_id=event_id).first()
