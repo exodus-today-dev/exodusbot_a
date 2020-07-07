@@ -2122,7 +2122,7 @@ def start_orange_invitation(message,user_to):
         bot_text = f'Вы уже помогаете участнику {user.first_name} {user.last_name}.'
         bot.send_message(message.chat.id, bot_text)
         transaction[message.chat.id] = intention.intention_id
-        intention_for_needy(message)
+        intention_for_needy(message, reminder_call=False, intention_id=None)
         return		
 	
     if ring is None:
@@ -2307,7 +2307,7 @@ def start_red_invitation(message,user_to):
         bot_text = f'Вы уже помогаете участнику {user.first_name} {user.last_name}.'
         bot.send_message(message.chat.id, bot_text)
         transaction[message.chat.id] = intention.intention_id
-        intention_for_needy(message)
+        intention_for_needy(message, reminder_call=False, intention_id=None)
         return	
 
     user = user_to

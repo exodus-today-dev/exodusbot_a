@@ -257,17 +257,8 @@ def read_intention(from_id=None, to_id=None, status=None):
             intention = session.query(Intention).filter_by(to_id=to_id)
     return intention
 
-def read_intention_one(from_id=None, to_id=None, status=None):
-    if from_id is not None:
-        if status is not None:
-            intention = session.query(Intention).filter_by(from_id=from_id, status=status).first()
-        else:
-            intention = session.query(Intention).filter_by(from_id=from_id).first()
-    if to_id is not None:
-        if status is not None:
-            intention = session.query(Intention).filter_by(to_id=to_id, status=status).first()
-        else:
-            intention = session.query(Intention).filter_by(to_id=to_id).first()
+def read_intention_one(from_id, to_id, status):
+    intention = session.query(Intention).filter_by(from_id=from_id, to_id=to_id, status=status).first()
     return intention
     
 def read_intention_by_id(intention_id):
