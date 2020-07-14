@@ -2247,7 +2247,7 @@ def orange_invitation_wizard_check(message):  # ------------------ TODO
                          sent=False,
                          reminder_date=date.today())  # someday: intention_id
 
-    create_intention(message.chat.id, user.telegram_id, invitation_sum, user.currency, event, status=1)
+    create_intention(message.chat.id, user.telegram_id, invitation_sum, user.currency, status=1)
 
     bot.send_message(message.chat.id, bot_text)
     global_menu(message, True)
@@ -2433,7 +2433,7 @@ def red_invitation_wizard_check(message):  # ------------------ TODO
                          sent=False,
                          reminder_date=date.today())  # someday: intention_id
 
-    create_intention(message.chat.id, user.telegram_id, invitation_sum, user.currency, event, status=1)
+    create_intention(message.chat.id, user.telegram_id, invitation_sum, user.currency, status=1)
 
     bot.send_message(message.chat.id, bot_text)
     global_menu(message, True)
