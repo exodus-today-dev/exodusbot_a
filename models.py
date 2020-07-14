@@ -59,7 +59,7 @@ class Events(base):
     #intention_id = Column(Integer(), ForeignKey('intention.intention_id'))
     sent = Column(Boolean)
 
-    child = relationship("Intention", uselist=False, backref='events')
+    #child = relationship("Intention", uselist=False, backref='events')
 
 
 class Intention(base):
@@ -73,7 +73,7 @@ class Intention(base):
     create_date = Column(DateTime)
     status = Column(Integer)
 
-    event_id_int = Column(Integer(), ForeignKey('events.event_id'))
+    #event_id_int = Column(Integer(), ForeignKey('events.event_id'))
 
 #
 # Статусы, пока что не доконца продуманные
@@ -241,9 +241,9 @@ def update_rings_help(needy_id, help_array):
         conn.execute(u, q=help_array, id=needy_id)
 
 
-def create_intention(from_id, to_id, payment, currency, events, status=None):
+def create_intention(from_id, to_id, payment, currency, status=None):
     intention = Intention(from_id=from_id, to_id=to_id, payment=payment, currency=currency, status=status,
-                          create_date=datetime.now(), events=events)
+                          create_date=datetime.now())
     session.add(intention)
     session.commit()
 
