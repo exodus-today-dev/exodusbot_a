@@ -1,7 +1,7 @@
-from sqlalchemy import create_engine  
+from sqlalchemy import create_engine, ForeignKey
 from sqlalchemy import Column, String, Integer, DateTime, Date, Float, Boolean, ARRAY
-from sqlalchemy.ext.declarative import declarative_base  
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.sql import text
 from sqlalchemy import desc
 
@@ -14,16 +14,17 @@ db_string = "postgres://exodusdb:666777@localhost:5432/exodusdb"
 db = create_engine(config.DATABASE_URL)
 base = declarative_base()
 
-Session = sessionmaker(db)  
+Session = sessionmaker(db)
 session = Session()
 
 base.metadata.create_all(db)
 
-class Exodus_Users(base):  
+
+class Exodus_Users(base):
     __tablename__ = 'exodus_users'
 
     exodus_id = Column(Integer, primary_key=True)
-    telegram_id = Column(Integer,unique=True)
+    telegram_id = Column(Integer, unique=True)
     first_name = Column(String)
     last_name = Column(String)
     username = Column(String)
@@ -37,10 +38,10 @@ class Exodus_Users(base):
     create_date = Column(DateTime)
     days = Column(Integer)
     start_date = Column(Date)
-    
 
+# добавил внешнюю связь для двух таблиц events и intention, в надежде, что это поможет при обновлении статуса с 12 на 13
 class Events(base):
-    __tablename__ = 'events'	
+    __tablename__ = 'events'
 
     event_id = Column(Integer, primary_key=True)
     from_id = Column(Integer)
@@ -51,18 +52,19 @@ class Events(base):
     min_payments = Column(Float)
     current_payments = Column(Float)
     max_payments = Column(Float)
-    currency = Column(String)	
+    currency = Column(String)
     users = Column(Integer)
     to_id = Column(Integer)
     reminder_date = Column(Date)
-    # intention_id = Column(Integer)
+    #intention_id = Column(Integer(), ForeignKey('intention.intention_id'))
     sent = Column(Boolean)
 
+    child = relationship("Intention", uselist=False, backref='events')
 
-	
-class Intention (base):
+
+class Intention(base):
     __tablename__ = 'intention'
-	
+
     intention_id = Column(Integer, primary_key=True)
     from_id = Column(Integer)
     to_id = Column(Integer)
@@ -70,8 +72,11 @@ class Intention (base):
     currency = Column(String)
     create_date = Column(DateTime)
     status = Column(Integer)
-#	
-#Статусы, пока что не доконца продуманные
+
+    event_id_int = Column(Integer(), ForeignKey('events.event_id'))
+
+#
+# Статусы, пока что не доконца продуманные
 #	0 - отменённое намерение
 #	1 - созданное намерение
 #	10 - отменённое обязательство
@@ -85,8 +90,9 @@ class Rings_Help(base):
     __tablename__ = 'rings_help'
 
     rings_id = Column(Integer, primary_key=True)
-    needy_id = Column(Integer,unique=True)
+    needy_id = Column(Integer, unique=True)
     help_array = Column(ARRAY(Integer))
+
 
 class Requisites(base):
     __tablename__ = 'requisites'
@@ -97,50 +103,44 @@ class Requisites(base):
     value = Column(String(128), nullable=False)
     is_default = Column(Boolean)
 
-	
-Session = sessionmaker(db)  
+
+Session = sessionmaker(db)
 session = Session()
 
 base.metadata.create_all(db)
 
 
-
-
-
-
-
-
-
-
-
-
-
-# Create 
-def create_exodus_user(telegram_id, first_name, last_name, username, ref='', link='', min_payments=0, current_payments=0, max_payments=0,currency='USD', status='', days=0, start_date=date.today()):
-    exodus_user = Exodus_Users(	telegram_id = telegram_id, 
-								first_name = first_name, 
-								last_name = last_name, 
-								username = username, 
-								ref = ref,
-								link = link,
-								min_payments = min_payments,
-								current_payments = current_payments,
-								max_payments = max_payments,
-								currency = currency, 
-								status = status,
-								days = days,
-								start_date = start_date,
-								create_date = datetime.now())
-    session.add(exodus_user)  
+# Create
+def create_exodus_user(telegram_id, first_name, last_name, username, ref='', link='', min_payments=0,
+                       current_payments=0, max_payments=0, currency='USD', status='', days=0, start_date=date.today()):
+    exodus_user = Exodus_Users(telegram_id=telegram_id,
+                               first_name=first_name,
+                               last_name=last_name,
+                               username=username,
+                               ref=ref,
+                               link=link,
+                               min_payments=min_payments,
+                               current_payments=current_payments,
+                               max_payments=max_payments,
+                               currency=currency,
+                               status=status,
+                               days=days,
+                               start_date=start_date,
+                               create_date=datetime.now())
+    session.add(exodus_user)
     session.commit()
+
 
 # Read
 def read_exodus_user(telegram_id):
-    exodus_user = session.query(Exodus_Users).filter_by(telegram_id=telegram_id).first() 
+    exodus_user = session.query(Exodus_Users).filter_by(telegram_id=telegram_id).first()
     return exodus_user
 
+
 # Update
-def update_exodus_user(telegram_id, first_name=None, last_name=None, username=None, ref=None, link=None, min_payments=None,current_payments=None,max_payments=None, currency=None, status=None, days=None, start_date=None):
+def update_exodus_user(telegram_id, first_name=None, last_name=None, username=None, ref=None, link=None,
+                       min_payments=None, current_payments=None, max_payments=None, currency=None, status=None,
+                       days=None, start_date=None):
     exodus_user = session.query(Exodus_Users).filter_by(telegram_id=telegram_id).first()
     if first_name is not None:
         exodus_user.first_name = first_name
@@ -163,83 +163,87 @@ def update_exodus_user(telegram_id, first_name=None, last_name=None, username=No
     if status is not None:
         exodus_user.status = status
     if days is not None:
-        exodus_user.days = days		
+        exodus_user.days = days
     if start_date is not None:
-        exodus_user.start_date = start_date		
-		
+        exodus_user.start_date = start_date
+
     session.commit()
 
 
 # Delete
 def delete_exodus_user(telegram_id):
     exodus_user = session.query(Exodus_Users).filter_by(telegram_id=telegram_id).first()
-    session.delete(exodus_user)  
-    session.commit()  
+    session.delete(exodus_user)
+    session.commit()
 
-	
-	
-	
-	
-	
+
 def create_event(from_id, first_name, last_name, status, type, min_payments, current_payments,
                  max_payments, currency, users, to_id, reminder_date, sent=False):
-    event = Events(	from_id = from_id, 
-					first_name = first_name, 
-					last_name = last_name, 
-					status = status, 
-					type = type, 
-					min_payments = min_payments, 
-					current_payments = current_payments,
-					max_payments = max_payments, 
-					currency = currency, 
-					users = users, 
-					to_id = to_id,
-                    reminder_date = reminder_date,
-                    # intention_id = intention_id,
-					sent=False)
+    event = Events(from_id=from_id,
+                   first_name=first_name,
+                   last_name=last_name,
+                   status=status,
+                   type=type,
+                   min_payments=min_payments,
+                   current_payments=current_payments,
+                   max_payments=max_payments,
+                   currency=currency,
+                   users=users,
+                   to_id=to_id,
+                   reminder_date=reminder_date,
+                   # intention_id = intention_id,
+                   sent=False)
     session.add(event)
     session.commit()
+    return event
 
-def update_event(event_id,sent):
+
+def update_event(event_id, sent):
     event = session.query(Events).filter_by(event_id=event_id).first()
-    event.sent = sent			
+    event.sent = sent
     session.commit()
+
 
 def update_event_reminder_date(event_id, reminder_date):
     event = session.query(Events).filter_by(event_id=event_id).first()
     event.reminder_date = reminder_date
     session.commit()
 
+
 def update_event_type(event_id, type):
     event = session.query(Events).filter_by(event_id=event_id).first()
     event.type = type
     session.commit()
-	
+
+
 def read_event(event_id):
     event = session.query(Events).filter_by(event_id=event_id).first()
     return event
-	
+
 
 def create_rings_help(needy_id, help_array):
-    ring = Rings_Help(needy_id = needy_id, help_array = help_array)
+    ring = Rings_Help(needy_id=needy_id, help_array=help_array)
     session.add(ring)
-    session.commit()	
-	
+    session.commit()
+
+
 def read_rings_help(needy_id):
     ring = session.query(Rings_Help).filter_by(needy_id=needy_id).first()
     return ring
-    	
+
+
 def update_rings_help(needy_id, help_array):
-#    ring = session.query(Rings_Help).filter_by(needy_id=needy_id).first()      # так почему-то не работатет
-#    ring.help_array = help_array
-#    session.commit()
+    #    ring = session.query(Rings_Help).filter_by(needy_id=needy_id).first()      # так почему-то не работатет
+    #    ring.help_array = help_array
+    #    session.commit()
     with db.connect() as conn:
         u = text('UPDATE rings_help SET help_array = :q WHERE needy_id = :id')  # так работает
         conn.execute(u, q=help_array, id=needy_id)
-	
-	
-def create_intention(from_id,to_id,payment,currency,status=None):
-    intention = Intention(from_id = from_id, to_id = to_id, payment = payment, currency = currency, status=status, create_date=datetime.now())
+
+
+def create_intention(from_id, to_id, payment, currency, events, status=None):
+    intention = Intention(from_id=from_id, to_id=to_id, payment=payment, currency=currency, status=status,
+                          create_date=datetime.now(), events=events)
     session.add(intention)
     session.commit()
 
@@ -257,13 +261,15 @@ def read_intention(from_id=None, to_id=None, status=None):
             intention = session.query(Intention).filter_by(to_id=to_id)
     return intention
 
+
 def read_intention_one(from_id, to_id, status):
     intention = session.query(Intention).filter_by(from_id=from_id, to_id=to_id, status=status).first()
     return intention
-    
+
+
 def read_intention_by_id(intention_id):
     intention = session.query(Intention).filter_by(intention_id=intention_id).first()
-    return intention    
+    return intention
 
 
 def update_intention(intention_id, status=None, payment=None):
@@ -272,17 +278,23 @@ def update_intention(intention_id, status=None, payment=None):
         intention.status = status
     if payment is not None:
         intention.payment = payment
-    session.commit()    
-	
-	
+    session.commit()
 
-#-----------------------requisites-------------------
+
+def update_intention_from_all_params(from_id, to_id, payment, status=None):
+    intention = session.query(Intention).filter_by(from_id=from_id, to_id=to_id, payment=payment).first()
+    if status is not None:
+        intention.status = status
+    session.commit()
+
+
+# -----------------------requisites-------------------
 # Create
 def create_requisites_user(telegram_id, name='', value='', is_default=False):
     requisites = Requisites(telegram_id=telegram_id,
-                               name=name,
-                               value=value, 
-							   is_default=is_default)
+                            name=name,
+                            value=value,
+                            is_default=is_default)
 
     session.add(requisites)
     session.commit()
@@ -290,14 +302,17 @@ def create_requisites_user(telegram_id, name='', value='', is_default=False):
 
 # Read
 def read_requisites_user(telegram_id):
-    requisites_user = session.query(Requisites).filter_by(telegram_id=telegram_id).order_by(desc(Requisites.is_default)).all()
+    requisites_user = session.query(Requisites).filter_by(telegram_id=telegram_id).order_by(
+        desc(Requisites.is_default)).all()
     return requisites_user
+
 
 def read_requisites_name(telegram_id, requisites_name):
     search = f"%{requisites_name}%"
-    requisites_user = session.query(Requisites).filter(Requisites.name.like(search)).filter_by(telegram_id=telegram_id).first()
+    requisites_user = session.query(Requisites).filter(Requisites.name.like(search)).filter_by(
+        telegram_id=telegram_id).first()
     return requisites_user
-	
+
 
 # Update
 def update_requisites_user(requisites_id, name='', value='', is_default=False):
@@ -314,4 +329,4 @@ def delete_requisites_user(requisites_id):
     requisites_user = session.query(Requisites).filter_by(requisites_id=requisites_id).first()
 
     session.delete(requisites_user)
-    session.commit()  
+    session.commit()
