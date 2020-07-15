@@ -2432,6 +2432,12 @@ def red_invitation_wizard_check(message):  # ------------------ TODO
         update_rings_help(user.telegram_id, array)
     ring = read_rings_help(user.telegram_id)
     users_count = len(ring.help_array)
+
+    d0 = user.start_date
+    d1 = date.today()
+    delta = d1 - d0
+    days_end = user.days - delta.days
+
     status = 'Красный \U0001F534'
     bot_text = f'Записано Ваше намерение помогать участнику {user.first_name} {user.last_name} на сумму {invitation_sum} {user.currency}\n\
 \n\
@@ -2439,7 +2445,7 @@ def red_invitation_wizard_check(message):  # ------------------ TODO
 Собрано {user.current_payments} из {user.max_payments} {user.currency}\n\
 Ожидается {invitation_sum} {user.currency}\n\
 Всего участников: {users_count}\n\
-Осталось <C> дней из <D>\n\
+Осталось {days_end} дней из {user.days}\n\
 \n\
 За три дня до наступления периода бот напомнит о намерении и попросит перевести его в статус "обязательства".'
 
