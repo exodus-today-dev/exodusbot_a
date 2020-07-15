@@ -54,6 +54,7 @@ def read():
 
             obligation_sended_notice(event.event_id)
 
+
         # 6.9
         # if event.type == 'obligation_recieved' and (current_date == event.reminder_date or
         #                                             current_date > event.reminder_date) and not event.sent:
