@@ -37,7 +37,7 @@ def read():
     current_date = date.today()
 
     print(all)
-    
+
     for event in all:
         if event.type == 'orange':
             update_event(event.event_id, True)
