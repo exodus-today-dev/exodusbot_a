@@ -60,13 +60,15 @@ def notice_of_intent(event_id):
 
 # 6.4
 def obligation_sended_notice(event_id):
+
+    print("obligation_sended_notice")
     event = read_event(event_id)
 
     user = read_exodus_user(telegram_id=event.from_id)
     first_name = user.first_name
     last_name = user.last_name
     intent = read_intention_with_payment(event.from_id, event.to_id, event.current_payments, 12)  # check status
-
+    print(intent)
     sum = intent.payment
     currency = intent.currency
 
