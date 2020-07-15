@@ -5,8 +5,20 @@ import config
 
 bot = telebot.TeleBot(config.API_TOKEN)
 
-from models import read_exodus_user, read_event, read_intention, update_event
+from models import read_exodus_user, read_event, read_intention, update_event, read_intention_with_payment
 from models import session, Exodus_Users
+
+
+# проверка на то, что строка - это число и с плавающей точкой тоже
+def is_digit(string):
+    if string.isdigit():
+        return True
+    else:
+        try:
+            float(string)
+            return True
+        except ValueError:
+            return False
 
 
 def invitation_help_orange(event_id):
@@ -50,10 +62,13 @@ def notice_of_intent(event_id):
 def obligation_sended_notice(event_id):
     event = read_event(event_id)
 
+    print(event)
+
     user = read_exodus_user(telegram_id=event.from_id)
     first_name = user.first_name
     last_name = user.last_name
-    intent = read_intention(event.from_id, event.to_id, 12).first()  # check status
+    intent = read_intention_with_payment(event.from_id, event.to_id, event.current_payments, 12)  # check status
+
     sum = intent.payment
     currency = intent.currency
 
