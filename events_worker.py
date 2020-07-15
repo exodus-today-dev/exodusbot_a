@@ -36,8 +36,6 @@ def read():
     all = session.query(Events).filter_by(sent=False)
     current_date = date.today()
 
-    print(all)
-
     for event in all:
         if event.type == 'orange':
             update_event(event.event_id, True)
@@ -51,7 +49,7 @@ def read():
         # 6.4
         # if event.type == 'obligation_sended' and (current_date == event.reminder_date or
         #                                           current_date > event.reminder_date) and event.event_id not in list_event_id_obligation_sended:
-        if event.type == 'obligation_sended':
+        if event.type == 'obligation_sended' and event.event_id not in list_event_id_obligation_sended:
             print("obligation_sended")
             list_event_id_obligation_sended.append(event.event_id)
 
