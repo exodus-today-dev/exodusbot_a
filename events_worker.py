@@ -50,6 +50,7 @@ def read():
         # if event.type == 'obligation_sended' and (current_date == event.reminder_date or
         #                                           current_date > event.reminder_date) and event.event_id not in list_event_id_obligation_sended:
         if event.type == 'obligation_sended':
+            print("obligation_sended")
             list_event_id_obligation_sended.append(event.event_id)
 
             obligation_sended_notice(event.event_id)
