@@ -36,6 +36,8 @@ def read():
     all = session.query(Events).filter_by(sent=False)
     current_date = date.today()
 
+    print(all)
+    
     for event in all:
         if event.type == 'orange':
             update_event(event.event_id, True)
