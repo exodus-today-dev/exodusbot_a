@@ -47,15 +47,17 @@ def read():
             update_event(event.event_id, True)
             notice_of_intent(event.event_id)
         # 6.4
-        if event.type == 'obligation_sended' and (current_date == event.reminder_date or
-                                                  current_date > event.reminder_date) and event.event_id not in list_event_id_obligation_sended:
+        # if event.type == 'obligation_sended' and (current_date == event.reminder_date or
+        #                                           current_date > event.reminder_date) and event.event_id not in list_event_id_obligation_sended:
+        if event.type == 'obligation_sended' and event.event_id not in list_event_id_obligation_sended:
             list_event_id_obligation_sended.append(event.event_id)
 
             obligation_sended_notice(event.event_id)
 
         # 6.9
-        if event.type == 'obligation_recieved' and (current_date == event.reminder_date or
-                                                    current_date > event.reminder_date) and not event.sent:
+        # if event.type == 'obligation_recieved' and (current_date == event.reminder_date or
+        #                                             current_date > event.reminder_date) and not event.sent:
+        if event.type == 'obligation_recieved' and not event.sent:
             list_event_id_obligation_recieved.append(event.event_id)
 
             obligation_recieved_notice(event.event_id)
