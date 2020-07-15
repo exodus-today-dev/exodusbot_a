@@ -39,6 +39,7 @@ class Exodus_Users(base):
     days = Column(Integer)
     start_date = Column(Date)
 
+
 # добавил внешнюю связь для двух таблиц events и intention, в надежде, что это поможет при обновлении статуса с 12 на 13
 class Events(base):
     __tablename__ = 'events'
@@ -56,10 +57,10 @@ class Events(base):
     users = Column(Integer)
     to_id = Column(Integer)
     reminder_date = Column(Date)
-    #intention_id = Column(Integer(), ForeignKey('intention.intention_id'))
+    # intention_id = Column(Integer(), ForeignKey('intention.intention_id'))
     sent = Column(Boolean)
 
-    #child = relationship("Intention", uselist=False, backref='events')
+    # child = relationship("Intention", uselist=False, backref='events')
 
 
 class Intention(base):
@@ -73,7 +74,8 @@ class Intention(base):
     create_date = Column(DateTime)
     status = Column(Integer)
 
-    #event_id_int = Column(Integer(), ForeignKey('events.event_id'))
+    # event_id_int = Column(Integer(), ForeignKey('events.event_id'))
+
 
 #
 # Статусы, пока что не доконца продуманные
@@ -232,6 +234,11 @@ def read_rings_help(needy_id):
     return ring
 
 
+def read_rings_help_in_help_array(telegram_id):
+    list_send_notify = session.query(Rings_Help).filter(Rings_Help.help_array.any(telegram_id)).all()
+    return list_send_notify
+
+
 def update_rings_help(needy_id, help_array):
     #    ring = session.query(Rings_Help).filter_by(needy_id=needy_id).first()      # так почему-то не работатет
     #    ring.help_array = help_array
@@ -246,6 +253,11 @@ def create_intention(from_id, to_id, payment, currency, status=None):
                           create_date=datetime.now())
     session.add(intention)
     session.commit()
+
+
+def read_intention_with_payment(from_id, to_id, payment, status):
+    intention = session.query(Intention).filter_by(from_id=from_id, to_id=to_id, payment=payment, status=status).first()
+    return intention
 
 
 def read_intention(from_id=None, to_id=None, status=None):
