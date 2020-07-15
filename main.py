@@ -26,9 +26,9 @@ from models import (read_exodus_user, create_event, session,
                     update_intention, read_requisites_user, create_requisites_user,
                     read_requisites_name, update_requisites_user, delete_requisites_user,
                     read_intention_one, update_event_reminder_date, update_event_type, read_event,
-                    update_intention_from_all_params, read_rings_help_in_help_array)
+                    update_intention_from_all_params, Rings_Help)
 
-from events import is_digit
+from events import invitation_help_orange, invitation_help_red
 
 user_dict = {}
 event_dict = {}
@@ -1050,7 +1050,7 @@ def for_other_wizard_intention_check(message):
     if intention_number == 'Назад':
         for_other_wizard(message)
         return
-    if not is_digit(intention_number):
+    if not intention_number.isdigit():
         msg = bot.send_message(message.chat.id, 'Номер должен быть в виду цифры:')
         bot.register_next_step_handler(msg, for_other_wizard_intention_check)
         return
@@ -1183,7 +1183,7 @@ def edit_intention_check(message):
     if payment == 'Назад':
         intention_for_needy(message, reminder_call=False, intention_id=None)
         return
-    if not is_digit(payment):
+    if not payment.isdigit():
         msg = bot.send_message(message.chat.id, 'Сумма должна быть только в виде цифр.')
         bot.register_next_step_handler(msg, edit_intention_check)
         return
@@ -1209,7 +1209,7 @@ def cancel_intention(message):
 def cancel_intention_check(message):
     intention_id = transaction[message.chat.id]
     intention = read_intention_by_id(intention_id)
-    user_to = read_exodus_user(telegram_id=intention.to_id)
+    user_to = read_exodus_user(telegram_id=intention.user_to)
     bot_text = f"Ваше намерение помогать участнику {user_to.first_name} {user_to.last_name} на {intention.payment} {intention.currency} отменено."
     text = message.text
     bot.delete_message(message.chat.id, message.message_id)
@@ -1386,34 +1386,6 @@ def obligation_sent_confirm_yes(message):
     bot.send_message(message.chat.id, bot_text)
     update_intention(intention_id=intention_id, status=12)
 
-    intention_id = transaction[message.chat.id]  # recode: intention_id as
-    intention = read_intention_by_id(intention_id)  # argument
-    user = read_exodus_user(intention.to_id)
-
-    intentions = read_intention(to_id=intention.to_id)
-    users_count = len(intentions.all())
-    reminder_date = date.today()
-
-    # 6.4
-    create_event(from_id=message.chat.id,
-                 first_name=None,
-                 last_name=None,
-                 status=None,
-                 type='obligation_sended',
-                 min_payments=None,
-                 current_payments=intention.payment,
-                 max_payments=None,
-                 currency=intention.currency,
-                 users=users_count,
-                 to_id=intention.to_id,
-                 sent=False,
-                 reminder_date=reminder_date)
-
-    # bot_text = f"Спасибо! Получателю {user.first_name} {user.last_name} " \
-    #            f"будет отправлено уведомление о том, что деньги отправлены."
-    # bot.send_message(message.chat.id, bot_text)
-    #
-    #
     # executed_not_confirm_check(message)
 
     global_menu(message)
@@ -1974,6 +1946,7 @@ def executed_not_confirm_check(message):
         not_executed_wizard_for_all(message)
         return
     if text == 'Я отправил эту сумму':
+        print('Я отправил эту сумму')
         executed_was_sent(message)
         return
     else:
@@ -1983,6 +1956,7 @@ def executed_not_confirm_check(message):
 
 
 def executed_was_sent(message):
+    print('executed_was_sent')
     intention_id = transaction[message.chat.id]  # recode: intention_id as
     intention = read_intention_by_id(intention_id)  # argument
     user = read_exodus_user(intention.to_id)
@@ -2112,7 +2086,7 @@ def welcome(message):
                                                                                    user_to.first_name,
                                                                                    user_to.last_name)
         bot.send_message(message.chat.id, bot_text)
-
+        print(user_to.telegram_id)
         if user_to.status == 'orange':
             start_orange_invitation(message, user_to.telegram_id)
         elif user_to.status == 'red':
@@ -2225,7 +2199,7 @@ def orange_invitation_wizard_check(message):  # ------------------ TODO
     if message.text == 'Назад':
         start_orange_invitation(message, user)
         return
-    if not is_digit(invitation_sum):
+    if not invitation_sum.isdigit():
         msg = bot.send_message(message.chat.id, 'Сумма должна быть только в виде цифр.')
         bot.register_next_step_handler(msg, orange_invitation_wizard_check)
         return
@@ -2336,6 +2310,7 @@ def start_red_invitation(message, user_to):
         return
 
     # user = user_to
+    print(user_to)
     # ring = read_rings_help(user_to.telegram_id)
     ring = read_rings_help(user_to)
     if ring is None:
@@ -2365,6 +2340,7 @@ def start_red_invitation(message, user_to):
     markup.row(btn1)
     markup.row(btn2, btn3)
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
+    print(temp_dict)
     temp_dict[
         message.chat.id] = user  # TODO ---------- убрать этот костыль, так как при большом кол-во пользователей будет съедать память
     temp_dict[
@@ -2411,7 +2387,7 @@ def red_invitation_wizard_check(message):  # ------------------ TODO
     if message.text == 'Назад':
         start_red_invitation(message, user)
         return
-    if not is_digit(invitation_sum):
+    if not invitation_sum.isdigit():
         msg = bot.send_message(message.chat.id, 'Сумма должна быть только в виде цифр.')
         bot.register_next_step_handler(msg, red_invitation_wizard_check)
         return
@@ -2449,7 +2425,7 @@ def red_invitation_wizard_check(message):  # ------------------ TODO
                          status='red',
                          type='notice',
                          min_payments=user.min_payments,
-                         current_payments=invitation_sum,
+                         current_payments=user.current_payments,
                          max_payments=user.max_payments,
                          currency=user.currency,
                          users=0,
@@ -2559,12 +2535,14 @@ def green_edit_wizard_check(message):
         list_needy_id = set(read_rings_help(message.chat.id).help_array)
         telegram_name = read_exodus_user(message.chat.id).first_name
 
-        list_send_notify = read_rings_help_in_help_array(message.chat.id)
+        list_send_notify = session.query(Rings_Help).filter(Rings_Help.help_array.any(message.chat.id)).all()
 
         for row in list_send_notify:
             list_needy_id.add(row.needy_id)
 
+        print('list_needy_id alllll', list_needy_id)
         for row in list_needy_id:
+            print('list_needy_id', row)
             try:
                 bot.send_message(row, 'Участник {} сменил статус на Зеленый'.format(telegram_name))
             except:
@@ -2697,7 +2675,7 @@ def red_edit_wizard_step1(message):
     global MAX_PAYMENTS_RED
 
     MAX_PAYMENTS_RED = message.text
-    if not is_digit(MAX_PAYMENTS_RED):
+    if not MAX_PAYMENTS_RED.isdigit():
         msg = bot.send_message(chat_id,
                                'Сумма должна быть только в виде цифр. Введите сумму в {}, которая Вам необходима:'.format(
                                    user.currency))
@@ -2713,7 +2691,7 @@ def red_edit_wizard_step2(message):
     chat_id = message.chat.id
     min_payments = message.text
 
-    if not is_digit(min_payments):
+    if not min_payments.isdigit():
         msg = bot.send_message(chat_id,
                                'Сумма должна быть только в виде цифр. Введите сумму в {}, которая Вам необходима:'.format(
                                    user.currency))
@@ -2811,12 +2789,14 @@ def red_edit_wizard_step4(message, link):
         list_needy_id = set(read_rings_help(message.chat.id).help_array)
         telegram_name = read_exodus_user(message.chat.id).first_name
 
-        list_send_notify = read_rings_help_in_help_array(message.chat.id)
+        list_send_notify = session.query(Rings_Help).filter(Rings_Help.help_array.any(message.chat.id)).all()
 
         for row in list_send_notify:
             list_needy_id.add(row.needy_id)
 
+        print('list_needy_id alllll', list_needy_id)
         for row in list_needy_id:
+            print('list_needy_id', row)
             try:
                 bot.send_message(row, 'Участник {} сменил статус на Красный'.format(telegram_name))
             except:
@@ -2904,7 +2884,7 @@ def orange_step_need_payments(message):
     global MAX_PAYMENTS_ORANGE
 
     MAX_PAYMENTS_ORANGE = message.text
-    if not is_digit(MAX_PAYMENTS_ORANGE):
+    if not MAX_PAYMENTS_ORANGE.isdigit():
         msg = bot.send_message(chat_id,
                                'Сумма должна быть только в виде цифр. Введите сумму в {}, которую вы бы хотели получать в течение месяца:'.format(
                                    user.currency))
@@ -2919,7 +2899,7 @@ def orange_step_min_payments(message):
     user = read_exodus_user(message.chat.id)
     chat_id = message.chat.id
     min_payments = message.text
-    if not is_digit(min_payments):
+    if not min_payments.isdigit():
         msg = bot.send_message(chat_id,
                                'Сумма должна быть только в виде цифр. Введите минимальную сумму помощи в {}'.format(
                                    user.currency))
@@ -2996,12 +2976,14 @@ def orange_step_final(message):
         list_needy_id = set(read_rings_help(message.chat.id).help_array)
         telegram_name = read_exodus_user(message.chat.id).first_name
 
-        list_send_notify = read_rings_help_in_help_array(message.chat.id)
+        list_send_notify = session.query(Rings_Help).filter(Rings_Help.help_array.any(message.chat.id)).all()
 
         for row in list_send_notify:
             list_needy_id.add(row.needy_id)
 
+        print('list_needy_id alllll', list_needy_id)
         for row in list_needy_id:
+            print('list_needy_id', row)
             try:
                 bot.send_message(row, 'Участник {} сменил статус на Оранжевый'.format(telegram_name))
             except:
@@ -3094,9 +3076,7 @@ def process_callback(call):
         message = 'Спасибо! Участнику {first_name} будет отправлено уведомление о том, ' \
                   'что вы подтвердили иcполнение обязательства.'.format(first_name=first_name)
 
-        bot.send_message(event.from_id,
-                         'Обязательство на сумму {sum} {currency} исполнено'.format(sum=event.current_payments,
-                                                                                    currency=event.currency))
+        bot.send_message(event.from_id, 'Обязательство на сумму {sum} {currency} исполнено'.format(sum=event.current_payments, currency=event.currency))
         bot.send_message(call.message.chat.id, message)
 
         update_intention_from_all_params(event.from_id, event.to_id, int(event.current_payments), 13)
@@ -3112,9 +3092,7 @@ def process_callback(call):
                   'Вы можете посмотреть все обязательства в разделе главного меню "Транзакции" > "Обязательства".'.format(
             first_name=first_name, sum=event.current_payments, currency=event.currency)
 
-        bot.send_message(event.from_id,
-                         'Исполните обязательство на сумму {sum} {currency}'.format(sum=event.current_payments,
-                                                                                    currency=event.currency))
+        bot.send_message(event.from_id, 'Исполните обязательство на сумму {sum} {currency}'.format(sum=event.current_payments, currency=event.currency))
         bot.send_message(call.message.chat.id, message)
 
         global_menu(call.message)
