@@ -62,8 +62,6 @@ def notice_of_intent(event_id):
 def obligation_sended_notice(event_id):
     event = read_event(event_id)
 
-    print(event)
-
     user = read_exodus_user(telegram_id=event.from_id)
     first_name = user.first_name
     last_name = user.last_name
