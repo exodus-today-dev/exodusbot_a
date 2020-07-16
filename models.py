@@ -14,11 +14,6 @@ db_string = "postgres://exodusdb:666777@localhost:5432/exodusdb"
 db = create_engine(config.DATABASE_URL)
 base = declarative_base()
 
-Session = sessionmaker(db)
-session = Session()
-
-base.metadata.create_all(db)
-
 
 class Exodus_Users(base):
     __tablename__ = 'exodus_users'
@@ -106,10 +101,9 @@ class Requisites(base):
     is_default = Column(Boolean)
 
 
+base.metadata.create_all(db)
 Session = sessionmaker(db)
 session = Session()
-
-base.metadata.create_all(db)
 
 
 # Create
@@ -129,8 +123,13 @@ def create_exodus_user(telegram_id, first_name, last_name, username, ref='', lin
                                days=days,
                                start_date=start_date,
                                create_date=datetime.now())
-    session.add(exodus_user)
-    session.commit()
+
+    try:
+        session.add(exodus_user)
+        session.commit()
+    except:
+        session.rollback()
+        raise
 
 
 # Read
@@ -169,14 +168,23 @@ def update_exodus_user(telegram_id, first_name=None, last_name=None, username=No
     if start_date is not None:
         exodus_user.start_date = start_date
 
-    session.commit()
+    try:
+        session.commit()
+    except:
+        session.rollback()
+        raise
 
 
 # Delete
 def delete_exodus_user(telegram_id):
     exodus_user = session.query(Exodus_Users).filter_by(telegram_id=telegram_id).first()
-    session.delete(exodus_user)
-    session.commit()
+    try:
+        session.delete(exodus_user)
+        session.commit()
+    except:
+        session.rollback()
+        raise
+
 
 
 def create_event(from_id, first_name, last_name, status, type, min_payments, current_payments,
@@ -195,27 +203,43 @@ def create_event(from_id, first_name, last_name, status, type, min_payments, cur
                    reminder_date=reminder_date,
                    # intention_id = intention_id,
                    sent=False)
-    session.add(event)
-    session.commit()
-    return event
+
+    try:
+        session.add(event)
+        session.commit()
+    except:
+        session.rollback()
+        raise
 
 
 def update_event(event_id, sent):
     event = session.query(Events).filter_by(event_id=event_id).first()
     event.sent = sent
-    session.commit()
 
+    try:
+        session.commit()
+    except:
+        session.rollback()
+        raise
 
 def update_event_reminder_date(event_id, reminder_date):
     event = session.query(Events).filter_by(event_id=event_id).first()
     event.reminder_date = reminder_date
-    session.commit()
+    try:
+        session.commit()
+    except:
+        session.rollback()
+        raise
 
 
 def update_event_type(event_id, type):
     event = session.query(Events).filter_by(event_id=event_id).first()
     event.type = type
-    session.commit()
+    try:
+        session.commit()
+    except:
+        session.rollback()
+        raise
 
 
 def read_event(event_id):
@@ -225,8 +249,13 @@ def read_event(event_id):
 
 def create_rings_help(needy_id, help_array):
     ring = Rings_Help(needy_id=needy_id, help_array=help_array)
-    session.add(ring)
-    session.commit()
+    try:
+        session.add(ring)
+
+        session.commit()
+    except:
+        session.rollback()
+        raise
 
 
 def read_rings_help(needy_id):
@@ -251,8 +280,14 @@ def update_rings_help(needy_id, help_array):
 def create_intention(from_id, to_id, payment, currency, status=None):
     intention = Intention(from_id=from_id, to_id=to_id, payment=payment, currency=currency, status=status,
                           create_date=datetime.now())
-    session.add(intention)
-    session.commit()
+
+    try:
+        session.add(intention)
+        session.commit()
+    except:
+        session.rollback()
+        raise
+
 
 
 def read_intention_with_payment(from_id, to_id, payment, status):
@@ -290,15 +325,22 @@ def update_intention(intention_id, status=None, payment=None):
         intention.status = status
     if payment is not None:
         intention.payment = payment
-    session.commit()
+    try:
+        session.commit()
+    except:
+        session.rollback()
+        raise
 
 
 def update_intention_from_all_params(from_id, to_id, payment, status=None):
     intention = session.query(Intention).filter_by(from_id=from_id, to_id=to_id, payment=payment).first()
     if status is not None:
         intention.status = status
-    session.commit()
-
+    try:
+        session.commit()
+    except:
+        session.rollback()
+        raise
 
 # -----------------------requisites-------------------
 # Create
@@ -308,8 +350,13 @@ def create_requisites_user(telegram_id, name='', value='', is_default=False):
                             value=value,
                             is_default=is_default)
 
-    session.add(requisites)
-    session.commit()
+    try:
+        session.add(requisites)
+
+        session.commit()
+    except:
+        session.rollback()
+        raise
 
 
 # Read
@@ -333,12 +380,21 @@ def update_requisites_user(requisites_id, name='', value='', is_default=False):
     requisites_user.value = value
     requisites_user.is_default = is_default
 
-    session.commit()
+    try:
+        session.commit()
+    except:
+        session.rollback()
+        raise
 
 
 # Delete
 def delete_requisites_user(requisites_id):
     requisites_user = session.query(Requisites).filter_by(requisites_id=requisites_id).first()
 
-    session.delete(requisites_user)
-    session.commit()
+
+    try:
+        session.delete(requisites_user)
+        session.commit()
+    except:
+        session.rollback()
+        raise
