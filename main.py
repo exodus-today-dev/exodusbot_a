@@ -1382,7 +1382,7 @@ def obligation_sent_confirm_yes(message):
     intention = read_intention_by_id(intention_id)
     user_to = read_exodus_user(telegram_id=intention.to_id)
     bot_text = f"Спасибо!\n\
-Участнику  {user_to.first_name} {user_to.last_name} будет отправлено уведомление о исполненном обязательстве на сумму {user_to.first_name} {user_to.last_name}."
+Участнику  {user_to.first_name} {user_to.last_name} будет отправлено уведомление о исполненном обязательстве на сумму {intention.payment} {intention.currency}."
     bot.send_message(message.chat.id, bot_text)
     update_intention(intention_id=intention_id, status=12)
 
@@ -1503,22 +1503,33 @@ def for_my_wizard_intention_check(message):
         bot.register_next_step_handler(msg, for_my_wizard_intention_check)
         return
     transaction[message.chat.id] = intention_number
-    intention_for_me(message)
-    return
+    #intention_for_me(message)
 
-
-def intention_for_me(message):
-    intention_id = transaction[message.chat.id]
-    intention = read_intention_by_id(intention_id)
+    intention = read_intention_by_id(intention_number)
     user = read_exodus_user(telegram_id=intention.from_id)
     bot_text = f"{intention.create_date.strftime('%d %B %Y %I:%M%p')}\n\
-Участник {user.first_name} {user.last_name} записал свое намерение помогать вам на {intention.payment} {intention.currency}"
+    Участник {user.first_name} {user.last_name} записал свое намерение помогать вам на {intention.payment} {intention.currency}"
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text='Назад')
     markup.row(btn1)
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
     bot.register_next_step_handler(msg, intention_for_me_check)
+
     return
+
+
+# def intention_for_me(message):
+#     intention_id = transaction[message.chat.id]
+#     intention = read_intention_by_id(intention_id)
+#     user = read_exodus_user(telegram_id=intention.from_id)
+#     bot_text = f"{intention.create_date.strftime('%d %B %Y %I:%M%p')}\n\
+# Участник {user.first_name} {user.last_name} записал свое намерение помогать вам на {intention.payment} {intention.currency}"
+#     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+#     btn1 = types.KeyboardButton(text='Назад')
+#     markup.row(btn1)
+#     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
+#     bot.register_next_step_handler(msg, intention_for_me_check)
+#     return
 
 
 def intention_for_me_check(message):
