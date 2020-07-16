@@ -2208,8 +2208,10 @@ def start_orange_invitation(message, user_to):
     btn1 = types.KeyboardButton(text='Показать участников ({})'.format(users_count))
     btn2 = types.KeyboardButton(text='Нет')
     btn3 = types.KeyboardButton(text='Да')
+    btn4 = types.KeyboardButton(text='Главное меню')
     markup.row(btn1)
     markup.row(btn2, btn3)
+    markup.row(btn4)
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
     temp_dict[
         message.chat.id] = user  # TODO ---------- убрать этот костыль, так как при большом кол-во пользователей будет съедать память
@@ -2234,6 +2236,10 @@ def orange_invitation_check(message):
             global_menu(message)
     elif text == 'Да'.format(0):
         orange_invitation_wizard(message, user_to)
+
+    elif 'Главное меню' in text:
+        global_menu(message, True)
+
     else:
         msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
         bot.register_next_step_handler(msg, orange_invitation_check)
@@ -2336,7 +2342,7 @@ def show_all_members(message, user_to):
         string_name = string_name + '\n{} {}'.format(first_name[i], last_name[i])
 
     bot_text = bot_text + '\n\
-В моей сети:{}Остальные участники:'.format(string_name)
+В моей сети:{}\n\nОстальные участники:'.format(string_name)
     markup = types.ReplyKeyboardMarkup()
     btn1 = types.KeyboardButton(text='Назад')
     markup.row(btn1)
@@ -2397,8 +2403,10 @@ def start_red_invitation(message, user_to):
     btn1 = types.KeyboardButton(text='Показать участников ({})'.format(users_count))
     btn2 = types.KeyboardButton(text='Нет')
     btn3 = types.KeyboardButton(text='Да')
+    btn4 = types.KeyboardButton(text='Главное меню')
     markup.row(btn1)
     markup.row(btn2, btn3)
+    markup.row(btn4)
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
     temp_dict[
         message.chat.id] = user  # TODO ---------- убрать этот костыль, так как при большом кол-во пользователей будет съедать память
@@ -2423,6 +2431,10 @@ def red_invitation_check(message):
             global_menu(message)
     elif text == 'Да'.format(0):
         red_invitation_wizard(message, user_to)
+
+    elif 'Главное меню' in text:
+        global_menu(message, True)
+
     else:
         msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
         bot.register_next_step_handler(msg, red_invitation_check)
