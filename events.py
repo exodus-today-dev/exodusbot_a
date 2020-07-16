@@ -55,7 +55,9 @@ def notice_of_intent(event_id):
     """
     event = read_event(event_id)
     user = read_exodus_user(telegram_id=event.from_id)
-    intent = read_intention(event.from_id, event.to_id, 1).first()  # create_date
+    intent = read_intention(event.from_id, event.to_id, 1)[-1]  # create_date
+    print(intent)
+    print(intent.currency)
     bot_text = f"{intent.create_date.strftime('%d %B %Y')}/{intent.create_date.strftime('%I:%M%p')}\n\
 Участник {user.first_name} {user.last_name} записал свое намерение помогать вам на сумму: {intent.payment} {event.currency}"
     bot.send_message(event.to_id, bot_text)
