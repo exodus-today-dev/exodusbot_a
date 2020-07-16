@@ -28,9 +28,8 @@ from models import (read_exodus_user, create_event, session,
                     read_intention_one, update_event_reminder_date, update_event_type, read_event,
                     update_intention_from_all_params, read_rings_help_in_help_array)
 
-from events import is_digit
-
 user_dict = {}
+
 event_dict = {}
 
 temp_dict = {}
@@ -39,6 +38,20 @@ transaction = {}
 
 
 # ------------------------------------------------------------------
+
+# проверка на то, что строка - это число и с плавающей точкой тоже
+def is_digit(string):
+    if string.isdigit():
+        if int(string) == abs(int(string)):
+            return True
+    else:
+        try:
+            if float(string):
+                if float(string) == abs(float(string)):
+                    return True
+        except ValueError:
+            return False
+
 
 def make_hash(text):
     hash = text.encode().hex()
@@ -1503,7 +1516,7 @@ def for_my_wizard_intention_check(message):
         bot.register_next_step_handler(msg, for_my_wizard_intention_check)
         return
     transaction[message.chat.id] = intention_number
-    #intention_for_me(message)
+    # intention_for_me(message)
 
     user = read_exodus_user(telegram_id=intention.from_id)
     bot_text = f"{intention.create_date.strftime('%d %B %Y %I:%M%p')}\n\
@@ -2162,7 +2175,7 @@ def start_orange_invitation(message, user_to):
     if ring is None:
         users_count = 0
     else:
-        users_count = len(ring.help_array)
+        users_count = len(set(ring.help_array))
 
     status = 'Оранжевый \U0001f7e0'
     bot_text = 'Участник {first_name} {last_name} - {status}\n\
@@ -2298,20 +2311,26 @@ def show_all_members(message, user_to):
     ring = read_rings_help(user.telegram_id)
     if ring is None:
         users_count = 0
+        first_name = []
+        last_name = []
     else:
-        users_count = len(ring.help_array)
+        users_count = len(set(ring.help_array))
+        first_name = []
+        last_name = []
+        for name_help in set(ring.help_array):
+            first_name.append(read_exodus_user(name_help).first_name)
+            last_name.append(read_exodus_user(name_help).last_name)
     bot_text = 'Участнику {} {} помогают {} участников:\n'.format(user.first_name, user.last_name, users_count)
 
     bot_text = bot_text + '\n\
 В моей сети:\n\
-1. <Имя>\n\
-2. <Имя>\n\
+{}\n\
 ...\n\
 \n\
 Остальные участники:\n\
 1. <Имя>\n\
 2. <Имя>\n\
-...'
+...'.format(first_name)
     markup = types.ReplyKeyboardMarkup()
     btn1 = types.KeyboardButton(text='Назад')
     markup.row(btn1)
@@ -2351,7 +2370,7 @@ def start_red_invitation(message, user_to):
     if ring is None:
         users_count = 0
     else:
-        users_count = len(ring.help_array)
+        users_count = len(set(ring.help_array))
     d0 = user.start_date
     d1 = date.today()
     delta = d1 - d0
@@ -2441,7 +2460,7 @@ def red_invitation_wizard_check(message):  # ------------------ TODO
         array.append(message.chat.id)
         update_rings_help(user.telegram_id, array)
     ring = read_rings_help(user.telegram_id)
-    users_count = len(ring.help_array)
+    users_count = len(set(ring.help_array))
 
     d0 = user.start_date
     d1 = date.today()
