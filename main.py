@@ -1093,7 +1093,7 @@ def intention_for_needy(message, reminder_call, intention_id):
     if reminder_call is True:
         intention = read_intention_by_id(intention_id)
     else:
-        bot.delete_message(message.chat.id, message.message_id)
+        #bot.delete_message(message.chat.id, message.message_id)
         intention_id = transaction[message.chat.id]
         intention = read_intention_by_id(intention_id)
 
@@ -2333,7 +2333,7 @@ def show_all_members(message, user_to):
 
     string_name = ''
     for i in range(len(first_name)):
-        string_name = string_name + '\n\{} {}\n'.format(first_name[i], last_name[i])
+        string_name = string_name + '\n{} {}'.format(first_name[i], last_name[i])
 
     bot_text = bot_text + '\n\
 В моей сети:{}Остальные участники:'.format(string_name)
