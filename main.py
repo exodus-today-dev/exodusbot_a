@@ -1497,7 +1497,7 @@ def for_my_wizard_intention_check(message):
         msg = bot.send_message(message.chat.id, 'Номер должен быть в виде цифры:')
         bot.register_next_step_handler(msg, for_my_wizard_intention_check)
         return
-    intention = read_intention_by_id(intention_id=intention_number)
+    intention = read_intention_by_id(intention_number)
     if intention is None:
         msg = bot.send_message(message.chat.id, 'Введённый номер не соовпадает с существующими намерениями:')
         bot.register_next_step_handler(msg, for_my_wizard_intention_check)
@@ -1505,7 +1505,6 @@ def for_my_wizard_intention_check(message):
     transaction[message.chat.id] = intention_number
     #intention_for_me(message)
 
-    intention = read_intention_by_id(intention_number)
     user = read_exodus_user(telegram_id=intention.from_id)
     bot_text = f"{intention.create_date.strftime('%d %B %Y %I:%M%p')}\n\
     Участник {user.first_name} {user.last_name} записал свое намерение помогать вам на {intention.payment} {intention.currency}"
