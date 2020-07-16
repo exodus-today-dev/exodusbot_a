@@ -119,11 +119,12 @@ def global_menu(message, dont_show_status=False):
         else:
             orange_green_wizard(message)
     markup = types.ReplyKeyboardMarkup()
-    btn1 = types.KeyboardButton(text='Мой статус')
+    #btn1 = types.KeyboardButton(text='Мой статус')
     btn2 = types.KeyboardButton(text='Транзакции')
     btn3 = types.KeyboardButton(text='Настройки')
     btn4 = types.KeyboardButton(text='Участники')
-    markup.row(btn1, btn2)
+    #markup.row(btn1, btn2)
+    markup.row(btn2)
     markup.row(btn3, btn4)
     if not dont_show_status:
         bot.send_message(message.chat.id, 'Ваш текущий статус {}'.format(status))
@@ -133,9 +134,9 @@ def global_menu(message, dont_show_status=False):
 def global_check(message):
     """2.0.1"""
     text = message.text
-    if text == 'Мой статус':
-        status_menu(message)
-    elif text == 'Транзакции':
+    # if text == 'Мой статус':
+    #     status_menu(message)
+    if text == 'Транзакции':
         transactions_menu(message)
     elif text == 'Настройки':
         configuration_menu(message)
@@ -177,6 +178,10 @@ def configuration_menu(message):
     #    btn2 = types.KeyboardButton(text='Настройки уведомлений')
     #    btn3 = types.KeyboardButton(text='Валюта')
     btn4 = types.KeyboardButton(text='Главное меню')
+
+    btn5 = types.KeyboardButton(text='Мой статус')
+
+    markup.row(btn5)
     markup.row(btn1)
     #    markup.row(btn2)
     #    markup.row(btn3,btn4)                    # ________________ TODO
@@ -206,7 +211,11 @@ def configuration_check(message):
     except:
         pass
     text = message.text
-    if text == 'Редактировать реквизиты':
+
+    if text == 'Мой статус':
+        status_menu(message)
+
+    elif text == 'Редактировать реквизиты':
         requisites_wizard(message)
         return
     elif text == 'Настройки уведомлений':
@@ -2322,15 +2331,12 @@ def show_all_members(message, user_to):
             last_name.append(read_exodus_user(name_help).last_name)
     bot_text = 'Участнику {} {} помогают {} участников:\n'.format(user.first_name, user.last_name, users_count)
 
+    string_name = ''
+    for i in range(len(first_name)):
+        string_name = string_name + '\n\{} {}\n'.format(first_name[i], last_name[i])
+
     bot_text = bot_text + '\n\
-В моей сети:\n\
-{}\n\
-...\n\
-\n\
-Остальные участники:\n\
-1. <Имя>\n\
-2. <Имя>\n\
-...'.format(first_name)
+В моей сети:{}Остальные участники:'.format(string_name)
     markup = types.ReplyKeyboardMarkup()
     btn1 = types.KeyboardButton(text='Назад')
     markup.row(btn1)
