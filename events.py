@@ -5,18 +5,21 @@ import config
 
 bot = telebot.TeleBot(config.API_TOKEN)
 
-from models import read_exodus_user, read_event, read_intention, update_event, read_intention_with_payment
+from models import read_exodus_user, read_event, read_intention, update_event, read_intention_with_payment, \
+    read_intention_by_id, read_requisites_user
 from models import session, Exodus_Users
 
 
 # проверка на то, что строка - это число и с плавающей точкой тоже
 def is_digit(string):
     if string.isdigit():
-        return True
+        if int(string) == abs(int(string)):
+            return True
     else:
         try:
-            float(string)
-            return True
+            if float(string):
+                if float(string) == abs(float(string)):
+                    return True
         except ValueError:
             return False
 
@@ -60,7 +63,6 @@ def notice_of_intent(event_id):
 
 # 6.4
 def obligation_sended_notice(event_id):
-
     print("obligation_sended_notice")
     event = read_event(event_id)
 
@@ -69,6 +71,18 @@ def obligation_sended_notice(event_id):
     last_name = user.last_name
     intent = read_intention_with_payment(event.from_id, event.to_id, event.current_payments, 12)  # check status
     print(intent)
+
+    intention_id = intent.intention_id
+    intention = read_intention_by_id(intention_id)
+    user_to = read_exodus_user(telegram_id=intention.to_id)
+    requisites = read_requisites_user(user_to.telegram_id)
+    if requisites == []:
+        req_name = 'не указан'
+        req_value = 'не указан'
+    else:
+        req_name = requisites[0].name
+        req_value = requisites[0].value
+
     sum = intent.payment
     currency = intent.currency
 
@@ -82,8 +96,8 @@ def obligation_sended_notice(event_id):
               'подтвердите получение:'.format(first_name=first_name,
                                               last_name=last_name,
                                               sum=sum, currency=currency,
-                                              req_name='requisites_name',
-                                              req_value='requisites_value')
+                                              req_name=req_name,
+                                              req_value=req_value)
 
     keyboard = types.InlineKeyboardMarkup()
     row = []
