@@ -756,10 +756,8 @@ def generate_status_info_text(user):
         status_info_text = to_collect_text + '\n' + end_date_text + '\n'
     elif user.status == 'orange':
         max_payment_text = '  сколько нужно в месяц: {}'.format(user.max_payments)
-        min_payment_text = '  минимальный платёж: {}'.format(user.min_payments)
         status_info_text = max_payment_text + '\n' + \
-                           to_collect_text + '\n' + \
-                           min_payment_text + '\n'
+                           to_collect_text + '\n'
 
     return status_info_text
 
@@ -2133,6 +2131,10 @@ def config_wizzard_currency(message):
 @bot.message_handler(commands=['start'])
 def welcome(message):
     """1.0"""
+    print(message.date)
+    timestamp = message.date
+    value = datetime.fromtimestamp(timestamp)
+    print(f"{value:%Y-%m-%d %H:%M:%S}")
     bot.clear_step_handler(message)
     referal = ref_info(message.text)
     bot.send_message(message.chat.id, "Добро пожаловать в бот Exodus.")
@@ -2170,6 +2172,7 @@ def start_without_invitation(message):
 # ----------------------------- 6.1 ORANGE ----------------------
 def start_orange_invitation(message, user_to):
     """6.1"""
+    print(user_to)
     user = read_exodus_user(telegram_id=user_to)
     ring = read_rings_help(user.telegram_id)
 
@@ -2193,16 +2196,14 @@ def start_orange_invitation(message, user_to):
 Ожидается {need} {currency}\n\
 Всего участников: {users_count}\n\
 \n\
-Вы можете помочь этому участнику?\n\
-Минимальная сумма {min} {currency}'.format(first_name=user.first_name,
+Вы можете помочь этому участнику?'.format(first_name=user.first_name,
                                            last_name=user.last_name,
                                            status=status,
                                            current=user.current_payments,
                                            max=user.max_payments,
                                            currency=user.currency,
                                            need=user.max_payments - user.current_payments,
-                                           users_count=users_count,
-                                           min=user.min_payments)
+                                           users_count=users_count)
 
     markup = types.ReplyKeyboardMarkup()
     btn1 = types.KeyboardButton(text='Показать участников ({})'.format(users_count))
@@ -2252,7 +2253,7 @@ def orange_invitation_wizard(message, user_to):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text='Назад')
     markup.row(btn1)
-    msg = bot.send_message(message.chat.id, 'Введите минимальную сумму помощи в {}:'.format(user.currency),
+    msg = bot.send_message(message.chat.id, 'Введите сумму помощи в {}:'.format(user.currency),
                            reply_markup=markup)
     bot.register_next_step_handler(msg, orange_invitation_wizard_check)
 
@@ -2261,15 +2262,10 @@ def orange_invitation_wizard_check(message):  # ------------------ TODO
     user = temp_dict[message.chat.id]
     invitation_sum = message.text
     if message.text == 'Назад':
-        start_orange_invitation(message, user)
+        start_orange_invitation(message, user.telegram_id)
         return
     if not is_digit(invitation_sum):
         msg = bot.send_message(message.chat.id, 'Сумма должна быть только в виде цифр.')
-        bot.register_next_step_handler(msg, orange_invitation_wizard_check)
-        return
-    elif float(invitation_sum) < user.min_payments:
-        msg = bot.send_message(message.chat.id, 'Пожалуйста введите другую сумму.\n\
-Минимальная сумма {} {}'.format(user.min_payments, user.currency))
         bot.register_next_step_handler(msg, orange_invitation_wizard_check)
         return
 
@@ -2282,18 +2278,6 @@ def orange_invitation_wizard_check(message):  # ------------------ TODO
         array = ring.help_array
         array.append(message.chat.id)
         update_rings_help(user.telegram_id, array)
-    # ring = read_rings_help(user.telegram_id)
-    # users_count = len(ring.help_array)
-    # status = 'Оранжевый \U0001f7e0'
-    #     bot_text = f'Участник {user.first_name} {user.last_name} - {status}\n\
-    # Период: Ежемесячно\n\
-    # Собрано {user.current_payments} из {user.max_payments} {user.currency}\n\
-    # Ожидается {user.max_payments - user.current_payments} {user.currency}\n\
-    # Всего участников: {users_count}\n\
-    # Обсуждение: {user.link}\n\
-    # \n\
-    # Вы можете помочь этому участнику?\n\
-    # Минимальная сумма {user.min_payments} {user.currency}'
 
     bot_text = 'Ваше намерение принято'
 
@@ -2302,7 +2286,7 @@ def orange_invitation_wizard_check(message):  # ------------------ TODO
                          last_name=user.last_name,  # TODO not needed
                          status='orange',
                          type='notice',
-                         min_payments=user.min_payments,
+                         min_payments=None,
                          current_payments=user.current_payments,
                          max_payments=user.max_payments,
                          currency=user.currency,
@@ -2396,8 +2380,7 @@ def start_red_invitation(message, user_to):
 Осталось {days_end} дней из {user.days}\n\
 Обсуждение: {user.link}\n\
 \n\
-Вы можете помочь этому участнику?\n\
-Минимальная сумма {user.min_payments} {user.currency}'
+Вы можете помочь этому участнику?\n'
 
     markup = types.ReplyKeyboardMarkup()
     btn1 = types.KeyboardButton(text='Показать участников ({})'.format(users_count))
@@ -2444,10 +2427,10 @@ def red_invitation_wizard(message, user_to):
     """6.1.2"""
     temp_dict[message.chat.id] = user_to
     user = user_to
-    markup = types.ReplyKeyboardMarkup()
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text='Назад')
     markup.row(btn1)
-    msg = bot.send_message(message.chat.id, 'Введите минимальную сумму помощи в {}:'.format(user.currency),
+    msg = bot.send_message(message.chat.id, 'Введите сумму помощи в {}:'.format(user.currency),
                            reply_markup=markup)
     bot.register_next_step_handler(msg, red_invitation_wizard_check)
 
@@ -2456,15 +2439,10 @@ def red_invitation_wizard_check(message):  # ------------------ TODO
     user = temp_dict[message.chat.id]
     invitation_sum = message.text
     if message.text == 'Назад':
-        start_red_invitation(message, user)
+        start_red_invitation(message, user.telegram_id)
         return
     if not is_digit(invitation_sum):
         msg = bot.send_message(message.chat.id, 'Сумма должна быть только в виде цифр.')
-        bot.register_next_step_handler(msg, red_invitation_wizard_check)
-        return
-    elif float(invitation_sum) < user.min_payments:
-        msg = bot.send_message(message.chat.id, 'Пожалуйста введите другую сумму.\n\
-Минимальная сумма {} {}'.format(user.min_payments, user.currency))
         bot.register_next_step_handler(msg, red_invitation_wizard_check)
         return
 
@@ -2501,7 +2479,7 @@ def red_invitation_wizard_check(message):  # ------------------ TODO
                          last_name=user.last_name,  # TODO not needed
                          status='red',
                          type='notice',
-                         min_payments=user.min_payments,
+                         min_payments=None,
                          current_payments=invitation_sum,
                          max_payments=user.max_payments,
                          currency=user.currency,
@@ -2746,47 +2724,36 @@ def red_edit_wizard_step1(message):
     user_dict[message.chat.id] = user
     chat_id = message.chat.id
 
-    # переменная, чтобы сравнить корректность введенной минимальной суммы
-    global MAX_PAYMENTS_RED
-
-    MAX_PAYMENTS_RED = message.text
-    if not is_digit(MAX_PAYMENTS_RED):
+    max_payments_red = message.text
+    if not is_digit(max_payments_red):
         msg = bot.send_message(chat_id,
                                'Сумма должна быть только в виде цифр. Введите сумму в {}, которая Вам необходима:'.format(
                                    user.currency))
         bot.register_next_step_handler(msg, red_edit_wizard_step1)
         return
-    user_dict[message.chat.id].max_payments = float(MAX_PAYMENTS_RED)
-    msg = bot.send_message(message.chat.id, 'Введите минимальную сумму помощи в {}'.format(user.currency))
-    bot.register_next_step_handler(msg, red_edit_wizard_step2)
-
-
-def red_edit_wizard_step2(message):
-    user = read_exodus_user(message.chat.id)
-    chat_id = message.chat.id
-    min_payments = message.text
-
-    if not is_digit(min_payments):
-        msg = bot.send_message(chat_id,
-                               'Сумма должна быть только в виде цифр. Введите сумму в {}, которая Вам необходима:'.format(
-                                   user.currency))
-        bot.register_next_step_handler(msg, red_edit_wizard_step2)
-        return
-
-    if min_payments > MAX_PAYMENTS_RED:
-        msg = bot.send_message(chat_id,
-                               'Минимальная сумма не должна превышать желаемую. Введите минимальную сумму помощи в {}'.format(
-                                   user.currency))
-        bot.register_next_step_handler(msg, red_edit_wizard_step2)
-        return
-
-    user_dict[message.chat.id].min_payments = float(min_payments)
+    user_dict[message.chat.id].max_payments = float(max_payments_red)
     msg = bot.send_message(message.chat.id, 'Введите кол-во дней, в течение которых вам необходимо собрать эту сумму:')
     bot.register_next_step_handler(msg, red_edit_wizard_step3)
 
 
+# def red_edit_wizard_step2(message):
+#     user = read_exodus_user(message.chat.id)
+#     chat_id = message.chat.id
+#     min_payments = message.text
+#
+#     if not is_digit(min_payments):
+#         msg = bot.send_message(chat_id,
+#                                'Сумма должна быть только в виде цифр. Введите сумму в {}, которая Вам необходима:'.format(
+#                                    user.currency))
+#         bot.register_next_step_handler(msg, red_edit_wizard_step2)
+#         return
+#
+#     msg = bot.send_message(message.chat.id, 'Введите кол-во дней, в течение которых вам необходимо собрать эту сумму:')
+#     bot.register_next_step_handler(msg, red_edit_wizard_step3)
+
+
 def red_edit_wizard_step3(message):
-    user = read_exodus_user(message.chat.id)
+    # user = read_exodus_user(message.chat.id)
     chat_id = message.chat.id
     days = message.text
     if not days.isdigit():
@@ -2807,7 +2774,6 @@ def red_edit_wizard_step35(message):
 Статус: Красный\n\
 Обсуждение: {link}\n\
 В течение {user.days}\n\
-Минимально: {user.min_payments} {user.currency}\n\
 Необходимая сумма: {user.max_payments} {user.currency}'
     bot.send_message(message.chat.id, bot_text)
 
@@ -2837,7 +2803,7 @@ def red_edit_wizard_step4(message, link):
         bot.send_message(message.chat.id, 'Настройки сохранены')
 
         update_exodus_user(telegram_id=message.chat.id, status='red', link=link, start_date=date.today(),
-                           days=user_dict[message.chat.id].days, min_payments=user_dict[message.chat.id].min_payments,
+                           days=user_dict[message.chat.id].days, min_payments=None,
                            max_payments=user_dict[message.chat.id].max_payments)
 
         user = read_exodus_user(message.chat.id)
@@ -2851,7 +2817,7 @@ def red_edit_wizard_step4(message, link):
                              last_name=user.last_name,
                              status='red',
                              type='red',
-                             min_payments=user.min_payments,
+                             min_payments=None,
                              current_payments=user.current_payments,
                              max_payments=user.max_payments,
                              currency=user.currency,
@@ -2944,7 +2910,7 @@ def orange_edit_wizard(message):
         create_rings_help(user.telegram_id, [])
     markup = types.ReplyKeyboardRemove(selective=False)
     msg = bot.send_message(message.chat.id,
-                           'Введите сумму в {}, которую вы бы хотели получать в течение месяца:'.format(user.currency),
+                           'Какая сумма вам необходима на базовые нужды в {}?'.format(user.currency),
                            reply_markup=markup)
     bot.register_next_step_handler(msg, orange_step_need_payments)
 
@@ -2953,47 +2919,23 @@ def orange_step_need_payments(message):
     user = read_exodus_user(message.chat.id)
     chat_id = message.chat.id
 
-    # переменная, чтобы сравнить корректность введенной минимальной суммы
-    global MAX_PAYMENTS_ORANGE
-
-    MAX_PAYMENTS_ORANGE = message.text
-    if not is_digit(MAX_PAYMENTS_ORANGE):
+    max_payments_orange = message.text
+    if not is_digit(max_payments_orange):
         msg = bot.send_message(chat_id,
                                'Сумма должна быть только в виде цифр. Введите сумму в {}, которую вы бы хотели получать в течение месяца:'.format(
                                    user.currency))
         bot.register_next_step_handler(msg, orange_step_need_payments)
         return
-    update_exodus_user(message.chat.id, max_payments=float(MAX_PAYMENTS_ORANGE))
-    msg = bot.send_message(message.chat.id, 'Введите минимальную сумму помощи в {}'.format(user.currency))
-    bot.register_next_step_handler(msg, orange_step_min_payments)
 
+    update_exodus_user(message.chat.id, max_payments=float(max_payments_orange))
 
-def orange_step_min_payments(message):
-    user = read_exodus_user(message.chat.id)
-    chat_id = message.chat.id
-    min_payments = message.text
-    if not is_digit(min_payments):
-        msg = bot.send_message(chat_id,
-                               'Сумма должна быть только в виде цифр. Введите минимальную сумму помощи в {}'.format(
-                                   user.currency))
-        bot.register_next_step_handler(msg, orange_step_min_payments)
-        return
-    if min_payments > MAX_PAYMENTS_ORANGE:
-        msg = bot.send_message(chat_id,
-                               'Минимальная сумма не должна превышать желаемую. Введите минимальную сумму помощи в {}'.format(
-                                   user.currency))
-        bot.register_next_step_handler(msg, orange_step_min_payments)
-        return
-
-    update_exodus_user(message.chat.id, min_payments=float(min_payments))
-    msg = bot.send_message(chat_id, 'Пожалуйста проверьте введенные данные:\n \
-\n \
-Статус: Оранжевый\n \
-Период: Ежемесячно.\n \
-Минимально: {} {}\n \
-Необходимая сумма: {} {}'.format(user.min_payments, user.currency, user.max_payments, user.currency))
+    bot.send_message(chat_id, 'Пожалуйста проверьте введенные данные:\n\
+\n\
+Статус: Оранжевый\n\
+Период: Ежемесячно\n\
+Необходимая сумма: {} {}'.format(user.max_payments, user.currency))
     markup = types.ReplyKeyboardMarkup()
-    user = read_exodus_user(message.chat.id)
+    # user = read_exodus_user(message.chat.id)
     if user.status == '':
         btn1 = types.KeyboardButton(text='Редактировать')
         btn2 = types.KeyboardButton(text='Сохранить')
@@ -3008,6 +2950,35 @@ def orange_step_min_payments(message):
     msg = bot.send_message(chat_id, 'Вы хотите изменить свой статус и опубликовать эти данные?\n\
 Все пользователи, которые связаны с вами внутри Эксодус бота, получат уведомление.', reply_markup=markup)
     bot.register_next_step_handler(msg, orange_step_final)
+
+
+# Минимальная сумма
+
+# def orange_step_min_payments(message):
+#     user = read_exodus_user(message.chat.id)
+#     chat_id = message.chat.id
+#
+#     msg = bot.send_message(chat_id, 'Пожалуйста проверьте введенные данные:\n \
+# \n \
+# Статус: Оранжевый\n \
+# Период: Ежемесячно.\n \
+# Необходимая сумма: {} {}'.format(user.max_payments, user.currency))
+#     markup = types.ReplyKeyboardMarkup()
+#     # user = read_exodus_user(message.chat.id)
+#     if user.status == '':
+#         btn1 = types.KeyboardButton(text='Редактировать')
+#         btn2 = types.KeyboardButton(text='Сохранить')
+#         markup.row(btn1)
+#         markup.row(btn2)
+#     else:
+#         btn1 = types.KeyboardButton(text='Редактировать')
+#         btn2 = types.KeyboardButton(text='Отмена')
+#         btn3 = types.KeyboardButton(text='Сохранить')
+#         markup.row(btn1, btn2)
+#         markup.row(btn3)
+#     msg = bot.send_message(chat_id, 'Вы хотите изменить свой статус и опубликовать эти данные?\n\
+# Все пользователи, которые связаны с вами внутри Эксодус бота, получат уведомление.', reply_markup=markup)
+#     bot.register_next_step_handler(msg, orange_step_final)
 
 
 def orange_step_final(message):
@@ -3036,7 +3007,7 @@ def orange_step_final(message):
                              last_name=user.last_name,
                              status='orange',
                              type='orange',
-                             min_payments=user.min_payments,
+                             min_payments=None,
                              current_payments=user.current_payments,
                              max_payments=user.max_payments,
                              currency=user.currency,
@@ -3079,7 +3050,7 @@ def welcome(message):
                  last_name='Pidr',  # TODO не нужно
                  status='orange',
                  type='orange',
-                 min_payments=1,
+                 min_payments=None,
                  current_payments=4,
                  max_payments=100,
                  currency='USD',
