@@ -1151,13 +1151,14 @@ def intention_to_obligation(message):
 
 
 # bookmark
-def remind_later(message, intention_id, reminder_type, reminder_status):
+def remind_later(message, intention_id=None):
     """ 6.3, 6.7, 6.8 """
     #  create_event       ---------------------------- TODO Создать уведомление - бот вышлет это через сутки
 
     reminder_date = date.today() + timedelta(days=1)
+    user = read_exodus_user(message.chat.id)
 
-    # reminder_type = 'reminder_in'   # 6.8
+    reminder_type = 'reminder_in'   # 6.8
     # reminder_type = 'reminder_out'  # 6.3, 6.7
     # status = 'obligation' # 6.3
     # status = 'intention'  # 6.7
@@ -1165,7 +1166,7 @@ def remind_later(message, intention_id, reminder_type, reminder_status):
     create_event(from_id=message.chat.id,
                  first_name=None,
                  last_name=None,
-                 status=reminder_status,
+                 status=None,
                  type=reminder_type,
                  min_payments=None,
                  current_payments=None,
@@ -2513,9 +2514,11 @@ def orange_status_wizard(message):
     btn1 = types.KeyboardButton(text='Редактировать')
     btn2 = types.KeyboardButton(text='Изменить статус')
     btn3 = types.KeyboardButton(text='Главное меню')
+    btn4 = types.KeyboardButton(text='Участники')
     markup.row(btn1)
     markup.row(btn2)
     markup.row(btn3)
+    markup.row(btn4)
     link = create_link(user.telegram_id, user.telegram_id)
     msg = bot.send_message(message.chat.id, link, reply_markup=markup)
     bot.register_next_step_handler(msg, orange_menu_check)
@@ -2530,6 +2533,8 @@ def orange_menu_check(message):
         green_red_wizard(message)
     elif text == 'Главное меню':
         global_menu(message, True)
+    elif text == 'Участники':
+        members_menu(message)
     else:
         msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
         bot.register_next_step_handler(msg, orange_menu_check)
@@ -2614,8 +2619,10 @@ def green_status_wizard(message):
     markup = types.ReplyKeyboardMarkup()
     btn1 = types.KeyboardButton(text='Изменить статус')
     btn2 = types.KeyboardButton(text='Главное меню')
+    btn3 = types.KeyboardButton(text='Участники')
     markup.row(btn1)
     markup.row(btn2)
+    markup.row(btn3)
     msg = bot.send_message(message.chat.id,
                            'Ваш текущий статус - \U0001F7E2 (зелёный)\nСписок участников с которыми Вы связаны, можно посмотреть в разделе главного меню "Участники"',
                            reply_markup=markup)
@@ -2629,6 +2636,8 @@ def green_status_wizard_check(message):
         select_orange_red(message)
     elif text == 'Главное меню':
         global_menu(message, True)
+    elif text == 'Участники':
+        members_menu(message)
     else:
         msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
         bot.register_next_step_handler(msg, green_status_wizard_check)
@@ -2681,9 +2690,11 @@ def red_status_wizard(message):
     btn1 = types.KeyboardButton(text='Редактировать')
     btn2 = types.KeyboardButton(text='Изменить статус')
     btn3 = types.KeyboardButton(text='Главное меню')
+    btn4 = types.KeyboardButton(text='Участники')
     markup.row(btn1)
     markup.row(btn2)
     markup.row(btn3)
+    markup.row(btn4)
     link = create_link(user.telegram_id, user.telegram_id)
     msg = bot.send_message(message.chat.id, link, reply_markup=markup)
     bot.register_next_step_handler(msg, red_status_wizard_check)
@@ -2698,6 +2709,8 @@ def red_status_wizard_check(message):
         green_orange_wizard(message)
     elif text == 'Главное меню':
         global_menu(message)
+    elif text == 'Участники':
+        members_menu(message)
     else:
         msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
         bot.register_next_step_handler(msg, red_status_wizard_check)
