@@ -2137,7 +2137,7 @@ def welcome(message):
     print(f"{value:%Y-%m-%d %H:%M:%S}")
     bot.clear_step_handler(message)
     referal = ref_info(message.text)
-    bot.send_message(message.chat.id, "Добро пожаловать в бот Exodus.")
+    bot.send_message(message.chat.id, "Добро пожаловать в бот Exodus. {}".format(value))
     if referal[0] != '':
         user_from = read_exodus_user(referal[0])
         user_to = read_exodus_user(referal[1])
