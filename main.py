@@ -2131,10 +2131,6 @@ def config_wizzard_currency(message):
 @bot.message_handler(commands=['start'])
 def welcome(message):
     """1.0"""
-    print(message.date)
-    timestamp = message.date
-    value = datetime.fromtimestamp(timestamp)
-    print(f"{value:%Y-%m-%d %H:%M:%S}")
     bot.clear_step_handler(message)
     referal = ref_info(message.text)
     bot.send_message(message.chat.id, "Добро пожаловать в бот Exodus. {}".format(value))
