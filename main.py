@@ -4,13 +4,15 @@
 # It echoes any incoming text messages.
 
 
-from datetime import datetime, date, timedelta
+from datetime import timedelta
 
 import telebot
 from aiohttp import web
 from telebot import types
 
 import config
+from db_controller.controller import *
+from models.exodus_user import Exodus_Users
 
 bot = telebot.TeleBot(config.API_TOKEN)
 
@@ -19,14 +21,6 @@ bot = telebot.TeleBot(config.API_TOKEN)
 
 # --------------------------------- DB ------------------------------
 
-from models import (read_exodus_user, create_event, session,
-                    Exodus_Users, update_exodus_user, create_exodus_user,
-                    read_rings_help, create_rings_help, create_intention,
-                    update_rings_help, read_intention, read_intention_by_id,
-                    update_intention, read_requisites_user, create_requisites_user,
-                    read_requisites_name, update_requisites_user, delete_requisites_user,
-                    read_intention_one, update_event_reminder_date, update_event_type, read_event,
-                    update_intention_from_all_params, read_rings_help_in_help_array)
 
 user_dict = {}
 
@@ -119,11 +113,11 @@ def global_menu(message, dont_show_status=False):
         else:
             orange_green_wizard(message)
     markup = types.ReplyKeyboardMarkup()
-    #btn1 = types.KeyboardButton(text='Мой статус')
+    # btn1 = types.KeyboardButton(text='Мой статус')
     btn2 = types.KeyboardButton(text='Транзакции')
     btn3 = types.KeyboardButton(text='Настройки')
     btn4 = types.KeyboardButton(text='Участники')
-    #markup.row(btn1, btn2)
+    # markup.row(btn1, btn2)
     markup.row(btn2)
     markup.row(btn3, btn4)
     if not dont_show_status:
@@ -1091,7 +1085,7 @@ def intention_for_needy(message, reminder_call, intention_id):
     if reminder_call is True:
         intention = read_intention_by_id(intention_id)
     else:
-        #bot.delete_message(message.chat.id, message.message_id)
+        # bot.delete_message(message.chat.id, message.message_id)
         intention_id = transaction[message.chat.id]
         intention = read_intention_by_id(intention_id)
 
@@ -1158,7 +1152,7 @@ def remind_later(message, intention_id=None):
     reminder_date = date.today() + timedelta(days=1)
     user = read_exodus_user(message.chat.id)
 
-    reminder_type = 'reminder_in'   # 6.8
+    reminder_type = 'reminder_in'  # 6.8
     # reminder_type = 'reminder_out'  # 6.3, 6.7
     # status = 'obligation' # 6.3
     # status = 'intention'  # 6.7
@@ -2194,13 +2188,13 @@ def start_orange_invitation(message, user_to):
 Всего участников: {users_count}\n\
 \n\
 Вы можете помочь этому участнику?'.format(first_name=user.first_name,
-                                           last_name=user.last_name,
-                                           status=status,
-                                           current=user.current_payments,
-                                           max=user.max_payments,
-                                           currency=user.currency,
-                                           need=user.max_payments - user.current_payments,
-                                           users_count=users_count)
+                                          last_name=user.last_name,
+                                          status=status,
+                                          current=user.current_payments,
+                                          max=user.max_payments,
+                                          currency=user.currency,
+                                          need=user.max_payments - user.current_payments,
+                                          users_count=users_count)
 
     markup = types.ReplyKeyboardMarkup()
     btn1 = types.KeyboardButton(text='Показать участников ({})'.format(users_count))

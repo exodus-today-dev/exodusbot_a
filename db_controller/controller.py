@@ -1,109 +1,15 @@
-from sqlalchemy import create_engine, ForeignKey
-from sqlalchemy import Column, String, Integer, DateTime, Date, Float, Boolean, ARRAY
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
-from sqlalchemy.sql import text
-from sqlalchemy import desc
-
 from datetime import datetime, date
 
-import config
+from sqlalchemy import text, desc
 
-db_string = "postgres://exodusdb:666777@localhost:5432/exodusdb"
+from models.events import Events
+from models.exodus_user import Exodus_Users
+from models.intention import Intention
+from models.requisites import Requisites
+from models.rings_help import Rings_Help
 
-db = create_engine(config.DATABASE_URL)
-base = declarative_base()
-
-
-class Exodus_Users(base):
-    __tablename__ = 'exodus_users'
-
-    exodus_id = Column(Integer, primary_key=True)
-    telegram_id = Column(Integer, unique=True)
-    first_name = Column(String)
-    last_name = Column(String)
-    username = Column(String)
-    ref = Column(String)
-    link = Column(String)
-    currency = Column(String)
-    status = Column(String)
-    min_payments = Column(Float)
-    current_payments = Column(Float)
-    max_payments = Column(Float)
-    create_date = Column(DateTime)
-    days = Column(Integer)
-    start_date = Column(Date)
-
-
-# добавил внешнюю связь для двух таблиц events и intention, в надежде, что это поможет при обновлении статуса с 12 на 13
-class Events(base):
-    __tablename__ = 'events'
-
-    event_id = Column(Integer, primary_key=True)
-    from_id = Column(Integer)
-    first_name = Column(String)
-    last_name = Column(String)
-    status = Column(String)
-    type = Column(String)
-    min_payments = Column(Float)
-    current_payments = Column(Float)
-    max_payments = Column(Float)
-    currency = Column(String)
-    users = Column(Integer)
-    to_id = Column(Integer)
-    reminder_date = Column(Date)
-    # intention_id = Column(Integer(), ForeignKey('intention.intention_id'))
-    sent = Column(Boolean)
-
-    # child = relationship("Intention", uselist=False, backref='events')
-
-
-class Intention(base):
-    __tablename__ = 'intention'
-
-    intention_id = Column(Integer, primary_key=True)
-    from_id = Column(Integer)
-    to_id = Column(Integer)
-    payment = Column(Float)
-    currency = Column(String)
-    create_date = Column(DateTime)
-    status = Column(Integer)
-
-    # event_id_int = Column(Integer(), ForeignKey('events.event_id'))
-
-
-#
-# Статусы, пока что не доконца продуманные
-#	0 - отменённое намерение
-#	1 - созданное намерение
-#	10 - отменённое обязательство
-#	11 - созданное обязательство (намерение переведено в обязательство)
-#	12 - деньги на обязательство отправлены, но не подтверждены получателем
-#	13 - деньги подтверждены отправка и получение
-#	15 - запрос получателя на исполнение (дай денег)
-
-
-class Rings_Help(base):
-    __tablename__ = 'rings_help'
-
-    rings_id = Column(Integer, primary_key=True)
-    needy_id = Column(Integer, unique=True)
-    help_array = Column(ARRAY(Integer))
-
-
-class Requisites(base):
-    __tablename__ = 'requisites'
-
-    requisites_id = Column(Integer, primary_key=True)
-    telegram_id = Column(Integer)
-    name = Column(String(128), nullable=False)
-    value = Column(String(128), nullable=False)
-    is_default = Column(Boolean)
-
-
-base.metadata.create_all(db)
-Session = sessionmaker(db)
-session = Session()
+from models.data_repository import session
+from models.data_repository import db
 
 
 # Create
@@ -186,7 +92,6 @@ def delete_exodus_user(telegram_id):
         raise
 
 
-
 def create_event(from_id, first_name, last_name, status, type, min_payments, current_payments,
                  max_payments, currency, users, to_id, reminder_date, sent=False):
     event = Events(from_id=from_id,
@@ -221,6 +126,7 @@ def update_event(event_id, sent):
     except:
         session.rollback()
         raise
+
 
 def update_event_reminder_date(event_id, reminder_date):
     event = session.query(Events).filter_by(event_id=event_id).first()
@@ -289,7 +195,6 @@ def create_intention(from_id, to_id, payment, currency, status=None):
         raise
 
 
-
 def read_intention_with_payment(from_id, to_id, payment, status):
     intention = session.query(Intention).filter_by(from_id=from_id, to_id=to_id, payment=payment, status=status).first()
     return intention
@@ -342,6 +247,7 @@ def update_intention_from_all_params(from_id, to_id, payment, status=None):
         session.rollback()
         raise
 
+
 # -----------------------requisites-------------------
 # Create
 def create_requisites_user(telegram_id, name='', value='', is_default=False):
@@ -390,7 +296,6 @@ def update_requisites_user(requisites_id, name='', value='', is_default=False):
 # Delete
 def delete_requisites_user(requisites_id):
     requisites_user = session.query(Requisites).filter_by(requisites_id=requisites_id).first()
-
 
     try:
         session.delete(requisites_user)
