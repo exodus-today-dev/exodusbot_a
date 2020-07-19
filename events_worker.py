@@ -18,9 +18,9 @@ bot = telebot.TeleBot(config.API_TOKEN)
 # --------------------------------- DB ------------------------------
 
 
-from models.exodus_user import Exodus_Users
-from models.events import Events
-from models.data_repository import session
+from models_.exodus_user import Exodus_Users
+from models_.events import Events
+from models_.data_repository import session
 from db_controller.controller import update_event
 from events import invitation_help_orange, invitation_help_red, notice_of_intent, obligation_sended_notice, \
     obligation_recieved_notice, obligation_money_requested_notice, reminder, reminder_for_6_10

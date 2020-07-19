@@ -10,10 +10,9 @@ import telebot
 from aiohttp import web
 from telebot import types
 
-import config
-from db_controller.controller import *
-from models.exodus_user import Exodus_Users
-from models.status_codes import *
+# from db_controller.controller import *
+from models import *
+from status_codes import *
 
 bot = telebot.TeleBot(config.API_TOKEN)
 
@@ -2176,7 +2175,7 @@ def start_without_invitation(message):
 # ----------------------------- 6.1 ORANGE ----------------------
 def start_orange_invitation(message, user_to):
     """6.1"""
-    print(user_to)
+    # print(user_to)
     user = read_exodus_user(telegram_id=user_to)
     ring = read_rings_help(user.telegram_id)
 

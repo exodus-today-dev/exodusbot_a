@@ -1,16 +1,92 @@
-from datetime import datetime, date
+from datetime import date, datetime
+from operator import or_
 
-from sqlalchemy import text, desc, or_
+from sqlalchemy import create_engine, Column, Integer, String, Float, Date, Boolean, DateTime, ARRAY, text, desc
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
-from models.events import Events
-from models.exodus_user import Exodus_Users
-from models.intention import Intention
-from models.requisites import Requisites
-from models.rings_help import Rings_Help
 
-from models.data_repository import session
-from models.data_repository import db
-from models.status_codes import *
+import config
+from status_codes import *
+
+db = create_engine(config.DATABASE_URL)
+base = declarative_base()
+
+
+
+# добавил внешнюю связь для двух таблиц events и intention, в надежде, что это поможет при обновлении статуса с 12 на 13
+class Events(base):
+    __tablename__ = 'events'
+
+    event_id = Column(Integer, primary_key=True)
+    from_id = Column(Integer)
+    first_name = Column(String)
+    last_name = Column(String)
+    status = Column(String)
+    type = Column(String)
+    min_payments = Column(Float)
+    current_payments = Column(Float)
+    max_payments = Column(Float)
+    currency = Column(String)
+    users = Column(Integer)
+    to_id = Column(Integer)
+    reminder_date = Column(Date)
+    # intention_id = Column(Integer(), ForeignKey('intention.intention_id'))
+    sent = Column(Boolean)
+    status_code = Column(Integer)
+    # child = relationship("Intention", uselist=False, backref='events')
+
+
+class Exodus_Users(base):
+    __tablename__ = 'exodus_users'
+
+    exodus_id = Column(Integer, primary_key=True)
+    telegram_id = Column(Integer, unique=True)
+    first_name = Column(String)
+    last_name = Column(String)
+    username = Column(String)
+    ref = Column(String)
+    link = Column(String)
+    currency = Column(String)
+    status = Column(String)
+    min_payments = Column(Float)
+    current_payments = Column(Float)
+    max_payments = Column(Float)
+    create_date = Column(DateTime)
+    days = Column(Integer)
+    start_date = Column(Date)
+
+
+class Intention(base):
+    __tablename__ = 'intention'
+
+    intention_id = Column(Integer, primary_key=True)
+    from_id = Column(Integer)
+    to_id = Column(Integer)
+    payment = Column(Float)
+    currency = Column(String)
+    create_date = Column(DateTime)
+    status = Column(Integer)
+
+    # event_id_int = Column(Integer(), ForeignKey('events.event_id'))
+
+
+class Requisites(base):
+    __tablename__ = 'requisites'
+
+    requisites_id = Column(Integer, primary_key=True)
+    telegram_id = Column(Integer)
+    name = Column(String(128), nullable=False)
+    value = Column(String(128), nullable=False)
+    is_default = Column(Boolean)
+
+
+class Rings_Help(base):
+    __tablename__ = 'rings_help'
+
+    rings_id = Column(Integer, primary_key=True)
+    needy_id = Column(Integer, unique=True)
+    help_array = Column(ARRAY(Integer))
 
 
 # Create
@@ -322,3 +398,8 @@ def delete_requisites_user(requisites_id):
     except:
         session.rollback()
         raise
+
+
+Session = sessionmaker(db)
+session = Session()
+base.metadata.create_all(db)
