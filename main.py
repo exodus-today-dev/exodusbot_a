@@ -13,6 +13,7 @@ from telebot import types
 import config
 from db_controller.controller import *
 from models.exodus_user import Exodus_Users
+from models.status_codes import *
 
 bot = telebot.TeleBot(config.API_TOKEN)
 
@@ -518,7 +519,7 @@ def transactions_check(message):
         return
 
 
-def members_menu(message):
+def members_menu(message, meta_txt=None):
     """2.5"""
 
     user = read_exodus_user(message.chat.id)
@@ -530,15 +531,18 @@ def members_menu(message):
 
     transactions_in_count = count_in_transactions(message.chat.id)
     transactions_out_count = count_out_transactions(message.chat.id)
+    requisites_count = get_requisites_count(message.chat.id)
 
     btn1 = types.KeyboardButton(text='Ссылка на мой профиль')
     btn2 = types.KeyboardButton(text='В мою пользу ({})'.format(transactions_in_count))
     btn3 = types.KeyboardButton(text='В пользу других ({})'.format(transactions_out_count))
-    btn4 = types.KeyboardButton(text='Главное меню')
+    btn4 = types.KeyboardButton(text='Запросы помощи({})'.format(requisites_count))
+    btn5 = types.KeyboardButton(text='Главное меню')
     markup.row(btn1)
     markup.row(btn2)
     markup.row(btn3)
     markup.row(btn4)  # ________________ TODO
+    markup.row(btn5)
 
     currency = user.currency
 
@@ -573,7 +577,10 @@ def members_menu(message):
         exe_out=executed_out_sum, tr_in=transactions_in_count,
         tr_out=transactions_out_count)
 
-    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
+    if meta_txt is None:
+        msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
+    else:
+        msg = bot.send_message(message.chat.id, text=meta_txt, reply_markup=markup)
     bot.register_next_step_handler(msg, members_check)
     return
 
@@ -963,6 +970,9 @@ def members_check(message):
         return
     elif text[0:15] == 'В пользу других':
         members_list_in_network_menu(message, message.chat.id, 'out')
+        return
+    elif 'Запросы помощи' in text:
+        show_help_requisites(message)
         return
     elif text == 'Главное меню':
         global_menu(message)
@@ -1422,7 +1432,8 @@ def obligation_sent_confirm_yes(message):
                  users=users_count,
                  to_id=intention.to_id,
                  sent=False,
-                 reminder_date=reminder_date)
+                 reminder_date=reminder_date,
+                 status_code=OBLIGATION_APPROVED)
 
     # bot_text = f"Спасибо! Получателю {user.first_name} {user.last_name} " \
     #            f"будет отправлено уведомление о том, что деньги отправлены."
@@ -1911,7 +1922,8 @@ def executed_confirm_confirmed(message):
     intention_id = transaction[message.chat.id]
     intention = read_intention_by_id(intention_id=intention_id)
     user = read_exodus_user(telegram_id=intention.from_id)
-    bot_text = f"Спасибо! Участнику {user.first_name} {user.last_name} будет отправлено уведомление о том, что его обязательство исполнено."
+    bot_text = f"Спасибо! Участнику {user.first_name} {user.last_name} будет отправлено уведомление о том, что его " \
+               f"обязательство исполнено. "
     # create_event        TODO 
     not_executed_wizard_for_all(message)
     return
@@ -1921,7 +1933,8 @@ def repeat_executed_request(message):
     intention_id = transaction[message.chat.id]
     intention = read_intention_by_id(intention_id=intention_id)
     user = read_exodus_user(telegram_id=intention.from_id)
-    bot_text = f"Спасибо! Отправителю {user.first_name} {user.last_name} будет отправлено уведомление о том, что деньги все еще не получены."
+    bot_text = f"Спасибо! Отправителю {user.first_name} {user.last_name} будет отправлено уведомление о том, что " \
+               f"деньги все еще не получены. "
     # create_event        TODO 
     not_executed_wizard_for_all(message)
     return
@@ -2827,7 +2840,8 @@ def red_edit_wizard_step4(message, link):
                              users=users_count,
                              to_id=users.telegram_id,
                              sent=False,
-                             reminder_date=date.today())  # someday: intention_id
+                             reminder_date=date.today(),
+                             status_code=NEW_RED_STATUS)  # someday: intention_id
 
         # создаем список с теми, у кого мы в списке help_array
         list_needy_id = set(read_rings_help(message.chat.id).help_array)
@@ -3017,7 +3031,8 @@ def orange_step_final(message):
                              users=users_count,
                              to_id=users.telegram_id,
                              sent=False,
-                             reminder_date=date.today())  # someday: intention_id
+                             reminder_date=date.today(),
+                             status_code=NEW_ORANGE_STATUS)  # someday: intention_id
 
         # создаем список с теми, у кого мы в списке help_array
         list_needy_id = set(read_rings_help(message.chat.id).help_array)
@@ -3042,6 +3057,15 @@ def orange_step_final(message):
         return
 
 
+# -------------------------------------------
+def show_help_requisites(message):
+    txt = 'Вы не ответили на запросы следующих пользователей:\n{}'
+    users = get_help_requisites(message.chat.id)
+    if len(users) == 0:
+        txt = 'Никто помощь пока не запрашивал'
+    else:
+        txt = txt.format('\n'.join(users))
+    members_menu(message, meta_txt=txt)
 # -------------------------------------------
 
 

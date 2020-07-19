@@ -1,6 +1,6 @@
 from datetime import datetime, date
 
-from sqlalchemy import text, desc
+from sqlalchemy import text, desc, or_
 
 from models.events import Events
 from models.exodus_user import Exodus_Users
@@ -10,6 +10,7 @@ from models.rings_help import Rings_Help
 
 from models.data_repository import session
 from models.data_repository import db
+from models.status_codes import *
 
 
 # Create
@@ -93,7 +94,7 @@ def delete_exodus_user(telegram_id):
 
 
 def create_event(from_id, first_name, last_name, status, type, min_payments, current_payments,
-                 max_payments, currency, users, to_id, reminder_date, sent=False):
+                 max_payments, currency, users, to_id, reminder_date, sent=False, status_code=None):
     event = Events(from_id=from_id,
                    first_name=first_name,
                    last_name=last_name,
@@ -107,7 +108,8 @@ def create_event(from_id, first_name, last_name, status, type, min_payments, cur
                    to_id=to_id,
                    reminder_date=reminder_date,
                    # intention_id = intention_id,
-                   sent=False)
+                   sent=False,
+                   status_code=status_code)
 
     try:
         session.add(event)
@@ -277,6 +279,23 @@ def read_requisites_name(telegram_id, requisites_name):
     requisites_user = session.query(Requisites).filter(Requisites.name.like(search)).filter_by(
         telegram_id=telegram_id).first()
     return requisites_user
+
+
+def get_help_requisites(telegram_id):
+    help_requisites = session.query(Events).filter(
+        or_(Events.status_code == NEW_ORANGE_STATUS, Events.status_code == NEW_RED_STATUS),
+        Events.to_id == telegram_id)
+
+    ret = []
+    for row in help_requisites:
+        ret.append(row.from_id)
+
+    return ret
+
+
+def get_requisites_count(telegram_id):
+    count = session.query(Events).filter_by(to_id=telegram_id).count()
+    return count
 
 
 # Update

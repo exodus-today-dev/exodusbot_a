@@ -5,9 +5,10 @@ import config
 
 bot = telebot.TeleBot(config.API_TOKEN)
 
-from models import read_exodus_user, read_event, read_intention, update_event, read_intention_with_payment, \
+from db_controller.controller import read_exodus_user, read_event, read_intention, update_event, read_intention_with_payment, \
     read_intention_by_id, read_requisites_user
-from models import session, Exodus_Users
+from models.exodus_user import Exodus_Users
+from models.data_repository import session
 
 
 def invitation_help_orange(event_id):
