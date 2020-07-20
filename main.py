@@ -115,7 +115,7 @@ def global_menu(message, dont_show_status=False):
     markup = types.ReplyKeyboardMarkup()
     # btn1 = types.KeyboardButton(text='Мой статус')
     btn2 = types.KeyboardButton(text='\U0001f4ca Транзакции')
-    btn3 = types.KeyboardButton(text='Настройки')
+    btn3 = types.KeyboardButton(text='\U0001f527 Настройки')
     btn4 = types.KeyboardButton(text='\U0001f465 Участники')
     # markup.row(btn1, btn2)
     markup.row(btn2)
@@ -130,11 +130,11 @@ def global_check(message):
     text = message.text
     # if text == 'Мой статус':
     #     status_menu(message)
-    if text == 'Транзакции':
+    if 'Транзакции' in text:
         transactions_menu(message)
-    elif text == 'Настройки':
+    elif 'Настройки' in text:
         configuration_menu(message)
-    elif text == 'Участники':
+    elif 'Участники' in text:
         members_menu(message)
 
 
