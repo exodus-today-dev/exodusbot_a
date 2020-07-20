@@ -116,7 +116,7 @@ def global_menu(message, dont_show_status=False):
     # btn1 = types.KeyboardButton(text='Мой статус')
     btn2 = types.KeyboardButton(text='Транзакции')
     btn3 = types.KeyboardButton(text='Настройки')
-    btn4 = types.KeyboardButton(text='Участники')
+    btn4 = types.KeyboardButton(text='Участники \U0001f465')
     # markup.row(btn1, btn2)
     markup.row(btn2)
     markup.row(btn3, btn4)
