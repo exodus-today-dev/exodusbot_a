@@ -3059,12 +3059,19 @@ def orange_step_final(message):
 # -------------------------------------------
 def show_help_requisites(message):
     txt = 'Вы не ответили на запросы следующих пользователей:\n{}'
-    users = get_help_requisites(message.chat.id)
-    if len(users) == 0:
+    events = get_help_requisites(message.chat.id)
+    if len(events) == 0:
         txt = 'Никто помощь пока не запрашивал'
+        members_menu(message, meta_txt=txt)
     else:
-        txt = txt.format('\n'.join(users))
-    members_menu(message, meta_txt=txt)
+        users_names = [e.first_name + ' ' + e.last_name for e in events]
+        txt = txt.format('\n'.join(users_names))
+        txt += '\nВведите номер чтобы ответить на запрос:'
+        bot.register_next_step_handler(txt, read_requisites_name)
+
+
+def restart_invitation(message, users):
+    pass
 # -------------------------------------------
 
 

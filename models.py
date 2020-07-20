@@ -361,12 +361,8 @@ def get_help_requisites(telegram_id):
     help_requisites = session.query(Events).filter(
         or_(Events.status_code == NEW_ORANGE_STATUS, Events.status_code == NEW_RED_STATUS),
         Events.to_id == telegram_id)
-    print(telegram_id)
-    ret = []
-    for row in help_requisites:
-        ret.append(str(row.first_name))
 
-    return ret
+    return help_requisites
 
 
 def get_requisites_count(telegram_id):
