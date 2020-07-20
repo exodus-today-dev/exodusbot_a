@@ -23,12 +23,12 @@ def invitation_help_orange(event_id):
 
     list_send_notify = read_rings_help_in_help_array(user.telegram_id)
 
-    for row in list_send_notify:
-        list_needy_id.add(row.needy_id)
+    for i in list_send_notify:
+        list_needy_id.add(i.needy_id)
 
-    for row in list_needy_id:
+    for j in list_needy_id:
         try:
-            bot.send_message(row, bot_text, reply_markup=keyboard)
+            bot.send_message(j, bot_text, reply_markup=keyboard)
         except:
             continue
 
@@ -53,12 +53,12 @@ def invitation_help_red(event_id):
 
     list_send_notify = read_rings_help_in_help_array(user.telegram_id)
 
-    for row in list_send_notify:
-        list_needy_id.add(row.needy_id)
+    for i in list_send_notify:
+        list_needy_id.add(i.needy_id)
 
-    for row in list_needy_id:
+    for j in list_needy_id:
         try:
-            bot.send_message(row, bot_text, reply_markup=keyboard)
+            bot.send_message(j, bot_text, reply_markup=keyboard)
         except:
             continue
 
