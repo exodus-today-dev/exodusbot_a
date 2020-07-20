@@ -114,7 +114,7 @@ def global_menu(message, dont_show_status=False):
             orange_green_wizard(message)
     markup = types.ReplyKeyboardMarkup()
     # btn1 = types.KeyboardButton(text='Мой статус')
-    btn2 = types.KeyboardButton(text='\U0001f4ca Транзакции)
+    btn2 = types.KeyboardButton(text='\U0001f4ca Транзакции')
     btn3 = types.KeyboardButton(text='\U0002699 Настройки')
     btn4 = types.KeyboardButton(text='\U0001f465 Участники')
     # markup.row(btn1, btn2)
