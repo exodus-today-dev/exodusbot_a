@@ -89,6 +89,14 @@ class Rings_Help(base):
     help_array = Column(ARRAY(Integer))
 
 
+
+
+Session = sessionmaker(db)
+session = Session()
+base.metadata.create_all(db)
+
+
+
 # Create
 def create_exodus_user(telegram_id, first_name, last_name, username, ref='', link='', min_payments=0,
                        current_payments=0, max_payments=0, currency='USD', status='', days=0, start_date=date.today()):
@@ -399,7 +407,3 @@ def delete_requisites_user(requisites_id):
         session.rollback()
         raise
 
-
-Session = sessionmaker(db)
-session = Session()
-base.metadata.create_all(db)

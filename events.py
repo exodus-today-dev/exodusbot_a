@@ -17,11 +17,28 @@ def invitation_help_orange(event_id):
     row = []
     row.append(types.InlineKeyboardButton('Подробнее', callback_data='orange_invitation-{}'.format(user.telegram_id)))
     keyboard.row(*row)
-    bot.send_message(event.to_id, bot_text, reply_markup=keyboard)
+
+    # создаем список с теми, у кого мы в списке help_array
+    list_needy_id = set(read_rings_help(user.telegram_id).help_array)
+
+    list_send_notify = read_rings_help_in_help_array(user.telegram_id)
+
+    for row in list_send_notify:
+        list_needy_id.add(row.needy_id)
+
+    for row in list_needy_id:
+        try:
+            bot.send_message(row, bot_text, reply_markup=keyboard)
+        except:
+            continue
+
+    #bot.send_message(event.to_id, bot_text, reply_markup=keyboard)
+
     return True
 
 
 def invitation_help_red(event_id):
+
     event = read_event(event_id)
     user = read_exodus_user(event.from_id)
     bot_text = f"Приглашение помогать {user.first_name} {user.last_name}"
@@ -30,7 +47,21 @@ def invitation_help_red(event_id):
     row = []
     row.append(types.InlineKeyboardButton('Подробнее', callback_data='red_invitation-{}'.format(user.telegram_id)))
     keyboard.row(*row)
-    bot.send_message(event.to_id, bot_text, reply_markup=keyboard)
+
+    # создаем список с теми, у кого мы в списке help_array
+    list_needy_id = set(read_rings_help(user.telegram_id).help_array)
+
+    list_send_notify = read_rings_help_in_help_array(user.telegram_id)
+
+    for row in list_send_notify:
+        list_needy_id.add(row.needy_id)
+
+    for row in list_needy_id:
+        try:
+            bot.send_message(row, bot_text, reply_markup=keyboard)
+        except:
+            continue
+
     return True
 
 
