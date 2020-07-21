@@ -2173,7 +2173,7 @@ def start_without_invitation(message):
 
 
 # ----------------------------- 6.1 ORANGE ----------------------
-def start_orange_invitation(message, user_to):
+def start_orange_invitation(message, user_to, event_id=None):
     """6.1"""
     # print(user_to)
     user = read_exodus_user(telegram_id=user_to)
@@ -2222,10 +2222,10 @@ def start_orange_invitation(message, user_to):
     temp_dict[
         message.chat.id].step = 'orange'  # TODO ---------- убрать этот костыль, так как при большом кол-во пользователей будет съедать память
 
-    bot.register_next_step_handler(msg, orange_invitation_check)
+    bot.register_next_step_handler(msg, orange_invitation_check, event_id)
 
 
-def orange_invitation_check(message):
+def orange_invitation_check(message, event_id=None):
     """6.1.1"""
     user_to = temp_dict[
         message.chat.id]  # TODO ---------- убрать этот костыль, так как при большом кол-во пользователей будет съедать память
@@ -2239,7 +2239,7 @@ def orange_invitation_check(message):
         else:
             global_menu(message)
     elif text == 'Да'.format(0):
-        orange_invitation_wizard(message, user_to)
+        orange_invitation_wizard(message, user_to, event_id)
 
     elif 'Главное меню' in text:
         global_menu(message, True)
@@ -2249,7 +2249,7 @@ def orange_invitation_check(message):
         bot.register_next_step_handler(msg, orange_invitation_check)
 
 
-def orange_invitation_wizard(message, user_to):
+def orange_invitation_wizard(message, user_to, event_id=None):
     """6.1.2"""
     temp_dict[message.chat.id] = user_to
     user = user_to
@@ -2258,10 +2258,10 @@ def orange_invitation_wizard(message, user_to):
     markup.row(btn1)
     msg = bot.send_message(message.chat.id, 'Введите сумму помощи в {}:'.format(user.currency),
                            reply_markup=markup)
-    bot.register_next_step_handler(msg, orange_invitation_wizard_check)
+    bot.register_next_step_handler(msg, orange_invitation_wizard_check, event_id)
 
 
-def orange_invitation_wizard_check(message):  # ------------------ TODO
+def orange_invitation_wizard_check(message, event_id=None):  # ------------------ TODO
     user = temp_dict[message.chat.id]
     invitation_sum = message.text
     if message.text == 'Назад':
@@ -2284,20 +2284,23 @@ def orange_invitation_wizard_check(message):  # ------------------ TODO
 
     bot_text = 'Ваше намерение принято'
 
-    event = create_event(from_id=message.chat.id,
-                         first_name=user.first_name,  # TODO not needed
-                         last_name=user.last_name,  # TODO not needed
-                         status='orange',
-                         type='notice',
-                         min_payments=None,
-                         current_payments=user.current_payments,
-                         max_payments=user.max_payments,
-                         currency=user.currency,
-                         users=0,
-                         to_id=user.telegram_id,
-                         sent=False,
-                         reminder_date=date.today())  # someday: intention_id
-
+    if event_id is None:
+        event = create_event(from_id=message.chat.id,
+                             first_name=user.first_name,  # TODO not needed
+                             last_name=user.last_name,  # TODO not needed
+                             status='orange',
+                             type='notice',
+                             min_payments=None,
+                             current_payments=user.current_payments,
+                             max_payments=user.max_payments,
+                             currency=user.currency,
+                             users=0,
+                             to_id=user.telegram_id,
+                             sent=False,
+                             reminder_date=date.today(),
+                             status_code=APPROVE_ORANGE_STATUS)  # someday: intention_id
+    else:
+        update_event_status_code(event_id, APPROVE_ORANGE_STATUS)
     create_intention(message.chat.id, user.telegram_id, invitation_sum, user.currency, status=1)
 
     bot.send_message(message.chat.id, bot_text)
@@ -2350,7 +2353,7 @@ def show_all_members_check(message):
 
 
 # ----------------------- 6.2 RED ---------------------------
-def start_red_invitation(message, user_to):
+def start_red_invitation(message, user_to, event_id=None):
     """6.2"""
     user = read_exodus_user(telegram_id=user_to)
     # ring = read_rings_help(user.telegram_id)
@@ -2399,10 +2402,10 @@ def start_red_invitation(message, user_to):
     temp_dict[
         message.chat.id].step = 'red'  # TODO ---------- убрать этот костыль, так как при большом кол-во пользователей будет съедать память
 
-    bot.register_next_step_handler(msg, red_invitation_check)
+    bot.register_next_step_handler(msg, red_invitation_check, event_id=event_id)
 
 
-def red_invitation_check(message):
+def red_invitation_check(message, event_id=None):
     """6.1.1"""
     user_to = temp_dict[
         message.chat.id]  # TODO ---------- убрать этот костыль, так как при большом кол-во пользователей будет съедать память
@@ -2416,7 +2419,7 @@ def red_invitation_check(message):
         else:
             global_menu(message)
     elif text == 'Да'.format(0):
-        red_invitation_wizard(message, user_to)
+        red_invitation_wizard(message, user_to, event_id)
 
     elif 'Главное меню' in text:
         global_menu(message, True)
@@ -2426,7 +2429,7 @@ def red_invitation_check(message):
         bot.register_next_step_handler(msg, red_invitation_check)
 
 
-def red_invitation_wizard(message, user_to):
+def red_invitation_wizard(message, user_to, event_id=None):
     """6.1.2"""
     temp_dict[message.chat.id] = user_to
     user = user_to
@@ -2435,10 +2438,10 @@ def red_invitation_wizard(message, user_to):
     markup.row(btn1)
     msg = bot.send_message(message.chat.id, 'Введите сумму помощи в {}:'.format(user.currency),
                            reply_markup=markup)
-    bot.register_next_step_handler(msg, red_invitation_wizard_check)
+    bot.register_next_step_handler(msg, red_invitation_wizard_check, event_id)
 
 
-def red_invitation_wizard_check(message):  # ------------------ TODO
+def red_invitation_wizard_check(message, event_id=None):  # ------------------ TODO
     user = temp_dict[message.chat.id]
     invitation_sum = message.text
     if message.text == 'Назад':
@@ -2477,19 +2480,23 @@ def red_invitation_wizard_check(message):  # ------------------ TODO
 \n\
 За три дня до наступления периода бот напомнит о намерении и попросит перевести его в статус "обязательства".'
 
-    event = create_event(from_id=message.chat.id,
-                         first_name=user.first_name,  # TODO not needed
-                         last_name=user.last_name,  # TODO not needed
-                         status='red',
-                         type='notice',
-                         min_payments=None,
-                         current_payments=invitation_sum,
-                         max_payments=user.max_payments,
-                         currency=user.currency,
-                         users=0,
-                         to_id=user.telegram_id,
-                         sent=False,
-                         reminder_date=date.today())  # someday: intention_id
+    if event_id is None:
+        event = create_event(from_id=message.chat.id,
+                             first_name=user.first_name,  # TODO not needed
+                             last_name=user.last_name,  # TODO not needed
+                             status='red',
+                             type='notice',
+                             min_payments=None,
+                             current_payments=invitation_sum,
+                             max_payments=user.max_payments,
+                             currency=user.currency,
+                             users=0,
+                             to_id=user.telegram_id,
+                             sent=False,
+                             reminder_date=date.today(),
+                             status_code=APPROVE_RED_STATUS)  # someday: intention_id
+    else:
+        update_event_status_code(event_id, APPROVE_RED_STATUS)
 
     create_intention(message.chat.id, user.telegram_id, invitation_sum, user.currency, status=1)
 
@@ -3058,20 +3065,40 @@ def orange_step_final(message):
 
 # -------------------------------------------
 def show_help_requisites(message):
-    txt = 'Вы не ответили на запросы следующих пользователей:\n{}'
-    events = get_help_requisites(message.chat.id)
-    if len(events) == 0:
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    users_dict = get_help_requisites(message.chat.id)
+    # print(message.chat.id)
+    if len(users_dict) == 0:
         txt = 'Никто помощь пока не запрашивал'
         members_menu(message, meta_txt=txt)
     else:
-        users_names = [e.first_name + ' ' + e.last_name for e in events]
-        txt = txt.format('\n'.join(users_names))
-        txt += '\nВведите номер чтобы ответить на запрос:'
-        bot.register_next_step_handler(txt, read_requisites_name)
+        # txt = txt.format('\n'.join(users_dict.keys()))
+        btns = [types.KeyboardButton(un) for un in users_dict.keys()]
+        for btn in btns:
+            markup.row(btn)
+        txt = 'Выберите пользователя, чтобы ответить на его запрос:'
+        msg = bot.send_message(message.chat.id, txt, reply_markup=markup)
+        bot.register_next_step_handler(msg, restart_invitation, users_dict)
+        return
 
 
-def restart_invitation(message, users):
-    pass
+def restart_invitation(message, users_dict):
+    if message.text not in users_dict.keys():
+        txt = 'Этого пользователя нет в списке'
+        msg = bot.send_message(message.chat.id, txt)
+        bot.register_next_step_handler(msg, show_help_requisites)
+        return
+    elif users_dict[message.text]['status_code'] == NEW_ORANGE_STATUS:
+        start_orange_invitation(message, users_dict[message.text]['from_id'],
+                                event_id=users_dict[message.text]['event_id'])
+        return
+    elif users_dict[message.text]['status_code'] == NEW_RED_STATUS:
+        start_red_invitation(message, users_dict[message.text]['from_id'],
+                             event_id=users_dict[message.text]['event_id'])
+        return
+    global_menu(message)
+
+
 # -------------------------------------------
 
 

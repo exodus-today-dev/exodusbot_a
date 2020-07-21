@@ -4,14 +4,13 @@ from operator import or_
 from sqlalchemy import create_engine, Column, Integer, String, Float, Date, Boolean, DateTime, ARRAY, text, desc
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-
+from sqlalchemy.testing import in_
 
 import config
 from status_codes import *
 
 db = create_engine(config.DATABASE_URL)
 base = declarative_base()
-
 
 
 # добавил внешнюю связь для двух таблиц events и intention, в надежде, что это поможет при обновлении статуса с 12 на 13
@@ -89,12 +88,9 @@ class Rings_Help(base):
     help_array = Column(ARRAY(Integer))
 
 
-
-
 Session = sessionmaker(db)
 session = Session()
 base.metadata.create_all(db)
-
 
 
 # Create
@@ -234,6 +230,17 @@ def update_event_type(event_id, type):
         raise
 
 
+def update_event_status_code(event_id, status_code):
+    event = session.query(Events).filter_by(event_id=event_id).first()
+    event.status_code = status_code
+
+    try:
+        session.commit()
+    except:
+        session.rollback()
+        raise
+
+
 def read_event(event_id):
     event = session.query(Events).filter_by(event_id=event_id).first()
     return event
@@ -366,15 +373,21 @@ def read_requisites_name(telegram_id, requisites_name):
 
 
 def get_help_requisites(telegram_id):
-    help_requisites = session.query(Events).filter(
-        or_(Events.status_code == NEW_ORANGE_STATUS, Events.status_code == NEW_RED_STATUS),
-        Events.to_id == telegram_id)
+    user_names = session.query(Exodus_Users, Events)
+    user_names = user_names.filter(Events.to_id == telegram_id,
+                                   or_(Events.status_code == NEW_ORANGE_STATUS, Events.status_code == NEW_RED_STATUS))
+    user_names = user_names.join(Events, Events.from_id == Exodus_Users.telegram_id)
 
-    return help_requisites
+    result = {}
+    for u, e in user_names:
+        result[u.first_name] = {'from_id': e.from_id, 'status_code': e.status_code, 'event_id': e.event_id}
+
+    return result
 
 
 def get_requisites_count(telegram_id):
-    count = session.query(Events).filter_by(to_id=telegram_id).count()
+    count = session.query(Events).filter(Events.to_id == telegram_id,
+                                        or_(Events.status_code == NEW_ORANGE_STATUS, Events.status_code == NEW_RED_STATUS)).count()
     return count
 
 
@@ -402,4 +415,3 @@ def delete_requisites_user(requisites_id):
     except:
         session.rollback()
         raise
-
