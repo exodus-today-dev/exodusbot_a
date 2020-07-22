@@ -1656,7 +1656,7 @@ def obligation_to_execution(message, obligation_id):
     user = read_exodus_user(telegram_id=intention.from_id)
     update_intention(intention_id=intention_id, status=15)
     bot_text = f'Участнику {user.first_name} {user.last_name} отправлено ваше решение исполнить ' \
-               f'обязательство на сумму {intention.payment} {intention.currency}.'
+        f'обязательство на сумму {intention.payment} {intention.currency}.'
 
     payment = intention.payment
     currency = intention.currency
@@ -1691,10 +1691,10 @@ def keep_obligation(message):
     intention = read_intention_by_id(intention_id=intention_id)
     user = read_exodus_user(telegram_id=intention.from_id)
     bot_text = f'Обязательство участника {user.first_name} {user.last_name} на ' \
-               f'сумму  {intention.payment} {intention.currency} будет хранится у вас, ' \
-               f'пока вы не примите решение.\n' \
-               f'Посмотреть все обязательства можно в разделе главного меню ' \
-               f'"транзакции" > "обязательства"'
+        f'сумму  {intention.payment} {intention.currency} будет хранится у вас, ' \
+        f'пока вы не примите решение.\n' \
+        f'Посмотреть все обязательства можно в разделе главного меню ' \
+        f'"транзакции" > "обязательства"'
     global_menu(message)
     return
 
@@ -1922,7 +1922,7 @@ def executed_confirm_confirmed(message):
     intention = read_intention_by_id(intention_id=intention_id)
     user = read_exodus_user(telegram_id=intention.from_id)
     bot_text = f"Спасибо! Участнику {user.first_name} {user.last_name} будет отправлено уведомление о том, что его " \
-               f"обязательство исполнено. "
+        f"обязательство исполнено. "
     # create_event        TODO 
     not_executed_wizard_for_all(message)
     return
@@ -1933,7 +1933,7 @@ def repeat_executed_request(message):
     intention = read_intention_by_id(intention_id=intention_id)
     user = read_exodus_user(telegram_id=intention.from_id)
     bot_text = f"Спасибо! Отправителю {user.first_name} {user.last_name} будет отправлено уведомление о том, что " \
-               f"деньги все еще не получены. "
+        f"деньги все еще не получены. "
     # create_event        TODO 
     not_executed_wizard_for_all(message)
     return
@@ -2044,7 +2044,7 @@ def executed_was_sent(message):
                  reminder_date=reminder_date)
 
     bot_text = f"Спасибо! Получателю {user.first_name} {user.last_name} " \
-               f"будет отправлено уведомление о том, что деньги отправлены."
+        f"будет отправлено уведомление о том, что деньги отправлены."
     bot.send_message(message.chat.id, bot_text)
 
     # not_executed_wizard(message)
@@ -2829,25 +2829,8 @@ def red_edit_wizard_step4(message, link):
                            max_payments=user_dict[message.chat.id].max_payments)
 
         user = read_exodus_user(message.chat.id)
-        all_users = session.query(Exodus_Users).all()
-        users_count = session.query(Exodus_Users).count()
-        for users in all_users:
-            # TODO           пока что рассылка всем
-            if users.telegram_id != message.chat.id:
-                create_event(from_id=message.chat.id,
-                             first_name=user.first_name,
-                             last_name=user.last_name,
-                             status='red',
-                             type='red',
-                             min_payments=None,
-                             current_payments=user.current_payments,
-                             max_payments=user.max_payments,
-                             currency=user.currency,
-                             users=users_count,
-                             to_id=users.telegram_id,
-                             sent=False,
-                             reminder_date=date.today(),
-                             status_code=NEW_RED_STATUS)  # someday: intention_id
+        # all_users = session.query(Exodus_Users).all()
+        # users_count = session.query(Exodus_Users).count()
 
         # создаем список с теми, у кого мы в списке help_array
         list_needy_id = set(read_rings_help(message.chat.id).help_array)
@@ -2857,6 +2840,24 @@ def red_edit_wizard_step4(message, link):
 
         for row in list_send_notify:
             list_needy_id.add(row.needy_id)
+
+        for users in list_needy_id:
+            # TODO           рассылка кругу лиц из таблицы rings
+            if users != message.chat.id:
+                create_event(from_id=message.chat.id,
+                             first_name=user.first_name,
+                             last_name=user.last_name,
+                             status='red',
+                             type='red',
+                             min_payments=None,
+                             current_payments=user.current_payments,
+                             max_payments=user.max_payments,
+                             currency=user.currency,
+                             users=len(list_needy_id),
+                             to_id=users,
+                             sent=False,
+                             reminder_date=date.today(),
+                             status_code=NEW_RED_STATUS)  # someday: intention_id
 
         for row in list_needy_id:
             try:
@@ -3022,23 +3023,6 @@ def orange_step_final(message):
         user = read_exodus_user(message.chat.id)
         all_users = session.query(Exodus_Users).all()
         users_count = session.query(Exodus_Users).count()
-        for users in all_users:
-            # TODO           пока что рассылка всем
-            if users.telegram_id != message.chat.id:
-                create_event(from_id=message.chat.id,
-                             first_name=user.first_name,
-                             last_name=user.last_name,
-                             status='orange',
-                             type='orange',
-                             min_payments=None,
-                             current_payments=user.current_payments,
-                             max_payments=user.max_payments,
-                             currency=user.currency,
-                             users=users_count,
-                             to_id=users.telegram_id,
-                             sent=False,
-                             reminder_date=date.today(),
-                             status_code=NEW_ORANGE_STATUS)  # someday: intention_id
 
         # создаем список с теми, у кого мы в списке help_array
         list_needy_id = set(read_rings_help(message.chat.id).help_array)
@@ -3048,6 +3032,25 @@ def orange_step_final(message):
 
         for row in list_send_notify:
             list_needy_id.add(row.needy_id)
+
+
+        for users in list_needy_id:
+            # TODO           рассылка кругу лиц из таблицы rings
+            if users != message.chat.id:
+                create_event(from_id=message.chat.id,
+                             first_name=user.first_name,
+                             last_name=user.last_name,
+                             status='orange',
+                             type='orange',
+                             min_payments=None,
+                             current_payments=user.current_payments,
+                             max_payments=user.max_payments,
+                             currency=user.currency,
+                             users=len(list_needy_id),
+                             to_id=users,
+                             sent=False,
+                             reminder_date=date.today(),
+                             status_code=NEW_ORANGE_STATUS)  # someday: intention_id
 
         for row in list_needy_id:
             try:
