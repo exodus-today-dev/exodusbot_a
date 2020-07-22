@@ -3033,6 +3033,7 @@ def orange_step_final(message):
         for row in list_send_notify:
             list_needy_id.add(row.needy_id)
 
+
         for users in list_needy_id:
             # TODO           рассылка кругу лиц из таблицы rings
             if users != message.chat.id:
