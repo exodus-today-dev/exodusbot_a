@@ -1161,6 +1161,7 @@ def intention_to_obligation(message):
     bot_text = f"Вы перевели в обязательство свое намерение помогать участнику {user_to.first_name} {user_to.last_name} на {intention.payment} {intention.currency}\n\
 Когда участник {user_to.first_name} {user_to.last_name} решит что делать с вашим обязательством, вы получите уведомление."
     update_intention(intention_id, status=11)
+    update_event_status_code(intention.event_id, NEW_OBLIGATION)
     bot.send_message(message.chat.id, bot_text)
     global_menu(message, True)
     return
@@ -1191,7 +1192,8 @@ def remind_later(message, intention_id=None):
                  users=None,
                  to_id=intention_id,
                  reminder_date=reminder_date,
-                 sent=False)  # someday: intention_id
+                 sent=False,
+                 status_code=REMIND_LATER)  # someday: intention_id
 
     # message = "Участнику {first_name} {last_name} отправлено ваше решение " \
     #          "исполнить обязательства на сумму {sum} {currency}.". \
@@ -1255,6 +1257,7 @@ def cancel_intention_check(message):
         return
     elif text == 'Да':
         update_intention(intention_id, status=0)
+        update_event_status_code(intention.event_id, CLOSED)
         bot.send_message(message.chat.id, bot_text)
         global_menu(message)
         return
@@ -1669,7 +1672,7 @@ def obligation_to_execution(message, obligation_id):
     user = read_exodus_user(telegram_id=intention.from_id)
     update_intention(intention_id=intention_id, status=15)
     bot_text = f'Участнику {user.first_name} {user.last_name} отправлено ваше решение исполнить ' \
-        f'обязательство на сумму {intention.payment} {intention.currency}.'
+               f'обязательство на сумму {intention.payment} {intention.currency}.'
 
     payment = intention.payment
     currency = intention.currency
@@ -1704,10 +1707,10 @@ def keep_obligation(message):
     intention = read_intention_by_id(intention_id=intention_id)
     user = read_exodus_user(telegram_id=intention.from_id)
     bot_text = f'Обязательство участника {user.first_name} {user.last_name} на ' \
-        f'сумму  {intention.payment} {intention.currency} будет хранится у вас, ' \
-        f'пока вы не примите решение.\n' \
-        f'Посмотреть все обязательства можно в разделе главного меню ' \
-        f'"транзакции" > "обязательства"'
+               f'сумму  {intention.payment} {intention.currency} будет хранится у вас, ' \
+               f'пока вы не примите решение.\n' \
+               f'Посмотреть все обязательства можно в разделе главного меню ' \
+               f'"транзакции" > "обязательства"'
     global_menu(message)
     return
 
@@ -1935,7 +1938,7 @@ def executed_confirm_confirmed(message):
     intention = read_intention_by_id(intention_id=intention_id)
     user = read_exodus_user(telegram_id=intention.from_id)
     bot_text = f"Спасибо! Участнику {user.first_name} {user.last_name} будет отправлено уведомление о том, что его " \
-        f"обязательство исполнено. "
+               f"обязательство исполнено. "
     # create_event        TODO 
     not_executed_wizard_for_all(message)
     return
@@ -1946,7 +1949,7 @@ def repeat_executed_request(message):
     intention = read_intention_by_id(intention_id=intention_id)
     user = read_exodus_user(telegram_id=intention.from_id)
     bot_text = f"Спасибо! Отправителю {user.first_name} {user.last_name} будет отправлено уведомление о том, что " \
-        f"деньги все еще не получены. "
+               f"деньги все еще не получены. "
     # create_event        TODO 
     not_executed_wizard_for_all(message)
     return
@@ -2057,7 +2060,7 @@ def executed_was_sent(message):
                  reminder_date=reminder_date)
 
     bot_text = f"Спасибо! Получателю {user.first_name} {user.last_name} " \
-        f"будет отправлено уведомление о том, что деньги отправлены."
+               f"будет отправлено уведомление о том, что деньги отправлены."
     bot.send_message(message.chat.id, bot_text)
 
     # not_executed_wizard(message)
@@ -2246,7 +2249,6 @@ def orange_invitation_check(message, event_id=None):
     if text[0:19] == 'Показать участников':
         show_all_members(message, user_to)
     elif text == 'Нет'.format(0):
-        update_event_status_code(event_id, CLOSED)
         exists = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
         if not exists:
             start_without_invitation(message)
@@ -2312,10 +2314,13 @@ def orange_invitation_wizard_check(message, event_id=None):  # -----------------
                              to_id=user.telegram_id,
                              sent=False,
                              reminder_date=date.today(),
-                             status_code=APPROVE_ORANGE_STATUS)  # someday: intention_id
+                             status_code=APPROVE_ORANGE_STATUS,
+                             intention=Intention(from_id=message.chat.id, to_id=user.telegram_id,
+                                                 payment=invitation_sum, currency=user.currency, status=1,
+                                                 create_date=datetime.now()))  # someday: intention_id
     else:
         update_event_status_code(event_id, APPROVE_ORANGE_STATUS)
-    create_intention(message.chat.id, user.telegram_id, invitation_sum, user.currency, status=1)
+        create_intention(message.chat.id, user.telegram_id, invitation_sum, user.currency, status=1, event_id=event_id)
 
     bot.send_message(message.chat.id, bot_text)
     global_menu(message, True)
@@ -2341,7 +2346,7 @@ def show_all_members(message, user_to):
         first_name = []
         last_name = []
         for id_help in set(ring.help_array):
-            if id_help in list_my_socium or id_help==message.chat.id:
+            if id_help in list_my_socium or id_help == message.chat.id:
                 first_name.append(read_exodus_user(id_help).first_name)
                 last_name.append(read_exodus_user(id_help).last_name)
     bot_text = 'Участнику {} {} помогают {} участников:\n'.format(user.first_name, user.last_name, users_count)
@@ -2432,7 +2437,6 @@ def red_invitation_check(message, event_id=None):
     if text[0:19] == 'Показать участников':
         show_all_members(message, user_to)
     elif text == 'Нет'.format(0):
-        update_event_status_code(event_id, CLOSED)
         exists = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
         if not exists:
             start_without_invitation(message)
@@ -2514,11 +2518,13 @@ def red_invitation_wizard_check(message, event_id=None):  # ------------------ T
                              to_id=user.telegram_id,
                              sent=False,
                              reminder_date=date.today(),
-                             status_code=APPROVE_RED_STATUS)  # someday: intention_id
+                             status_code=APPROVE_RED_STATUS,
+                             intention=Intention(from_id=message.chat.id, to_id=user.telegram_id,
+                                                 payment=invitation_sum, currency=user.currency, status=1,
+                                                 create_date=datetime.now()))  # someday: intention_id
     else:
         update_event_status_code(event_id, APPROVE_RED_STATUS)
-
-    create_intention(message.chat.id, user.telegram_id, invitation_sum, user.currency, status=1)
+        create_intention(message.chat.id, user.telegram_id, invitation_sum, user.currency, status=1, event_id=event_id)
 
     bot.send_message(message.chat.id, bot_text)
     global_menu(message, True)
@@ -3137,8 +3143,8 @@ def welcome(message):
 def orange_invitation(call):
     global_menu(call.message)
     bot.delete_message(call.message.chat.id, call.message.message_id)
-    user_id = call.data[18:]
-    event_id = call.data.split('-')[-1]
+    user_id = call.data.split('-')[1]
+    event_id = call.data.split('-')[2]
     start_orange_invitation(call.message, user_id, event_id=event_id)
     return
 
@@ -3147,8 +3153,8 @@ def orange_invitation(call):
 def red_invitation(call):
     global_menu(call.message)
     bot.delete_message(call.message.chat.id, call.message.message_id)
-    user_id = call.data[15:]
-    event_id = call.data.split('-')[-1]
+    user_id = call.data.split('-')[1]
+    event_id = call.data.split('-')[2]
     start_red_invitation(call.message, user_id, event_id=event_id)
     return
 

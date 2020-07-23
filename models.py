@@ -1,9 +1,10 @@
 from datetime import date, datetime
 from operator import or_
 
-from sqlalchemy import create_engine, Column, Integer, String, Float, Date, Boolean, DateTime, ARRAY, text, desc
+from sqlalchemy import create_engine, Column, Integer, String, Float, Date, Boolean, DateTime, ARRAY, text, desc, \
+    ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.testing import in_
 
 import config
@@ -37,6 +38,7 @@ class Events(base):
     sent = Column(Boolean)
     status_code = Column(Integer)
     # child = relationship("Intention", uselist=False, backref='events')
+    intention = relationship("Intention", uselist=False, backref='events')
 
 
 class Exodus_Users(base):
@@ -69,7 +71,8 @@ class Intention(base):
     currency = Column(String)
     create_date = Column(DateTime)
     status = Column(Integer)
-
+    event_id = Column(Integer, ForeignKey('events.event_id'))
+    event = relationship('Events', back_populates="intention")
     # event_id_int = Column(Integer(), ForeignKey('events.event_id'))
 
 
@@ -177,7 +180,7 @@ def delete_exodus_user(telegram_id):
 
 
 def create_event(from_id, first_name, last_name, status, type, min_payments, current_payments,
-                 max_payments, currency, users, to_id, reminder_date, sent=False, status_code=None):
+                 max_payments, currency, users, to_id, reminder_date, sent=False, status_code=None, intention=None):
     event = Events(from_id=from_id,
                    first_name=first_name,
                    last_name=last_name,
@@ -192,7 +195,8 @@ def create_event(from_id, first_name, last_name, status, type, min_payments, cur
                    reminder_date=reminder_date,
                    # intention_id = intention_id,
                    sent=False,
-                   status_code=status_code)
+                   status_code=status_code,
+                   intention=intention)
 
     try:
         session.add(event)
@@ -279,9 +283,9 @@ def update_rings_help(needy_id, help_array):
         conn.execute(u, q=help_array, id=needy_id)
 
 
-def create_intention(from_id, to_id, payment, currency, status=None):
+def create_intention(from_id, to_id, payment, currency, status=None, event_id=None):
     intention = Intention(from_id=from_id, to_id=to_id, payment=payment, currency=currency, status=status,
-                          create_date=datetime.now())
+                          create_date=datetime.now(), event_id=event_id)
 
     try:
         session.add(intention)
