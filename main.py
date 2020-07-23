@@ -596,7 +596,7 @@ def print_members_list_in_network(message, member_id, direction):
     if direction == 'in':
         intentions = read_intention(to_id=member_id).distinct("from_id")
     elif direction == 'out':
-        intentions = read_intention(from_id=member_id).distinct("to_id")
+        intentions = read_intention_for_user(from_id=member_id, statuses=(1, 11, 12, 13)).distinct("to_id")
 
     for i, row in enumerate(intentions.all()):
         # warning
@@ -2233,6 +2233,7 @@ def orange_invitation_check(message, event_id=None):
     if text[0:19] == 'Показать участников':
         show_all_members(message, user_to)
     elif text == 'Нет'.format(0):
+        update_event_status_code(event_id, CLOSED)
         exists = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
         if not exists:
             start_without_invitation(message)
@@ -2413,6 +2414,7 @@ def red_invitation_check(message, event_id=None):
     if text[0:19] == 'Показать участников':
         show_all_members(message, user_to)
     elif text == 'Нет'.format(0):
+        update_event_status_code(event_id, CLOSED)
         exists = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
         if not exists:
             start_without_invitation(message)
@@ -3129,7 +3131,8 @@ def orange_invitation(call):
     global_menu(call.message)
     bot.delete_message(call.message.chat.id, call.message.message_id)
     user_id = call.data[18:]
-    start_orange_invitation(call.message, user_id)
+    event_id = call.data.split('-')[-1]
+    start_orange_invitation(call.message, user_id, event_id=event_id)
     return
 
 
@@ -3138,7 +3141,8 @@ def red_invitation(call):
     global_menu(call.message)
     bot.delete_message(call.message.chat.id, call.message.message_id)
     user_id = call.data[15:]
-    start_red_invitation(call.message, user_id)
+    event_id = call.data.split('-')[-1]
+    start_red_invitation(call.message, user_id, event_id=event_id)
     return
 
 

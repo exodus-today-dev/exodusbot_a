@@ -341,6 +341,12 @@ def update_intention_from_all_params(from_id, to_id, payment, status=None):
         raise
 
 
+def read_intention_for_user(from_id=None, to_id=None, statuses=None):
+    intentions = session.query(Intention).filter(Intention.from_id == from_id,
+                                                 Intention.status.in_(statuses))
+    return intentions
+
+
 # -----------------------requisites-------------------
 # Create
 def create_requisites_user(telegram_id, name='', value='', is_default=False):
@@ -387,7 +393,8 @@ def get_help_requisites(telegram_id):
 
 def get_requisites_count(telegram_id):
     count = session.query(Events).filter(Events.to_id == telegram_id,
-                                        or_(Events.status_code == NEW_ORANGE_STATUS, Events.status_code == NEW_RED_STATUS)).count()
+                                         or_(Events.status_code == NEW_ORANGE_STATUS,
+                                             Events.status_code == NEW_RED_STATUS)).count()
     return count
 
 

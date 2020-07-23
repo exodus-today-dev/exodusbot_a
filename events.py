@@ -15,7 +15,8 @@ def invitation_help_orange(event_id):
 
     keyboard = types.InlineKeyboardMarkup()
     row = []
-    row.append(types.InlineKeyboardButton('Подробнее', callback_data='orange_invitation-{}'.format(user.telegram_id)))
+    row.append(types.InlineKeyboardButton('Подробнее', callback_data='orange_invitation-{}-{}'.format(
+        user.telegram_id, event_id)))
     keyboard.row(*row)
     bot.send_message(event.to_id, bot_text, reply_markup=keyboard)
     return True
@@ -28,7 +29,8 @@ def invitation_help_red(event_id):
 
     keyboard = types.InlineKeyboardMarkup()
     row = []
-    row.append(types.InlineKeyboardButton('Подробнее', callback_data='red_invitation-{}'.format(user.telegram_id)))
+    row.append(types.InlineKeyboardButton('Подробнее', callback_data='red_invitation-{}-{}'.format(
+        user.telegram_id, event_id)))
     keyboard.row(*row)
     bot.send_message(event.to_id, bot_text, reply_markup=keyboard)
     return True
