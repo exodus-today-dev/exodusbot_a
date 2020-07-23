@@ -33,6 +33,19 @@ transaction = {}
 
 # ------------------------------------------------------------------
 
+# создаем список с моей сетью
+def get_my_socium(telegram_id):
+    # создаем список с теми, у кого мы в списке help_array
+    list_needy_id = set(read_rings_help(telegram_id).help_array)
+
+    list_send_notify = read_rings_help_in_help_array(telegram_id)
+
+    for row in list_send_notify:
+        list_needy_id.add(row.needy_id)
+
+    return list_needy_id
+
+
 # проверка на то, что строка - это число и с плавающей точкой тоже
 def is_digit(string):
     if string.isdigit():
@@ -2321,11 +2334,16 @@ def show_all_members(message, user_to):
         last_name = []
     else:
         users_count = len(set(ring.help_array))
+
+        # узнаем кто со мной в сети
+        list_my_socium = get_my_socium(message.chat.id)
+
         first_name = []
         last_name = []
-        for name_help in set(ring.help_array):
-            first_name.append(read_exodus_user(name_help).first_name)
-            last_name.append(read_exodus_user(name_help).last_name)
+        for id_help in set(ring.help_array):
+            if id_help in list_my_socium or id_help==message.chat.id:
+                first_name.append(read_exodus_user(id_help).first_name)
+                last_name.append(read_exodus_user(id_help).last_name)
     bot_text = 'Участнику {} {} помогают {} участников:\n'.format(user.first_name, user.last_name, users_count)
 
     string_name = ''
@@ -2333,7 +2351,7 @@ def show_all_members(message, user_to):
         string_name = string_name + '\n{} {}'.format(first_name[i], last_name[i])
 
     bot_text = bot_text + '\n\
-В моей сети:{}\n\nОстальные участники:'.format(string_name)
+В моей сети:{}'.format(string_name)
     markup = types.ReplyKeyboardMarkup()
     btn1 = types.KeyboardButton(text='Назад')
     markup.row(btn1)
@@ -2834,14 +2852,8 @@ def red_edit_wizard_step4(message, link):
         # all_users = session.query(Exodus_Users).all()
         # users_count = session.query(Exodus_Users).count()
 
-        # создаем список с теми, у кого мы в списке help_array
-        list_needy_id = set(read_rings_help(message.chat.id).help_array)
-        telegram_name = read_exodus_user(message.chat.id).first_name
-
-        list_send_notify = read_rings_help_in_help_array(message.chat.id)
-
-        for row in list_send_notify:
-            list_needy_id.add(row.needy_id)
+        # создаем список с моей сетью
+        list_needy_id = get_my_socium(message.chat.id)
 
         for users in list_needy_id:
             # TODO           рассылка кругу лиц из таблицы rings
@@ -2861,6 +2873,7 @@ def red_edit_wizard_step4(message, link):
                              reminder_date=date.today(),
                              status_code=NEW_RED_STATUS)  # someday: intention_id
 
+        telegram_name = read_exodus_user(message.chat.id).first_name
         for row in list_needy_id:
             try:
                 bot.send_message(row, 'Участник {} сменил статус на Красный'.format(telegram_name))
@@ -3023,18 +3036,11 @@ def orange_step_final(message):
 
         update_exodus_user(message.chat.id, status='orange')
         user = read_exodus_user(message.chat.id)
-        all_users = session.query(Exodus_Users).all()
-        users_count = session.query(Exodus_Users).count()
+        # all_users = session.query(Exodus_Users).all()
+        # users_count = session.query(Exodus_Users).count()
 
-        # создаем список с теми, у кого мы в списке help_array
-        list_needy_id = set(read_rings_help(message.chat.id).help_array)
-        telegram_name = read_exodus_user(message.chat.id).first_name
-
-        list_send_notify = read_rings_help_in_help_array(message.chat.id)
-
-        for row in list_send_notify:
-            list_needy_id.add(row.needy_id)
-
+        # создаем список с моей сетью
+        list_needy_id = get_my_socium(message.chat.id)
 
         for users in list_needy_id:
             # TODO           рассылка кругу лиц из таблицы rings
@@ -3054,6 +3060,7 @@ def orange_step_final(message):
                              reminder_date=date.today(),
                              status_code=NEW_ORANGE_STATUS)  # someday: intention_id
 
+        telegram_name = read_exodus_user(message.chat.id).first_name
         for row in list_needy_id:
             try:
                 bot.send_message(row, 'Участник {} сменил статус на Оранжевый'.format(telegram_name))
