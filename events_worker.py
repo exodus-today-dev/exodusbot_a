@@ -3,24 +3,20 @@
 # This is a simple echo bot using the decorator mechanism.
 # It echoes any incoming text messages.
 from datetime import date, timedelta
-
 import telebot
-from telebot import types
-
-from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
-
 import time
-
 import config
+from models import Events, Exodus_Users, session, update_event
+from events import invitation_help_orange, invitation_help_red, notice_of_intent, obligation_sended_notice, \
+    obligation_recieved_notice, obligation_money_requested_notice, reminder, reminder_for_6_10
+
+from telebot import types
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 bot = telebot.TeleBot(config.API_TOKEN)
 
 # --------------------------------- DB ------------------------------
 
-
-from models import *
-from events import invitation_help_orange, invitation_help_red, notice_of_intent, obligation_sended_notice, \
-    obligation_recieved_notice, obligation_money_requested_notice, reminder, reminder_for_6_10
 
 user_dict = {}
 bot.remove_webhook()
@@ -53,7 +49,6 @@ def read():
 
             obligation_sended_notice(event.event_id)
 
-
         # 6.9
         if event.type == 'obligation_recieved' and (current_date == event.reminder_date or
                                                     current_date > event.reminder_date):
@@ -71,7 +66,8 @@ def read():
 
         # 6.10
         if event.type == 'obligation_sended' and (current_date - timedelta(days=5)) == event.reminder_date or (
-                current_date - timedelta(days=5)) > event.reminder_date and event.event_id not in list_event_id_for_6_10:
+                current_date - timedelta(
+            days=5)) > event.reminder_date and event.event_id not in list_event_id_for_6_10:
             list_event_id_for_6_10.append(event.event_id)
             reminder_for_6_10(event.event_id)
 
