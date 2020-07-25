@@ -3113,7 +3113,6 @@ def show_help_requisites(message):
         txt = 'Никто помощь пока не запрашивал'
         members_menu(message, meta_txt=txt)
     else:
-        # txt = txt.format('\n'.join(users_dict.keys()))
         btns = [types.KeyboardButton(un) for un in users_dict.keys()]
         for btn in btns:
             markup.row(btn)
@@ -3129,11 +3128,11 @@ def restart_invitation(message, users_dict):
         msg = bot.send_message(message.chat.id, txt)
         bot.register_next_step_handler(msg, show_help_requisites)
         return
-    elif users_dict[message.text]['status_code'] == NEW_ORANGE_STATUS:
+    elif users_dict[message.text]['status_code'] == APPROVE_ORANGE_STATUS:
         start_orange_invitation(message, users_dict[message.text]['from_id'],
                                 event_id=users_dict[message.text]['event_id'])
         return
-    elif users_dict[message.text]['status_code'] == NEW_RED_STATUS:
+    elif users_dict[message.text]['status_code'] == APPROVE_RED_STATUS:
         start_red_invitation(message, users_dict[message.text]['from_id'],
                              event_id=users_dict[message.text]['event_id'])
         return
