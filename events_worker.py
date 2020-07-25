@@ -18,7 +18,7 @@ bot = telebot.TeleBot(config.API_TOKEN)
 # --------------------------------- DB ------------------------------
 
 
-from models import session, Exodus_Users, Events, update_event
+from models import session, Events, update_event
 from events import invitation_help_orange, invitation_help_red, notice_of_intent, obligation_sended_notice, \
     obligation_recieved_notice, obligation_money_requested_notice, reminder, reminder_for_6_10
 
@@ -32,7 +32,7 @@ list_event_id_for_6_10 = []
 
 
 def read():
-    all_users = session.query(Exodus_Users).count()
+    # all_users = session.query(Exodus_Users).count()
     all = session.query(Events).filter_by(sent=False)
     current_date = date.today()
 
