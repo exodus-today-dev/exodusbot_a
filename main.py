@@ -35,13 +35,19 @@ transaction = {}
 
 # создаем список с моей сетью
 def get_my_socium(telegram_id):
-    # создаем список с теми, у кого мы в списке help_array
+    # создаем список с теми, кто помогает мне
     list_needy_id = set(read_rings_help(telegram_id).help_array)
 
     list_send_notify = read_rings_help_in_help_array(telegram_id)
 
+    # добавляем в список тех, кому помогаю я
     for row in list_send_notify:
         list_needy_id.add(row.needy_id)
+
+    # добавляем в список людей, которые вместе со мной помогат кому то
+    for row in list_send_notify:
+        for id in row.help_array:
+            list_needy_id.add(id)
 
     return list_needy_id
 
