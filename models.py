@@ -36,7 +36,7 @@ class Events(base):
     reminder_date = Column(Date)
     # intention_id = Column(Integer(), ForeignKey('intention.intention_id'))
     sent = Column(Boolean)
-    status_code = Column(Integer)
+    status_code = Column(String)
     # child = relationship("Intention", uselist=False, backref='events')
     intention = relationship("Intention", uselist=False, backref='events')
 
@@ -349,9 +349,25 @@ def update_intention_from_all_params(from_id, to_id, payment, status=None):
 
 
 def read_intention_for_user(from_id=None, to_id=None, statuses=None):
-    intentions = session.query(Intention).filter(Intention.from_id == from_id,
-                                                 Intention.status.in_(statuses))
-    return intentions
+    if from_id is not None:
+        intentions = session.query(Intention).filter(Intention.from_id == from_id,
+                                                     Intention.status.in_(statuses))
+        return intentions
+    elif to_id is not None:
+        intentions = session.query(Intention).filter(Intention.to_id == to_id,
+                                                     Intention.status.in_(statuses))
+        return intentions
+
+
+def update_intetion_status_from_event(event_id, status):
+    intention = session.query(Intention).filter_by(event_id=event_id)
+    intention.status = status
+
+    try:
+        session.commit()
+    except:
+        session.rollback()
+        raise
 
 
 # -----------------------requisites-------------------

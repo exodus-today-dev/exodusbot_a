@@ -607,7 +607,7 @@ def print_members_list_in_network(message, member_id, direction):
     intentions = None
 
     if direction == 'in':
-        intentions = read_intention(to_id=member_id).distinct("from_id")
+        intentions = read_intention_for_user(to_id=member_id, statuses=(1, 11, 12, 13)).distinct("from_id")
     elif direction == 'out':
         intentions = read_intention_for_user(from_id=member_id, statuses=(1, 11, 12, 13)).distinct("to_id")
 
@@ -1259,6 +1259,21 @@ def cancel_intention_check(message):
         update_intention(intention_id, status=0)
         update_event_status_code(intention.event_id, CLOSED)
         bot.send_message(message.chat.id, bot_text)
+        # рассылка уведомлений
+        list_needy_id = set(read_rings_help(message.chat.id).help_array)
+        telegram_name = read_exodus_user(message.chat.id).first_name
+
+        list_send_notify = read_rings_help_in_help_array(message.chat.id)
+
+        for row in list_send_notify:
+            list_needy_id.add(row.needy_id)
+
+        for row in list_needy_id:
+            try:
+                bot.send_message(row, 'Участник {} отменил своё намерение'.format(telegram_name))
+            except:
+                continue
+
         global_menu(message)
         return
     else:
@@ -2320,6 +2335,8 @@ def orange_invitation_wizard_check(message, event_id=None):  # -----------------
                                                  create_date=datetime.now()))  # someday: intention_id
     else:
         update_event_status_code(event_id, APPROVE_ORANGE_STATUS)
+        update_event_type(event_id, 'notice')
+        update_event(event_id, False)
         create_intention(message.chat.id, user.telegram_id, invitation_sum, user.currency, status=1, event_id=event_id)
 
     bot.send_message(message.chat.id, bot_text)
@@ -2524,6 +2541,8 @@ def red_invitation_wizard_check(message, event_id=None):  # ------------------ T
                                                  create_date=datetime.now()))  # someday: intention_id
     else:
         update_event_status_code(event_id, APPROVE_RED_STATUS)
+        update_event_type(event_id, 'notice')
+        update_event(event_id, False)
         create_intention(message.chat.id, user.telegram_id, invitation_sum, user.currency, status=1, event_id=event_id)
 
     bot.send_message(message.chat.id, bot_text)
@@ -3149,7 +3168,8 @@ def orange_invitation(call):
     bot.delete_message(call.message.chat.id, call.message.message_id)
     user_id = call.data.split('-')[1]
     event_id = call.data.split('-')[2]
-    start_orange_invitation(call.message, user_id, event_id=event_id)
+    update_event_status_code(event_id, CLOSED)
+    start_orange_invitation(call.message, user_id)
     return
 
 
@@ -3159,7 +3179,8 @@ def red_invitation(call):
     bot.delete_message(call.message.chat.id, call.message.message_id)
     user_id = call.data.split('-')[1]
     event_id = call.data.split('-')[2]
-    start_red_invitation(call.message, user_id, event_id=event_id)
+    update_event_status_code(event_id, CLOSED)
+    start_red_invitation(call.message, user_id)
     return
 
 
