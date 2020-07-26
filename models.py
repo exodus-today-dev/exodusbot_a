@@ -34,7 +34,7 @@ class Events(base):
     reminder_date = Column(Date)
     # intention_id = Column(Integer(), ForeignKey('intention.intention_id'))
     sent = Column(Boolean)
-    status_code = Column(Integer)
+    status_code = Column(String)
     # child = relationship("Intention", uselist=False, backref='events')
     intention = relationship("Intention", uselist=False, backref='events')
 
@@ -347,9 +347,25 @@ def update_intention_from_all_params(from_id, to_id, payment, status=None):
 
 
 def read_intention_for_user(from_id=None, to_id=None, statuses=None):
-    intentions = session.query(Intention).filter(Intention.from_id == from_id,
-                                                 Intention.status.in_(statuses))
-    return intentions
+    if from_id is not None:
+        intentions = session.query(Intention).filter(Intention.from_id == from_id,
+                                                     Intention.status.in_(statuses))
+        return intentions
+    elif to_id is not None:
+        intentions = session.query(Intention).filter(Intention.to_id == to_id,
+                                                     Intention.status.in_(statuses))
+        return intentions
+
+
+def update_intetion_status_from_event(event_id, status):
+    intention = session.query(Intention).filter_by(event_id=event_id)
+    intention.status = status
+
+    try:
+        session.commit()
+    except:
+        session.rollback()
+        raise
 
 
 # -----------------------requisites-------------------
@@ -385,19 +401,19 @@ def read_requisites_name(telegram_id, requisites_name):
 
 def get_help_requisites(telegram_id):
     user_names = session.query(Exodus_Users, Events)
-    user_names = user_names.filter(Events.to_id == telegram_id,
+    user_names = user_names.filter(Events.from_id == telegram_id,
                                    or_(Events.status_code == NEW_ORANGE_STATUS, Events.status_code == NEW_RED_STATUS))
-    user_names = user_names.join(Events, Events.from_id == Exodus_Users.telegram_id)
+    user_names = user_names.join(Events, Events.to_id == Exodus_Users.telegram_id)
 
     result = {}
     for u, e in user_names:
-        result[u.first_name] = {'from_id': e.from_id, 'status_code': e.status_code, 'event_id': e.event_id}
+        result[u.first_name] = {'from_id': e.to_id, 'status_code': e.status_code, 'event_id': e.event_id}
 
     return result
 
 
 def get_requisites_count(telegram_id):
-    count = session.query(Events).filter(Events.to_id == telegram_id,
+    count = session.query(Events).filter(Events.from_id == telegram_id,
                                          or_(Events.status_code == NEW_ORANGE_STATUS,
                                              Events.status_code == NEW_RED_STATUS)).count()
     return count

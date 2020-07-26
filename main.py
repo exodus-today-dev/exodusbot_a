@@ -47,7 +47,8 @@ def get_my_socium(telegram_id):
     # добавляем в список людей, которые вместе со мной помогат кому то
     for row in list_send_notify:
         for id in row.help_array:
-            list_needy_id.add(id)
+            if id != telegram_id:
+                list_needy_id.add(id)
 
     return list_needy_id
 
@@ -613,7 +614,7 @@ def print_members_list_in_network(message, member_id, direction):
     intentions = None
 
     if direction == 'in':
-        intentions = read_intention(to_id=member_id).distinct("from_id")
+        intentions = read_intention_for_user(to_id=member_id, statuses=(1, 11, 12, 13)).distinct("from_id")
     elif direction == 'out':
         intentions = read_intention_for_user(from_id=member_id, statuses=(1, 11, 12, 13)).distinct("to_id")
 
@@ -1265,6 +1266,22 @@ def cancel_intention_check(message):
         update_intention(intention_id, status=0)
         update_event_status_code(intention.event_id, CLOSED)
         bot.send_message(message.chat.id, bot_text)
+        # рассылка уведомлений
+        list_needy_id = set(read_rings_help(message.chat.id).help_array)
+        telegram_name = read_exodus_user(message.chat.id).first_name
+
+        list_send_notify = read_rings_help_in_help_array(message.chat.id)
+
+        for row in list_send_notify:
+            list_needy_id.add(row.needy_id)
+
+        for row in list_needy_id:
+            try:
+                bot.send_message(row, 'Участник {} отменил своё намерение на сумму {} {}'.format(
+                    telegram_name, intention.payment, intention.currency))
+            except:
+                continue
+
         global_menu(message)
         return
     else:
@@ -2255,6 +2272,21 @@ def orange_invitation_check(message, event_id=None):
     if text[0:19] == 'Показать участников':
         show_all_members(message, user_to)
     elif text == 'Нет'.format(0):
+        if event_id is None:
+            create_event(from_id=message.chat.id,
+                         first_name=message.from_user.first_name,
+                         last_name=message.from_user.last_name,
+                         status='orange',
+                         type='orange',
+                         min_payments=None,
+                         current_payments=None,
+                         max_payments=None,
+                         currency=None,
+                         users=0,
+                         to_id=user_to.telegram_id,
+                         sent=False,
+                         reminder_date=date.today(),
+                         status_code=NEW_ORANGE_STATUS)
         exists = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
         if not exists:
             start_without_invitation(message)
@@ -2326,6 +2358,8 @@ def orange_invitation_wizard_check(message, event_id=None):  # -----------------
                                                  create_date=datetime.now()))  # someday: intention_id
     else:
         update_event_status_code(event_id, APPROVE_ORANGE_STATUS)
+        update_event_type(event_id, 'notice')
+        update_event(event_id, False)
         create_intention(message.chat.id, user.telegram_id, invitation_sum, user.currency, status=1, event_id=event_id)
 
     bot.send_message(message.chat.id, bot_text)
@@ -2443,6 +2477,21 @@ def red_invitation_check(message, event_id=None):
     if text[0:19] == 'Показать участников':
         show_all_members(message, user_to)
     elif text == 'Нет'.format(0):
+        if event_id is None:
+            create_event(from_id=message.chat.id,
+                         first_name=message.from_user.first_name,
+                         last_name=message.from_user.last_name,
+                         status='red',
+                         type='red',
+                         min_payments=None,
+                         current_payments=None,
+                         max_payments=None,
+                         currency=None,
+                         users=0,
+                         to_id=user_to.telegram_id,
+                         sent=False,
+                         reminder_date=date.today(),
+                         status_code=NEW_RED_STATUS)
         exists = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
         if not exists:
             start_without_invitation(message)
@@ -2530,6 +2579,8 @@ def red_invitation_wizard_check(message, event_id=None):  # ------------------ T
                                                  create_date=datetime.now()))  # someday: intention_id
     else:
         update_event_status_code(event_id, APPROVE_RED_STATUS)
+        update_event_type(event_id, 'notice')
+        update_event(event_id, False)
         create_intention(message.chat.id, user.telegram_id, invitation_sum, user.currency, status=1, event_id=event_id)
 
     bot.send_message(message.chat.id, bot_text)
@@ -2644,6 +2695,10 @@ def green_edit_wizard_check(message):
         for row in list_needy_id:
             try:
                 bot.send_message(row, 'Участник {} сменил статус на Зеленый'.format(telegram_name))
+                # закрываем намерения и event
+                intention = read_intention(from_id=row, to_id=message.chat.id).first()
+                update_intention(intention.intention_id, status=0)
+                update_event_status_code(intention.event_id, CLOSED)
             except:
                 continue
 
@@ -2870,9 +2925,10 @@ def red_edit_wizard_step4(message, link):
         for users in list_needy_id:
             # TODO           рассылка кругу лиц из таблицы rings
             if users != message.chat.id:
-                create_event(from_id=message.chat.id,
-                             first_name=user.first_name,
-                             last_name=user.last_name,
+                t_user = read_exodus_user(users)
+                create_event(from_id=users,
+                             first_name=t_user.first_name,
+                             last_name=t_user.last_name,
                              status='red',
                              type='red',
                              min_payments=None,
@@ -2880,7 +2936,7 @@ def red_edit_wizard_step4(message, link):
                              max_payments=user.max_payments,
                              currency=user.currency,
                              users=len(list_needy_id),
-                             to_id=users,
+                             to_id=message.chat.id,
                              sent=False,
                              reminder_date=date.today(),
                              status_code=NEW_RED_STATUS)  # someday: intention_id
@@ -3057,9 +3113,10 @@ def orange_step_final(message):
         for users in list_needy_id:
             # TODO           рассылка кругу лиц из таблицы rings
             if users != message.chat.id:
-                create_event(from_id=message.chat.id,
-                             first_name=user.first_name,
-                             last_name=user.last_name,
+                t_user = read_exodus_user(users)
+                create_event(from_id=users,
+                             first_name=t_user.first_name,
+                             last_name=t_user.last_name,
                              status='orange',
                              type='orange',
                              min_payments=None,
@@ -3067,7 +3124,7 @@ def orange_step_final(message):
                              max_payments=user.max_payments,
                              currency=user.currency,
                              users=len(list_needy_id),
-                             to_id=users,
+                             to_id=message.chat.id,
                              sent=False,
                              reminder_date=date.today(),
                              status_code=NEW_ORANGE_STATUS)  # someday: intention_id
@@ -3096,7 +3153,6 @@ def show_help_requisites(message):
         txt = 'Никто помощь пока не запрашивал'
         members_menu(message, meta_txt=txt)
     else:
-        # txt = txt.format('\n'.join(users_dict.keys()))
         btns = [types.KeyboardButton(un) for un in users_dict.keys()]
         for btn in btns:
             markup.row(btn)
@@ -3151,7 +3207,8 @@ def orange_invitation(call):
     bot.delete_message(call.message.chat.id, call.message.message_id)
     user_id = call.data.split('-')[1]
     event_id = call.data.split('-')[2]
-    start_orange_invitation(call.message, user_id, event_id=event_id)
+    # update_event_status_code(event_id, CLOSED)
+    start_orange_invitation(call.message, user_id, event_id)
     return
 
 
@@ -3161,7 +3218,8 @@ def red_invitation(call):
     bot.delete_message(call.message.chat.id, call.message.message_id)
     user_id = call.data.split('-')[1]
     event_id = call.data.split('-')[2]
-    start_red_invitation(call.message, user_id, event_id=event_id)
+    # update_event_status_code(event_id, CLOSED)
+    start_red_invitation(call.message, user_id, event_id)
     return
 
 
@@ -3216,7 +3274,7 @@ def process_callback(call):
 
         event_id = call.data[26:]
         event = read_event(event_id)
-        user = read_exodus_user(telegram_id=event.from_id)
+        user = read_exodus_user(telegram_id=event.to_id)
         first_name = user.first_name
         message = 'Участнику {first_name} выслано повторное уведомление исполнить обязательство на сумму {sum} {currency}.' \
                   'Вы можете посмотреть все обязательства в разделе главного меню "Транзакции" > "Обязательства".'.format(
