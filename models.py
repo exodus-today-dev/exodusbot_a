@@ -403,19 +403,19 @@ def read_requisites_name(telegram_id, requisites_name):
 
 def get_help_requisites(telegram_id):
     user_names = session.query(Exodus_Users, Events)
-    user_names = user_names.filter(Events.to_id == telegram_id,
+    user_names = user_names.filter(Events.from_id == telegram_id,
                                    or_(Events.status_code == NEW_ORANGE_STATUS, Events.status_code == NEW_RED_STATUS))
-    user_names = user_names.join(Events, Events.from_id == Exodus_Users.telegram_id)
+    user_names = user_names.join(Events, Events.to_id == Exodus_Users.telegram_id)
 
     result = {}
     for u, e in user_names:
-        result[u.first_name] = {'from_id': e.from_id, 'status_code': e.status_code, 'event_id': e.event_id}
+        result[u.first_name] = {'from_id': e.to_id, 'status_code': e.status_code, 'event_id': e.event_id}
 
     return result
 
 
 def get_requisites_count(telegram_id):
-    count = session.query(Events).filter(Events.to_id == telegram_id,
+    count = session.query(Events).filter(Events.from_id == telegram_id,
                                          or_(Events.status_code == NEW_ORANGE_STATUS,
                                              Events.status_code == NEW_RED_STATUS)).count()
     return count

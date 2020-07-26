@@ -10,7 +10,7 @@ from models import *
 
 def invitation_help_orange(event_id):
     event = read_event(event_id)
-    user = read_exodus_user(event.from_id)
+    user = read_exodus_user(event.to_id)
     bot_text = f"Приглашение помогать {user.first_name} {user.last_name}"
     print('Отправлено-orange-{}-{}-{}'.format(event_id, event.from_id, event.to_id))
     keyboard = types.InlineKeyboardMarkup()
@@ -18,13 +18,13 @@ def invitation_help_orange(event_id):
     row.append(types.InlineKeyboardButton('Подробнее', callback_data='orange_invitation-{}-{}'.format(
         user.telegram_id, event_id)))
     keyboard.row(*row)
-    bot.send_message(event.to_id, bot_text, reply_markup=keyboard)
+    bot.send_message(event.from_id, bot_text, reply_markup=keyboard)
     return True
 
 
 def invitation_help_red(event_id):
     event = read_event(event_id)
-    user = read_exodus_user(event.from_id)
+    user = read_exodus_user(event.to_id)
     bot_text = f"Приглашение помогать {user.first_name} {user.last_name}"
     print('Отправлено-red-{}-{}-{}'.format(event_id, event.from_id, event.to_id))
     keyboard = types.InlineKeyboardMarkup()
@@ -32,7 +32,7 @@ def invitation_help_red(event_id):
     row.append(types.InlineKeyboardButton('Подробнее', callback_data='red_invitation-{}-{}'.format(
         user.telegram_id, event_id)))
     keyboard.row(*row)
-    bot.send_message(event.to_id, bot_text, reply_markup=keyboard)
+    bot.send_message(event.from_id, bot_text, reply_markup=keyboard)
     return True
 
 
@@ -41,7 +41,7 @@ def notice_of_intent(event_id):
     """
     event = read_event(event_id)
     user = read_exodus_user(telegram_id=event.from_id)
-    intent = read_intention(event.from_id, event.to_id, 1)[-1]  # берем последний элемент из списка, чтобы обеспечить корреткность событий
+    intent = read_intention(event.to_id, event.to_id, 1)[-1]  # берем последний элемент из списка, чтобы обеспечить корреткность событий
     print('Отправлено-{}'.format(event_id))
     bot_text = f"{intent.create_date.strftime('%d %B %Y')}\n\
 Участник {user.first_name} {user.last_name} записал свое намерение помогать вам на сумму: {intent.payment} {event.currency}"
