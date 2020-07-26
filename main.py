@@ -47,7 +47,8 @@ def get_my_socium(telegram_id):
     # добавляем в список людей, которые вместе со мной помогат кому то
     for row in list_send_notify:
         for id in row.help_array:
-            list_needy_id.add(id)
+            if id != telegram_id:
+                list_needy_id.add(id)
 
     return list_needy_id
 
