@@ -1137,11 +1137,12 @@ def intention_for_needy(message, reminder_call, intention_id):
     markup.row(btn1, btn2)
     markup.row(btn3, btn4)
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
-    bot.register_next_step_handler(msg, intention_for_needy_check)
+    bot.register_next_step_handler(msg, intention_for_needy_check, intention_id)
     return
 
 
-def intention_for_needy_check(message):
+def intention_for_needy_check(message, intention_id=None):
+    # 6.7
     text = message.text
     bot.delete_message(message.chat.id, message.message_id)
     if text == 'В обязательство':
@@ -1150,7 +1151,7 @@ def intention_for_needy_check(message):
         edit_intention(message)
         return
     elif text == 'Напомнить позже':
-        remind_later(message)
+        remind_later(message, event_status='intention', reminder_type='reminder_out', intention_id=intention_id)
         return
     elif text == 'Отменить намерение':
         cancel_intention(message)
@@ -1169,20 +1170,22 @@ def intention_to_obligation(message):
 Когда участник {user_to.first_name} {user_to.last_name} решит что делать с вашим обязательством, вы получите уведомление."
     update_intention(intention_id, status=11)
     update_event_status_code(intention.event_id, NEW_OBLIGATION)
+    # отправка сообщения
     bot.send_message(message.chat.id, bot_text)
     global_menu(message, True)
     return
 
 
 # bookmark
-def remind_later(message, intention_id=None):
+def remind_later(message,  event_status=None, reminder_type=None, intention_id=None):
     """ 6.3, 6.7, 6.8 """
     #  create_event       ---------------------------- TODO Создать уведомление - бот вышлет это через сутки
 
     reminder_date = date.today() + timedelta(days=1)
+    # reminder_date = date.today()
     user = read_exodus_user(message.chat.id)
 
-    reminder_type = 'reminder_in'  # 6.8
+    # reminder_type = 'reminder_in'  # 6.8
     # reminder_type = 'reminder_out'  # 6.3, 6.7
     # status = 'obligation' # 6.3
     # status = 'intention'  # 6.7
@@ -1190,7 +1193,7 @@ def remind_later(message, intention_id=None):
     create_event(from_id=message.chat.id,
                  first_name=None,
                  last_name=None,
-                 status=None,
+                 status=event_status,
                  type=reminder_type,
                  min_payments=None,
                  current_payments=None,
@@ -1377,11 +1380,12 @@ def obligation_for_needy(message, reminder_call, intention_id):
     bot_text = f"{req_value}"
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
 
-    bot.register_next_step_handler(msg, obligation_for_needy_check)
+    bot.register_next_step_handler(msg, obligation_for_needy_check, intention_id)
     return
 
 
-def obligation_for_needy_check(message):
+def obligation_for_needy_check(message, intention_id):
+    # 6.3
     text = message.text
     if text == 'Другие реквизиты':
         select_requisites(message)  # TODO сделать и подвязать реквизиты
@@ -1389,7 +1393,7 @@ def obligation_for_needy_check(message):
         obligation_sent_confirm(message)
         return
     elif text == 'Напомнить позже':
-        remind_later(message)
+        remind_later(message, event_status='obligation', reminder_type='reminder_out', intention_id=intention_id)
         return
     else:
         msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
@@ -1656,7 +1660,7 @@ def for_me_obligation(message, reminder_call, intention_id):
         intention_id = transaction[message.chat.id]
         intention = read_intention_by_id(intention_id=intention_id)
 
-    user = read_exodus_user(telegram_id=intention.from_id)
+    user = read_exodus_user(telegram_id=intention.to_id)
 
     bot_text = f"Участник {user.first_name} {user.last_name} записал обязательство в вашу пользу на сумму {intention.payment} {intention.currency}"
 
@@ -1680,7 +1684,7 @@ def for_me_obligation_check(message, obligation_id):
     elif text == 'Хранить':
         keep_obligation(message)
     elif text == 'Напомнить позже':
-        remind_later(message, obligation_id)
+        remind_later(message, event_status=None, reminder_type='reminder_in', intention_id=obligation_id)
     else:
         msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
         bot.register_next_step_handler(msg, for_me_obligation_check, obligation_id)
@@ -3289,20 +3293,23 @@ def process_callback(call):
 
     # bookmark # callback
     elif call.data[0:9] == 'reminder_':
-        event_id = call.data[9:]
+        event_id = call.data.split('_')[1]
         event = read_event(event_id)
         if event.type == 'reminder_in':
             # 6.8
+            print('reminder_in')
             for_me_obligation(call.message, reminder_call=True,
                               intention_id=event.to_id)
             pass
         elif event.type == 'reminder_out':
             if event.status == 'intention':
                 # 6.7
+                print('reminder_out-intention')
                 intention_for_needy(call.message, reminder_call=True,
                                     intention_id=event.to_id)
             elif event.status == 'obligation':
                 # 6.3
+                print('reminder_out-obligation')
                 obligation_for_needy(call.message, reminder_call=True,
                                      intention_id=event.to_id)
                 pass

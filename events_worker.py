@@ -62,10 +62,14 @@ def read():
 
         if event.type == 'obligation_money_requested' and (current_date == event.reminder_date or
                                                            current_date > event.reminder_date):
+            update_event(event.event_id, True)
             obligation_money_requested_notice(event.event_id)
+
         if (event.type == 'reminder_in' or event.type == 'reminder_out') and \
                 (current_date == event.reminder_date or current_date > event.reminder_date):
+            update_event(event.event_id, True)
             reminder(event.event_id)  # 6.3, 6.7, 6.8
+
 
         # 6.10
         if event.type == 'obligation_sended' and (current_date - timedelta(days=5)) == event.reminder_date or (

@@ -152,9 +152,9 @@ def reminder(event_id):
     keyboard = types.InlineKeyboardMarkup()
     row = []
     row.append(types.InlineKeyboardButton('Прочитать',
-                                          callback_data='reminder_{}'))
+                                          callback_data='reminder_{}'.format(event_id)))
     keyboard.row(*row)
-    bot.send_message(event.to_id, message, reply_markup=keyboard)
+    bot.send_message(event.from_id, message, reply_markup=keyboard)
 
 
 def confirmation_of_an_obligation(chat_id, name: str, amount: int, currency: int) -> None:
