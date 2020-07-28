@@ -14,7 +14,6 @@ db = create_engine(config.DATABASE_URL)
 base = declarative_base()
 
 
-
 # добавил внешнюю связь для двух таблиц events и intention, в надежде, что это поможет при обновлении статуса с 12 на 13
 class Events(base):
     __tablename__ = 'events'
@@ -115,12 +114,15 @@ def create_exodus_user(telegram_id, first_name, last_name, username, ref='', lin
                                start_date=start_date,
                                create_date=datetime.now())
 
-    try:
-        session.add(exodus_user)
-        session.commit()
-    except:
-        session.rollback()
-        raise
+    # try:
+    #     session.add(exodus_user)
+    #     session.commit()
+    # except:
+    #     session.rollback()
+    #     raise
+
+    session.add(exodus_user)
+    session.commit()
 
 
 # Read
@@ -159,22 +161,26 @@ def update_exodus_user(telegram_id, first_name=None, last_name=None, username=No
     if start_date is not None:
         exodus_user.start_date = start_date
 
-    try:
-        session.commit()
-    except:
-        session.rollback()
-        raise
+    # try:
+    #     session.commit()
+    # except:
+    #     session.rollback()
+    #     raise
+
+    session.commit()
 
 
 # Delete
 def delete_exodus_user(telegram_id):
     exodus_user = session.query(Exodus_Users).filter_by(telegram_id=telegram_id).first()
-    try:
-        session.delete(exodus_user)
-        session.commit()
-    except:
-        session.rollback()
-        raise
+    # try:
+    #     session.delete(exodus_user)
+    #     session.commit()
+    # except:
+    #     session.rollback()
+    #     raise
+    session.delete(exodus_user)
+    session.commit()
 
 
 def create_event(from_id, first_name, last_name, status, type, min_payments, current_payments,
@@ -196,54 +202,61 @@ def create_event(from_id, first_name, last_name, status, type, min_payments, cur
                    status_code=status_code,
                    intention=intention)
 
-    try:
-        session.add(event)
-        session.commit()
-    except:
-        session.rollback()
-        raise
+    # try:
+    #     session.add(event)
+    #     session.commit()
+    # except:
+    #     session.rollback()
+    #     raise
+    session.add(event)
+    session.commit()
 
 
 def update_event(event_id, sent):
     event = session.query(Events).filter_by(event_id=event_id).first()
     event.sent = sent
 
-    try:
-        session.commit()
-    except:
-        session.rollback()
-        raise
+    # try:
+    #     session.commit()
+    # except:
+    #     session.rollback()
+    #     raise
+    session.commit()
 
 
 def update_event_reminder_date(event_id, reminder_date):
     event = session.query(Events).filter_by(event_id=event_id).first()
     event.reminder_date = reminder_date
-    try:
-        session.commit()
-    except:
-        session.rollback()
-        raise
+    # try:
+    #     session.commit()
+    # except:
+    #     session.rollback()
+    #     raise
+
+    session.commit()
 
 
 def update_event_type(event_id, type):
     event = session.query(Events).filter_by(event_id=event_id).first()
     event.type = type
-    try:
-        session.commit()
-    except:
-        session.rollback()
-        raise
+    # try:
+    #     session.commit()
+    # except:
+    #     session.rollback()
+    #     raise
+    session.commit()
 
 
 def update_event_status_code(event_id, status_code):
     event = session.query(Events).filter_by(event_id=event_id).first()
     event.status_code = status_code
 
-    try:
-        session.commit()
-    except:
-        session.rollback()
-        raise
+    # try:
+    #     session.commit()
+    # except:
+    #     session.rollback()
+    #     raise
+    session.commit()
 
 
 def read_event(event_id):
@@ -253,13 +266,14 @@ def read_event(event_id):
 
 def create_rings_help(needy_id, help_array):
     ring = Rings_Help(needy_id=needy_id, help_array=help_array)
-    try:
-        session.add(ring)
-
-        session.commit()
-    except:
-        session.rollback()
-        raise
+    # try:
+    #     session.add(ring)
+    #     session.commit()
+    # except:
+    #     session.rollback()
+    #     raise
+    session.add(ring)
+    session.commit()
 
 
 def read_rings_help(needy_id):
@@ -285,12 +299,14 @@ def create_intention(from_id, to_id, payment, currency, status=None, event_id=No
     intention = Intention(from_id=from_id, to_id=to_id, payment=payment, currency=currency, status=status,
                           create_date=datetime.now(), event_id=event_id)
 
-    try:
-        session.add(intention)
-        session.commit()
-    except:
-        session.rollback()
-        raise
+    # try:
+    #     session.add(intention)
+    #     session.commit()
+    # except:
+    #     session.rollback()
+    #     raise
+    session.add(intention)
+    session.commit()
 
 
 def read_intention_with_payment(from_id, to_id, payment, status):
@@ -328,22 +344,24 @@ def update_intention(intention_id, status=None, payment=None):
         intention.status = status
     if payment is not None:
         intention.payment = payment
-    try:
-        session.commit()
-    except:
-        session.rollback()
-        raise
+    # try:
+    #     session.commit()
+    # except:
+    #     session.rollback()
+    #     raise
+    session.commit()
 
 
 def update_intention_from_all_params(from_id, to_id, payment, status=None):
     intention = session.query(Intention).filter_by(from_id=from_id, to_id=to_id, payment=payment).first()
     if status is not None:
         intention.status = status
-    try:
-        session.commit()
-    except:
-        session.rollback()
-        raise
+    # try:
+    #     session.commit()
+    # except:
+    #     session.rollback()
+    #     raise
+    session.commit()
 
 
 def read_intention_for_user(from_id=None, to_id=None, statuses=None):
@@ -357,15 +375,30 @@ def read_intention_for_user(from_id=None, to_id=None, statuses=None):
         return intentions
 
 
+def get_intention_sum(to_id, statuses=None):
+    intentions = session.query(Intention).filter(Intention.to_id == to_id,
+                                                 Intention.status.in_(statuses))
+
+    if intentions.count() == 0:
+        return 0
+
+    sum = 0
+    for row in intentions.all():
+        sum += row.payment
+
+    return sum
+
+
 def update_intetion_status_from_event(event_id, status):
     intention = session.query(Intention).filter_by(event_id=event_id)
     intention.status = status
 
-    try:
-        session.commit()
-    except:
-        session.rollback()
-        raise
+    # try:
+    #     session.commit()
+    # except:
+    #     session.rollback()
+    #     raise
+    session.commit()
 
 
 # -----------------------requisites-------------------
@@ -376,13 +409,14 @@ def create_requisites_user(telegram_id, name='', value='', is_default=False):
                             value=value,
                             is_default=is_default)
 
-    try:
-        session.add(requisites)
-
-        session.commit()
-    except:
-        session.rollback()
-        raise
+    # try:
+    #     session.add(requisites)
+    #     session.commit()
+    # except:
+    #     session.rollback()
+    #     raise
+    session.add(requisites)
+    session.commit()
 
 
 # Read
@@ -426,20 +460,24 @@ def update_requisites_user(requisites_id, name='', value='', is_default=False):
     requisites_user.value = value
     requisites_user.is_default = is_default
 
-    try:
-        session.commit()
-    except:
-        session.rollback()
-        raise
+    # try:
+    #     session.commit()
+    # except:
+    #     session.rollback()
+    #     raise
+    session.commit()
 
 
 # Delete
 def delete_requisites_user(requisites_id):
     requisites_user = session.query(Requisites).filter_by(requisites_id=requisites_id).first()
 
-    try:
-        session.delete(requisites_user)
-        session.commit()
-    except:
-        session.rollback()
-        raise
+    # try:
+    #     session.delete(requisites_user)
+    #     session.commit()
+    # except:
+    #     session.rollback()
+    #     raise
+
+    session.delete(requisites_user)
+    session.commit()
