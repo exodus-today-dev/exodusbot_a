@@ -200,7 +200,7 @@ def configuration_menu(message):
     #    markup.row(btn2)
     #    markup.row(btn3,btn4)                    # ________________ TODO
     markup.row(btn4)
-    bot_text = f'Ваши текущие Настройки:\n\
+    bot_text = f'Настройки:\n\
 \n\
 Валюта: {user.currency}\n\
 Уведомления: <статус уведомлений>\n\
@@ -2495,7 +2495,7 @@ def red_invitation_check(message, event_id=None):
                          currency=None,
                          users=0,
                          to_id=user_to.telegram_id,
-                         sent=False,
+                         sent=True,
                          reminder_date=date.today(),
                          status_code=NEW_RED_STATUS)
         exists = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
@@ -2504,6 +2504,10 @@ def red_invitation_check(message, event_id=None):
         else:
             global_menu(message)
     elif text == 'Да'.format(0):
+        exists = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
+        if not exists:
+            create_exodus_user(message.from_user.id, message.from_user.first_name, message.from_user.last_name,
+                               message.from_user.username)
         red_invitation_wizard(message, user_to, event_id)
 
     elif 'Главное меню' in text:
@@ -2946,7 +2950,7 @@ def red_edit_wizard_step4(message, link):
                              currency=user.currency,
                              users=len(list_needy_id),
                              to_id=message.chat.id,
-                             sent=False,
+                             sent=True,
                              reminder_date=date.today(),
                              status_code=NEW_RED_STATUS)  # someday: intention_id
 
