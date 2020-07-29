@@ -36,7 +36,10 @@ transaction = {}
 # создаем список с моей сетью
 def get_my_socium(telegram_id):
     # создаем список с теми, кто помогает мне
-    list_needy_id = set(read_rings_help(telegram_id).help_array)
+    try:
+        list_needy_id = set(read_rings_help(telegram_id).help_array)
+    except:
+        list_needy_id = set()
 
     list_send_notify = read_rings_help_in_help_array(telegram_id)
 
@@ -47,9 +50,11 @@ def get_my_socium(telegram_id):
     # добавляем в список людей, которые вместе со мной помогат кому то
     for row in list_send_notify:
         for id in row.help_array:
-            if id != telegram_id:
-                list_needy_id.add(id)
+            #if id != telegram_id:
+            list_needy_id.add(id)
 
+    # удаляем себя из списка
+    list_needy_id.discard(telegram_id)
     return list_needy_id
 
 
@@ -992,13 +997,23 @@ def show_other_socium(message, user_id):
 
     first_name = []
     last_name = []
+    color_name = []
     for id_help in list_my_socium:
         first_name.append(read_exodus_user(id_help).first_name)
         last_name.append(read_exodus_user(id_help).last_name)
+        color = read_exodus_user(id_help).status
+        if color == "green":
+            color_name.append('\U0001F7E2')
+        elif color == "orange":
+            color_name.append('\U0001f7e0')
+        elif color == "red":
+            color_name.append('\U0001F534')
+        else:
+            color_name.append(' ')
 
     string_name = ''
     for i in range(len(first_name)):
-        string_name = string_name + '\n{} {}'.format(first_name[i], last_name[i])
+        string_name = string_name + '\n{}. {} {} {}'.format(i+1, first_name[i], last_name[i], color_name[i])
 
     bot_text = 'В сети участника:{}'.format(string_name)
     markup = types.ReplyKeyboardMarkup()
@@ -1013,13 +1028,23 @@ def show_my_socium(message):
 
     first_name = []
     last_name = []
+    color_name = []
     for id_help in list_my_socium:
         first_name.append(read_exodus_user(id_help).first_name)
         last_name.append(read_exodus_user(id_help).last_name)
+        color = read_exodus_user(id_help).status
+        if color == "green":
+            color_name.append('\U0001F7E2')
+        elif color == "orange":
+            color_name.append('\U0001f7e0')
+        elif color == "red":
+            color_name.append('\U0001F534')
+        else:
+            color_name.append(' ')
 
     string_name = ''
     for i in range(len(first_name)):
-        string_name = string_name + '\n{} {}'.format(first_name[i], last_name[i])
+        string_name = string_name + '\n{}. {} {} {}'.format(i+1, first_name[i], last_name[i], color_name[i])
 
     bot_text = 'В моей сети:{}'.format(string_name)
     markup = types.ReplyKeyboardMarkup()
