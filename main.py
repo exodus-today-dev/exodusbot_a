@@ -992,7 +992,7 @@ def members_list_in_network_check(message, member_id, direction):
 # new # <<<
 
 def show_other_socium(message, user_id):
-    print(user_id)
+    #print(user_id)
     list_my_socium = get_my_socium(user_id)
 
     first_name = []
@@ -1231,8 +1231,10 @@ def intention_for_needy(message, reminder_call, intention_id):
     btn2 = types.KeyboardButton(text='Редактировать')
     btn3 = types.KeyboardButton(text='Напомнить позже')
     btn4 = types.KeyboardButton(text='Отменить намерение')
+    btn5 = types.KeyboardButton(text='Главное меню')
     markup.row(btn1, btn2)
     markup.row(btn3, btn4)
+    markup.row(btn5)
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
     bot.register_next_step_handler(msg, intention_for_needy_check, intention_id)
     return
@@ -1253,6 +1255,8 @@ def intention_for_needy_check(message, intention_id=None):
     elif text == 'Отменить намерение':
         cancel_intention(message)
         return
+    elif 'Главное меню' in text:
+        global_menu(message, True)
     else:
         msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
         bot.register_next_step_handler(msg, for_my_check)
@@ -2206,8 +2210,9 @@ def members_menu_profile_link(message, member_id):
 Статус: Оранжевый \U0001f7e0\n\
 \n\
 Период: Ежемесячно\n\
-{}/{}\
-Всего участников: {}'.format(user.first_name,
+{}/{}\n\
+Всего участников: ' \
+                   '\n{}'.format(user.first_name,
                              user.last_name,
                              already_payments_intent,
                              user.max_payments - already_payments_oblig,
@@ -3266,6 +3271,8 @@ def show_help_requisites(message):
         btns = [types.KeyboardButton(un) for un in users_dict.keys()]
         for btn in btns:
             markup.row(btn)
+        btn1 = types.KeyboardButton('Назад')
+        markup.row(btn1)
         txt = 'Выберите пользователя, чтобы ответить на его запрос:'
         msg = bot.send_message(message.chat.id, txt, reply_markup=markup)
         bot.register_next_step_handler(msg, restart_invitation, users_dict)
@@ -3273,7 +3280,10 @@ def show_help_requisites(message):
 
 
 def restart_invitation(message, users_dict):
-    if message.text not in users_dict.keys():
+    if 'Назад' in message.text:
+        members_menu(message)
+        return
+    elif message.text not in users_dict.keys():
         txt = 'Этого пользователя нет в списке'
         msg = bot.send_message(message.chat.id, txt)
         bot.register_next_step_handler(msg, show_help_requisites)
@@ -3403,19 +3413,19 @@ def process_callback(call):
         event = read_event(event_id)
         if event.type == 'reminder_in':
             # 6.8
-            print('reminder_in')
+            #print('reminder_in')
             for_me_obligation(call.message, reminder_call=True,
                               intention_id=event.to_id)
             pass
         elif event.type == 'reminder_out':
             if event.status == 'intention':
                 # 6.7
-                print('reminder_out-intention')
+                #print('reminder_out-intention')
                 intention_for_needy(call.message, reminder_call=True,
                                     intention_id=event.to_id)
             elif event.status == 'obligation':
                 # 6.3
-                print('reminder_out-obligation')
+                #print('reminder_out-obligation')
                 obligation_for_needy(call.message, reminder_call=True,
                                      intention_id=event.to_id)
                 pass
