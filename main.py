@@ -36,7 +36,10 @@ transaction = {}
 # создаем список с моей сетью
 def get_my_socium(telegram_id):
     # создаем список с теми, кто помогает мне
-    list_needy_id = set(read_rings_help(telegram_id).help_array)
+    try:
+        list_needy_id = set(read_rings_help(telegram_id).help_array)
+    except:
+        list_needy_id = set()
 
     list_send_notify = read_rings_help_in_help_array(telegram_id)
 
@@ -47,9 +50,11 @@ def get_my_socium(telegram_id):
     # добавляем в список людей, которые вместе со мной помогат кому то
     for row in list_send_notify:
         for id in row.help_array:
-            if id != telegram_id:
-                list_needy_id.add(id)
+            #if id != telegram_id:
+            list_needy_id.add(id)
 
+    # удаляем себя из списка
+    list_needy_id.discard(telegram_id)
     return list_needy_id
 
 
@@ -557,9 +562,10 @@ def members_menu(message, meta_txt=None):
     btn3 = types.KeyboardButton(text='В пользу других ({})'.format(transactions_out_count))
     btn4 = types.KeyboardButton(text='Запросы помощи({})'.format(requisites_count))
     btn5 = types.KeyboardButton(text='Главное меню')
-    markup.row(btn1)
-    markup.row(btn2)
-    markup.row(btn3)
+    btn6 = types.KeyboardButton(text='Моя сеть')
+    markup.row(btn1, btn6)
+    markup.row(btn2, btn3)
+    # markup.row(btn3)
     markup.row(btn4)  # ________________ TODO
     markup.row(btn5)
 
@@ -917,8 +923,10 @@ def selected_member_action_menu(message, member_id):
     btn3 = types.KeyboardButton(text='Этот участник в пользу других '
                                      '({tr_out})'.format(
         tr_out=transactions_out_count))
-    btn4 = types.KeyboardButton(text='Главное меню')
-    markup.row(btn1)
+
+    btn5 = types.KeyboardButton(text='Сеть участника')
+
+    markup.row(btn1, btn5)
     markup.row(btn2)
     markup.row(btn3)
     markup.row(btn4)
@@ -942,6 +950,10 @@ def selected_member_action_check(message, member_id):  # bookmark
         members_list_in_network_menu(message, member_id, 'out')
     elif text == 'Главное меню':
         global_menu(message)
+
+    elif 'Сеть участника' in text:
+        show_other_socium(message, member_id)
+
     else:
         selected_member_action_menu(message, member_id)
 
@@ -978,6 +990,85 @@ def members_list_in_network_check(message, member_id, direction):
 
 # new # <<<
 
+def show_other_socium(message, user_id):
+    #print(user_id)
+    list_my_socium = get_my_socium(user_id)
+
+    first_name = []
+    last_name = []
+    color_name = []
+    for id_help in list_my_socium:
+        first_name.append(read_exodus_user(id_help).first_name)
+        last_name.append(read_exodus_user(id_help).last_name)
+        color = read_exodus_user(id_help).status
+        if color == "green":
+            color_name.append('\U0001F7E2')
+        elif color == "orange":
+            color_name.append('\U0001f7e0')
+        elif color == "red":
+            color_name.append('\U0001F534')
+        else:
+            color_name.append(' ')
+
+    string_name = ''
+    for i in range(len(first_name)):
+        string_name = string_name + '\n{}. {} {} {}'.format(i+1, first_name[i], last_name[i], color_name[i])
+
+    bot_text = 'В сети участника:{}'.format(string_name)
+    markup = types.ReplyKeyboardMarkup()
+    btn1 = types.KeyboardButton(text='Назад')
+    markup.row(btn1)
+    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
+    bot.register_next_step_handler(msg, check_other_socium, user_id)
+
+
+def show_my_socium(message):
+    list_my_socium = get_my_socium(message.chat.id)
+
+    first_name = []
+    last_name = []
+    color_name = []
+    for id_help in list_my_socium:
+        first_name.append(read_exodus_user(id_help).first_name)
+        last_name.append(read_exodus_user(id_help).last_name)
+        color = read_exodus_user(id_help).status
+        if color == "green":
+            color_name.append('\U0001F7E2')
+        elif color == "orange":
+            color_name.append('\U0001f7e0')
+        elif color == "red":
+            color_name.append('\U0001F534')
+        else:
+            color_name.append(' ')
+
+    string_name = ''
+    for i in range(len(first_name)):
+        string_name = string_name + '\n{}. {} {} {}'.format(i+1, first_name[i], last_name[i], color_name[i])
+
+    bot_text = 'В моей сети:{}'.format(string_name)
+    markup = types.ReplyKeyboardMarkup()
+    btn1 = types.KeyboardButton(text='Назад')
+    markup.row(btn1)
+    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
+    bot.register_next_step_handler(msg, check_my_socium)
+
+
+def check_my_socium(message):
+    text = message.text
+    #    bot.delete_message(message.chat.id, message.message_id)
+    if 'Назад' in text:
+        members_menu(message)
+        return
+
+
+def check_other_socium(message, member_id):
+    text = message.text
+    #    bot.delete_message(message.chat.id, message.message_id)
+    if 'Назад' in text:
+        selected_member_action_menu(message, member_id)
+        return
+
+
 def members_check(message):
     text = message.text
     #    bot.delete_message(message.chat.id, message.message_id)
@@ -996,6 +1087,11 @@ def members_check(message):
     elif text == 'Главное меню':
         global_menu(message)
         return
+
+    elif 'Моя сеть' in text:
+        show_my_socium(message)
+        return
+
     else:
         msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
         bot.register_next_step_handler(msg, members_check)
@@ -1134,8 +1230,10 @@ def intention_for_needy(message, reminder_call, intention_id):
     btn2 = types.KeyboardButton(text='Редактировать')
     btn3 = types.KeyboardButton(text='Напомнить позже')
     btn4 = types.KeyboardButton(text='Отменить намерение')
+    btn5 = types.KeyboardButton(text='Главное меню')
     markup.row(btn1, btn2)
     markup.row(btn3, btn4)
+    markup.row(btn5)
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
     bot.register_next_step_handler(msg, intention_for_needy_check, intention_id)
     return
@@ -1156,6 +1254,8 @@ def intention_for_needy_check(message, intention_id=None):
     elif text == 'Отменить намерение':
         cancel_intention(message)
         return
+    elif 'Главное меню' in text:
+        global_menu(message, True)
     else:
         msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
         bot.register_next_step_handler(msg, for_my_check)
@@ -3176,6 +3276,8 @@ def show_help_requisites(message):
         btns = [types.KeyboardButton(un) for un in users_dict.keys()]
         for btn in btns:
             markup.row(btn)
+        btn1 = types.KeyboardButton('Назад')
+        markup.row(btn1)
         txt = 'Выберите пользователя, чтобы ответить на его запрос:'
         msg = bot.send_message(message.chat.id, txt, reply_markup=markup)
         bot.register_next_step_handler(msg, restart_invitation, users_dict)
@@ -3183,7 +3285,10 @@ def show_help_requisites(message):
 
 
 def restart_invitation(message, users_dict):
-    if message.text not in users_dict.keys():
+    if 'Назад' in message.text:
+        members_menu(message)
+        return
+    elif message.text not in users_dict.keys():
         txt = 'Этого пользователя нет в списке'
         msg = bot.send_message(message.chat.id, txt)
         bot.register_next_step_handler(msg, show_help_requisites)
