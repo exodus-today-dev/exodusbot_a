@@ -41,7 +41,8 @@ def notice_of_intent(event_id):
     """
     event = read_event(event_id)
     user = read_exodus_user(telegram_id=event.from_id)
-    intent = read_intention(event.to_id, event.to_id, 1)[-1]  # берем последний элемент из списка, чтобы обеспечить корреткность событий
+    intent = read_intention(event.to_id, event.to_id, 1)[
+        -1]  # берем последний элемент из списка, чтобы обеспечить корреткность событий
     print('Отправлено-{}'.format(event_id))
     bot_text = f"{intent.create_date.strftime('%d %B %Y')}\n\
 Участник {user.first_name} {user.last_name} записал свое намерение помогать вам на сумму: {intent.payment} {event.currency}"
@@ -140,11 +141,31 @@ def reminder_for_6_10(event_id):
     return True
 
 
-def obligation_money_requested_notice(event_id):
-    pass  # 6.3
+def obligation_money_requested_notice(event):
+    # 6.3
+    user = read_exodus_user(event.intention.to_id)
+    bot_text = 'У Вас обязательство перед участником {} {} на сумму {} {}'.format(
+                    user.first_name,
+                    user.status,
+                    event.intention.payment,
+                    event.intention.currency)
+
+    markup = types.ReplyKeyboardMarkup()
+    btn1 = types.KeyboardButton(text='Да, я отправил деньги')
+    btn2 = types.KeyboardButton(text='Напомнить позже')
+    markup.row(btn1)
+    markup.row(btn2)
+    msg = bot.send_message(event.intention.from_id, bot_text, reply_markup=markup)
+    bot.register_next_step_handler(msg, obligation_money_requested_notice_check)
+    return
 
 
-def reminder(event_id):
+def obligation_money_requested_notice_check(message):
+    if message.text == 'Напомнить позже':
+        pass
+
+
+def reminder(event_id, direction=None):
     event = read_event(event_id)
     user = read_exodus_user(telegram_id=event.from_id)
 
@@ -154,7 +175,11 @@ def reminder(event_id):
     row.append(types.InlineKeyboardButton('Прочитать',
                                           callback_data='reminder_{}'.format(event_id)))
     keyboard.row(*row)
-    bot.send_message(event.from_id, message, reply_markup=keyboard)
+    if direction == 'out':
+        bot.send_message(event.from_id, message, reply_markup=keyboard)
+    elif direction == 'in':
+        intention = read_intention_by_id(event.to_id)
+        bot.send_message(intention.to_id, message, reply_markup=keyboard)
 
 
 def confirmation_of_an_obligation(chat_id, name: str, amount: int, currency: int) -> None:

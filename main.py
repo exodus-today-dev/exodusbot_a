@@ -1172,17 +1172,18 @@ def intention_to_obligation(message):
     update_event_status_code(intention.event_id, NEW_OBLIGATION)
     # отправка сообщения
     bot.send_message(message.chat.id, bot_text)
+    remind_later(message, event_status=None, reminder_type='reminder_in', intention_id=intention_id, to_menu=True)
     global_menu(message, True)
     return
 
 
 # bookmark
-def remind_later(message,  event_status=None, reminder_type=None, intention_id=None):
+def remind_later(message,  event_status=None, reminder_type=None, intention_id=None, to_menu=True):
     """ 6.3, 6.7, 6.8 """
     #  create_event       ---------------------------- TODO Создать уведомление - бот вышлет это через сутки
 
-    reminder_date = date.today() + timedelta(days=1)
-    # reminder_date = date.today()
+    # reminder_date = date.today() + timedelta(days=1)
+    reminder_date = date.today()
     user = read_exodus_user(message.chat.id)
 
     # reminder_type = 'reminder_in'  # 6.8
@@ -1208,7 +1209,8 @@ def remind_later(message,  event_status=None, reminder_type=None, intention_id=N
     # message = "Участнику {first_name} {last_name} отправлено ваше решение " \
     #          "исполнить обязательства на сумму {sum} {currency}.". \
     #          format(first_name=None, last_name=None, sum=None, currency=None)
-    global_menu(message)
+    if to_menu:
+        global_menu(message)
     return
 
 
@@ -1682,7 +1684,7 @@ def for_me_obligation_check(message, obligation_id):
     if text == 'Запрос на исполнение':
         obligation_to_execution(message, obligation_id)
     elif text == 'Хранить':
-        keep_obligation(message)
+        keep_obligation(message, obligation_id)
     elif text == 'Напомнить позже':
         remind_later(message, event_status=None, reminder_type='reminder_in', intention_id=obligation_id)
     else:
@@ -1693,11 +1695,11 @@ def for_me_obligation_check(message, obligation_id):
 
 def obligation_to_execution(message, obligation_id):
     """ 6.8 """
-    intention_id = transaction[message.chat.id]
-    intention = read_intention_by_id(intention_id=intention_id)
+    # intention_id = transaction[message.chat.id]
+    intention = read_intention_by_id(intention_id=obligation_id)
 
     user = read_exodus_user(telegram_id=intention.from_id)
-    update_intention(intention_id=intention_id, status=15)
+    update_intention(intention_id=obligation_id, status=15)
     bot_text = f'Участнику {user.first_name} {user.last_name} отправлено ваше решение исполнить ' \
                f'обязательство на сумму {intention.payment} {intention.currency}.'
 
@@ -1720,24 +1722,26 @@ def obligation_to_execution(message, obligation_id):
                  users=users_count,
                  to_id=to_id,
                  reminder_date=reminder_date,
-                 sent=False)
+                 sent=False,
+                 intention=intention)
 
-    msg = bot.send_message(message.chat.id, bot_text)
+    bot.send_message(message.chat.id, bot_text)
 
     global_menu(message)
 
     return
 
 
-def keep_obligation(message):
-    intention_id = transaction[message.chat.id]
-    intention = read_intention_by_id(intention_id=intention_id)
+def keep_obligation(message, obligation_id):
+    # intention_id = transaction[message.chat.id]
+    intention = read_intention_by_id(intention_id=obligation_id)
     user = read_exodus_user(telegram_id=intention.from_id)
     bot_text = f'Обязательство участника {user.first_name} {user.last_name} на ' \
                f'сумму  {intention.payment} {intention.currency} будет хранится у вас, ' \
                f'пока вы не примите решение.\n' \
                f'Посмотреть все обязательства можно в разделе главного меню ' \
                f'"транзакции" > "обязательства"'
+    bot.send_message(message.chat.id, bot_text)
     global_menu(message)
     return
 
@@ -2101,23 +2105,26 @@ def members_menu_profile_link(message, member_id):
     already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
     already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
     bot.delete_message(message.chat.id, message.message_id)
+
     if user.status == 'green':
         bot_text = 'Имя участника {} {}\n\
 Статус: Зелёный \U0001F7E2'.format(user.first_name, user.last_name)
+
     elif user.status == 'orange':
+        all_users = session.query(Exodus_Users).count()
         bot_text = 'Имя участника {} {}\n\
 Статус: Оранжевый \U0001f7e0\n\
 \n\
 Период: Ежемесячно\n\
-{}/{}\
+{}/{} {}\
 Всего участников: {}'.format(user.first_name,
                              user.last_name,
                              already_payments_intent,
                              user.max_payments - already_payments_oblig,
                              user.currency,
-                             user.max_payments - user.current_payments,
-                             0)  # ------------ TODO
+                             all_users)  # ------------ TODO
     elif user.status == 'red':
+        all_users = session.query(Exodus_Users).count()
         d0 = user.start_date
         d1 = date.today()
         delta = d1 - d0
@@ -2133,7 +2140,7 @@ def members_menu_profile_link(message, member_id):
                                  user.currency,
                                  days_end,
                                  user.days,
-                                 0)  # ------------ TODO
+                                 all_users)  # ------------ TODO
     else:
         bot_text = 'СТАТУС НЕ УКАЗАН. ОШИБКА'
     bot.send_message(message.chat.id, bot_text)

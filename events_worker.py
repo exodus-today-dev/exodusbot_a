@@ -6,7 +6,7 @@ from datetime import date, timedelta
 import telebot
 import time
 import config
-from models import Events, Exodus_Users, session, update_event
+from models import Events, Exodus_Users, session, update_event, update_event_status_code, CLOSED
 from events import invitation_help_orange, invitation_help_red, notice_of_intent, obligation_sended_notice, \
     obligation_recieved_notice, obligation_money_requested_notice, reminder, reminder_for_6_10
 
@@ -59,16 +59,25 @@ def read():
 
             obligation_recieved_notice(event.event_id)
             update_event(event.event_id, True)
+            update_event_status_code(event, status_code=CLOSED)
 
         if event.type == 'obligation_money_requested' and (current_date == event.reminder_date or
                                                            current_date > event.reminder_date):
             update_event(event.event_id, True)
-            obligation_money_requested_notice(event.event_id)
+            update_event_status_code(event, status_code=CLOSED)
+            obligation_money_requested_notice(event)
 
-        if (event.type == 'reminder_in' or event.type == 'reminder_out') and \
+        if event.type == 'reminder_out' and \
                 (current_date == event.reminder_date or current_date > event.reminder_date):
             update_event(event.event_id, True)
-            reminder(event.event_id)  # 6.3, 6.7, 6.8
+            update_event_status_code(event, status_code=CLOSED)
+            reminder(event.event_id, direction='out')  # 6.3, 6.7
+
+        if event.type == 'reminder_in' and \
+                (current_date == event.reminder_date or current_date > event.reminder_date):
+            update_event(event.event_id, True)
+            update_event_status_code(event, status_code=CLOSED)
+            reminder(event.event_id, direction='in')  # 6.8
 
 
         # 6.10
