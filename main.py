@@ -1766,14 +1766,16 @@ def for_me_obligation(message, reminder_call, intention_id):
 
     bot_text = f"Участник {user.first_name} {user.last_name} записал обязательство в вашу пользу на сумму {intention.payment} {intention.currency}"
 
-    markup = types.ReplyKeyboardMarkup()
-    btn1 = types.KeyboardButton(text='Запрос на исполнение')
-    btn2 = types.KeyboardButton(text='Хранить')
-    btn3 = types.KeyboardButton(text='Напомнить позже')
-    markup.row(btn1)
-    markup.row(btn2, btn3)
-    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
-    bot.register_next_step_handler(msg, for_me_obligation_check, intention_id)
+    # markup = types.ReplyKeyboardMarkup()
+    # btn1 = types.KeyboardButton(text='Запрос на исполнение')
+    # btn2 = types.KeyboardButton(text='Хранить')
+    # btn3 = types.KeyboardButton(text='Напомнить позже')
+    # markup.row(btn1)
+    # markup.row(btn2, btn3)
+    # msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
+    msg = bot.send_message(message.chat.id, bot_text)
+    # bot.register_next_step_handler(msg, for_me_obligation_check, intention_id)
+    global_menu(message)
     return
 
 
@@ -3346,6 +3348,35 @@ def red_invitation(call):
     # update_event_status_code(event_id, CLOSED)
     start_red_invitation(call.message, user_id, event_id)
     return
+
+
+# 6.3
+@bot.callback_query_handler(func=lambda call: 'obligation_money_requested-' in call.data)
+def red_invitation(call):
+    event_id = call.data.split('-')[1]
+    event = read_event(event_id)
+    user = read_exodus_user(event.intention.to_id)
+
+    markup = types.ReplyKeyboardMarkup()
+    btn1 = types.KeyboardButton(text='Да, я отправил деньги')
+    btn2 = types.KeyboardButton(text='Напомнить позже')
+    markup.row(btn1)
+    markup.row(btn2)
+
+    bot_text = 'У Вас обязательство перед участником {} {} на сумму {} {}'.format(
+        user.first_name,
+        user.status,
+        event.intention.payment,
+        event.intention.currency)
+
+    msg = bot.send_message(event.intention.from_id, bot_text, reply_markup=markup)
+    bot.register_next_step_handler(msg, obligation_money_requested_notice_check)
+    return
+
+
+def obligation_money_requested_notice_check(message, ):
+    if message.text == 'Напомнить позже':
+        remind_later(message)
 
 
 # 6.4

@@ -65,7 +65,7 @@ def read():
                                                            current_date > event.reminder_date):
             update_event(event.event_id, True)
             update_event_status_code(event, status_code=CLOSED)
-            obligation_money_requested_notice(event)
+            obligation_money_requested_notice(event.event_id)
 
         if event.type == 'reminder_out' and \
                 (current_date == event.reminder_date or current_date > event.reminder_date):
