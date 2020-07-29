@@ -144,7 +144,7 @@ def obligation_money_requested_notice(event_id):
     pass  # 6.3
 
 
-def reminder(event_id):
+def reminder(event_id, direction=None):
     event = read_event(event_id)
     user = read_exodus_user(telegram_id=event.from_id)
 
@@ -154,7 +154,11 @@ def reminder(event_id):
     row.append(types.InlineKeyboardButton('Прочитать',
                                           callback_data='reminder_{}'.format(event_id)))
     keyboard.row(*row)
-    bot.send_message(event.from_id, message, reply_markup=keyboard)
+    if direction == 'out':
+        bot.send_message(event.from_id, message, reply_markup=keyboard)
+    elif direction == 'in':
+        intention = read_intention_by_id(event.to_id)
+        bot.send_message(intention.to_id, message, reply_markup=keyboard)
 
 
 def confirmation_of_an_obligation(chat_id, name: str, amount: int, currency: int) -> None:

@@ -1273,17 +1273,18 @@ def intention_to_obligation(message):
     update_event_status_code(intention.event_id, NEW_OBLIGATION)
     # отправка сообщения
     bot.send_message(message.chat.id, bot_text)
-    global_menu(message, True)
+    remind_later(message, event_status=None, reminder_type='reminder_in', intention_id=intention_id, to_menu=True)
+    # global_menu(message)
     return
 
 
 # bookmark
-def remind_later(message,  event_status=None, reminder_type=None, intention_id=None):
+def remind_later(message,  event_status=None, reminder_type=None, intention_id=None, to_menu=False):
     """ 6.3, 6.7, 6.8 """
     #  create_event       ---------------------------- TODO Создать уведомление - бот вышлет это через сутки
 
-    reminder_date = date.today() + timedelta(days=1)
-    # reminder_date = date.today()
+    # reminder_date = date.today() + timedelta(days=1)
+    reminder_date = date.today()
     user = read_exodus_user(message.chat.id)
 
     # reminder_type = 'reminder_in'  # 6.8
@@ -1309,7 +1310,8 @@ def remind_later(message,  event_status=None, reminder_type=None, intention_id=N
     # message = "Участнику {first_name} {last_name} отправлено ваше решение " \
     #          "исполнить обязательства на сумму {sum} {currency}.". \
     #          format(first_name=None, last_name=None, sum=None, currency=None)
-    global_menu(message)
+    if to_menu:
+        global_menu(message)
     return
 
 
@@ -1765,14 +1767,15 @@ def for_me_obligation(message, reminder_call, intention_id):
 
     bot_text = f"Участник {user.first_name} {user.last_name} записал обязательство в вашу пользу на сумму {intention.payment} {intention.currency}"
 
-    markup = types.ReplyKeyboardMarkup()
-    btn1 = types.KeyboardButton(text='Запрос на исполнение')
-    btn2 = types.KeyboardButton(text='Хранить')
-    btn3 = types.KeyboardButton(text='Напомнить позже')
-    markup.row(btn1)
-    markup.row(btn2, btn3)
-    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
-    bot.register_next_step_handler(msg, for_me_obligation_check, intention_id)
+    # markup = types.ReplyKeyboardMarkup()
+    # btn1 = types.KeyboardButton(text='Запрос на исполнение')
+    # btn2 = types.KeyboardButton(text='Хранить')
+    # btn3 = types.KeyboardButton(text='Напомнить позже')
+    # markup.row(btn1)
+    # markup.row(btn2, btn3)
+    msg = bot.send_message(message.chat.id, bot_text)
+    # bot.register_next_step_handler(msg, for_me_obligation_check, intention_id)
+    global_menu(message)
     return
 
 
