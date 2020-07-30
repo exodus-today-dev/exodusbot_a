@@ -1273,17 +1273,20 @@ def intention_to_obligation(message):
     update_event_status_code(intention.event_id, NEW_OBLIGATION)
     # отправка сообщения
     bot.send_message(message.chat.id, bot_text)
-    remind_later(message, event_status=None, reminder_type='reminder_in', intention_id=intention_id, to_menu=True)
+    remind_later(message, event_status=None, reminder_type='reminder_in', intention_id=intention_id, to_menu=True, now=True)
     # global_menu(message)
     return
 
 
 # bookmark
-def remind_later(message, event_status=None, reminder_type=None, intention_id=None, to_menu=False):
+def remind_later(message, event_status=None, reminder_type=None, intention_id=None, to_menu=False, now=False):
     """ 6.3, 6.7, 6.8 """
     #  create_event       ---------------------------- TODO Создать уведомление - бот вышлет это через сутки
 
-    reminder_date = date.today() + timedelta(days=1)
+    if now:
+        reminder_date = date.today()
+    else:
+        reminder_date = date.today() + timedelta(days=1)
     # reminder_date = date.today()
     user = read_exodus_user(message.chat.id)
 
@@ -1788,7 +1791,7 @@ def for_me_obligation_check(message, obligation_id):
     elif text == 'Хранить':
         keep_obligation(message)
     elif text == 'Напомнить позже':
-        remind_later(message, event_status=None, reminder_type='reminder_in', intention_id=obligation_id)
+        remind_later(message, event_status=None, reminder_type='reminder_in', intention_id=obligation_id, to_menu=True)
     else:
         msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
         bot.register_next_step_handler(msg, for_me_obligation_check, obligation_id)
