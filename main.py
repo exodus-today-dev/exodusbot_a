@@ -50,7 +50,7 @@ def get_my_socium(telegram_id):
     # добавляем в список людей, которые вместе со мной помогат кому то
     for row in list_send_notify:
         for id in row.help_array:
-            #if id != telegram_id:
+            # if id != telegram_id:
             list_needy_id.add(id)
 
     # удаляем себя из списка
@@ -595,7 +595,7 @@ def members_menu(message, meta_txt=None):
                '  Намерений: {int_out} {currency}\n' \
                '  Обязательств: {obl_out} {currency}\n' \
                '  Исполнено: {exe_out} {currency}'.format(
-        data=user.create_date.strftime("%d %B %Y %I:%M%p"),
+        data=user.create_date.strftime("%d %B %Y"),
         ref=ref, currency=currency, int_in=intentions_in_sum,
         obl_in=obligations_in_sum, exe_in=executed_in_sum,
         int_out=intentions_out_sum, obl_out=obligations_out_sum,
@@ -823,7 +823,7 @@ def generate_user_info_preview(user_id):
                         '  Намерений: {int_out} {currency}\n' \
                         '  Обязательств: {obl_out} {currency}\n' \
                         '  Исполнено: {exe_out} {currency}'.format(
-        data=data.strftime("%d %B %Y %I:%M%p"), ref=ref,
+        data=data.strftime("%d %B %Y"), ref=ref,
         first_name=first_name, last_name=last_name,
         status=status, currency=currency, int_in=intentions_in_sum,
         obl_in=obligations_in_sum, exe_in=executed_in_sum,
@@ -860,7 +860,7 @@ def generate_user_info_text(user, self_id):
                      '\n' \
                      'Имя участника {first_name} {last_name}\n' \
                      'Статус: {status}\n' \
-                     '\n'.format(data=data.strftime("%d %B %Y %I:%M%p"), ref=ref,
+                     '\n'.format(data=data.strftime("%d %B %Y"), ref=ref,
                                  first_name=first_name, last_name=last_name,
                                  status=status)
 
@@ -992,7 +992,7 @@ def members_list_in_network_check(message, member_id, direction):
 # new # <<<
 
 def show_other_socium(message, user_id):
-    #print(user_id)
+    # print(user_id)
     list_my_socium = get_my_socium(user_id)
 
     first_name = []
@@ -1013,7 +1013,7 @@ def show_other_socium(message, user_id):
 
     string_name = ''
     for i in range(len(first_name)):
-        string_name = string_name + '\n{}. {} {} {}'.format(i+1, first_name[i], last_name[i], color_name[i])
+        string_name = string_name + '\n{}. {} {} {}'.format(i + 1, first_name[i], last_name[i], color_name[i])
 
     bot_text = 'В сети участника:{}'.format(string_name)
     markup = types.ReplyKeyboardMarkup()
@@ -1044,7 +1044,7 @@ def show_my_socium(message):
 
     string_name = ''
     for i in range(len(first_name)):
-        string_name = string_name + '\n{}. {} {} {}'.format(i+1, first_name[i], last_name[i], color_name[i])
+        string_name = string_name + '\n{}. {} {} {}'.format(i + 1, first_name[i], last_name[i], color_name[i])
 
     bot_text = 'В моей сети:{}'.format(string_name)
     markup = types.ReplyKeyboardMarkup()
@@ -1279,12 +1279,12 @@ def intention_to_obligation(message):
 
 
 # bookmark
-def remind_later(message,  event_status=None, reminder_type=None, intention_id=None, to_menu=False):
+def remind_later(message, event_status=None, reminder_type=None, intention_id=None, to_menu=False):
     """ 6.3, 6.7, 6.8 """
     #  create_event       ---------------------------- TODO Создать уведомление - бот вышлет это через сутки
 
-    # reminder_date = date.today() + timedelta(days=1)
-    reminder_date = date.today()
+    reminder_date = date.today() + timedelta(days=1)
+    # reminder_date = date.today()
     user = read_exodus_user(message.chat.id)
 
     # reminder_type = 'reminder_in'  # 6.8
@@ -1451,7 +1451,7 @@ def obligation_for_needy(message, reminder_call, intention_id):
     if reminder_call is True:
         intention = read_intention_by_id(intention_id)
     else:
-        bot.delete_message(message.chat.id, message.message_id)
+        # bot.delete_message(message.chat.id, message.message_id)
         intention_id = transaction[message.chat.id]
         #        intention = read_intention_by_id(intention_id)
         intention = read_intention_by_id(intention_id)
@@ -1496,7 +1496,8 @@ def obligation_for_needy_check(message, intention_id):
         obligation_sent_confirm(message)
         return
     elif text == 'Напомнить позже':
-        remind_later(message, event_status='obligation', reminder_type='reminder_out', intention_id=intention_id)
+        remind_later(message, event_status='obligation', reminder_type='reminder_out',
+                     intention_id=intention_id, to_menu=True)
         return
     else:
         msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
@@ -1677,7 +1678,7 @@ def for_my_wizard_intention_check(message):
     # intention_for_me(message)
 
     user = read_exodus_user(telegram_id=intention.from_id)
-    bot_text = f"{intention.create_date.strftime('%d %B %Y %I:%M%p')}\n\
+    bot_text = f"{intention.create_date.strftime('%d %B %Y')}\n\
     Участник {user.first_name} {user.last_name} записал свое намерение помогать вам на {intention.payment} {intention.currency}"
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text='Назад')
@@ -1763,19 +1764,18 @@ def for_me_obligation(message, reminder_call, intention_id):
         intention_id = transaction[message.chat.id]
         intention = read_intention_by_id(intention_id=intention_id)
 
-    user = read_exodus_user(telegram_id=intention.to_id)
+    user = read_exodus_user(telegram_id=intention.from_id)
 
     bot_text = f"Участник {user.first_name} {user.last_name} записал обязательство в вашу пользу на сумму {intention.payment} {intention.currency}"
 
-    # markup = types.ReplyKeyboardMarkup()
-    # btn1 = types.KeyboardButton(text='Запрос на исполнение')
-    # btn2 = types.KeyboardButton(text='Хранить')
-    # btn3 = types.KeyboardButton(text='Напомнить позже')
-    # markup.row(btn1)
-    # markup.row(btn2, btn3)
-    msg = bot.send_message(message.chat.id, bot_text)
-    # bot.register_next_step_handler(msg, for_me_obligation_check, intention_id)
-    global_menu(message)
+    markup = types.ReplyKeyboardMarkup()
+    btn1 = types.KeyboardButton(text='Запрос на исполнение')
+    btn2 = types.KeyboardButton(text='Хранить')
+    btn3 = types.KeyboardButton(text='Напомнить позже')
+    markup.row(btn1)
+    markup.row(btn2, btn3)
+    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
+    bot.register_next_step_handler(msg, for_me_obligation_check, intention_id)
     return
 
 
@@ -1797,11 +1797,11 @@ def for_me_obligation_check(message, obligation_id):
 
 def obligation_to_execution(message, obligation_id):
     """ 6.8 """
-    intention_id = transaction[message.chat.id]
-    intention = read_intention_by_id(intention_id=intention_id)
+    # intention_id = transaction[message.chat.id]
+    intention = read_intention_by_id(intention_id=obligation_id)
 
     user = read_exodus_user(telegram_id=intention.from_id)
-    update_intention(intention_id=intention_id, status=15)
+    update_intention(intention_id=obligation_id, status=15)
     bot_text = f'Участнику {user.first_name} {user.last_name} отправлено ваше решение исполнить ' \
                f'обязательство на сумму {intention.payment} {intention.currency}.'
 
@@ -1809,10 +1809,10 @@ def obligation_to_execution(message, obligation_id):
     currency = intention.currency
     intentions = read_intention(to_id=obligation_id)
     users_count = len(intentions.all())
-    to_id = intention.to_id
+    from_id = intention.from_id
     reminder_date = date.today()
 
-    create_event(from_id=message.chat.id,
+    create_event(from_id=from_id,
                  first_name=None,
                  last_name=None,
                  status=None,
@@ -1822,9 +1822,10 @@ def obligation_to_execution(message, obligation_id):
                  max_payments=None,
                  currency=currency,
                  users=users_count,
-                 to_id=to_id,
+                 to_id=message.chat.id,
                  reminder_date=reminder_date,
-                 sent=False)
+                 sent=False,
+                 intention=intention)
 
     msg = bot.send_message(message.chat.id, bot_text)
 
@@ -1842,6 +1843,7 @@ def keep_obligation(message):
                f'пока вы не примите решение.\n' \
                f'Посмотреть все обязательства можно в разделе главного меню ' \
                f'"транзакции" > "обязательства"'
+    bot.send_message(message.chat.id, bot_text)
     global_menu(message)
     return
 
@@ -2208,37 +2210,37 @@ def members_menu_profile_link(message, member_id):
     if user.status == 'green':
         bot_text = 'Имя участника {} {}\n\
 Статус: Зелёный \U0001F7E2'.format(user.first_name, user.last_name)
+
     elif user.status == 'orange':
+        all_users = session.query(Exodus_Users).count()
         bot_text = 'Имя участника {} {}\n\
 Статус: Оранжевый \U0001f7e0\n\
 \n\
 Период: Ежемесячно\n\
-{}/{}\n\
-Всего участников: ' \
-                   '\n{}'.format(user.first_name,
-                             user.last_name,
-                             already_payments_intent,
-                             user.max_payments - already_payments_oblig,
-                             user.currency,
-                             user.max_payments - user.current_payments,
-                             0)  # ------------ TODO
+{}/{} {}\n\
+Всего участников:{}'.format(user.first_name,
+                            user.last_name,
+                            already_payments_intent,
+                            user.max_payments - already_payments_oblig,
+                            user.currency,
+                            all_users)  # ------------ TODO
+
     elif user.status == 'red':
+        all_users = session.query(Exodus_Users).count()
         d0 = user.start_date
         d1 = date.today()
         delta = d1 - d0
-        days_end = user.days - delta.days
         bot_text = 'Имя участника {} {}\n\
 Статус: Красный \U0001F534\n\
 \n\
-Требуется помощь на сумму {} {}\n\
-Осталось {} дней из {}\n\
+{}/{} {}\n\
 Уже помогает: {} человек'.format(user.first_name,
                                  user.last_name,
-                                 user.max_payments,
+                                 already_payments_intent,
+                                 user.max_payments - already_payments_oblig,
                                  user.currency,
-                                 days_end,
-                                 user.days,
-                                 0)  # ------------ TODO
+                                 all_users)  # ------------ TODO
+
     else:
         bot_text = 'СТАТУС НЕ УКАЗАН. ОШИБКА'
     bot.send_message(message.chat.id, bot_text)
@@ -3346,6 +3348,15 @@ def red_invitation(call):
     return
 
 
+@bot.callback_query_handler(func=lambda call: 'obligation_money_requested-' in call.data)
+def obligation_money_requested_notice_call(call):
+    bot.delete_message(call.message.chat.id, call.message.message_id)
+    event_id = call.data.split('-')[1]
+    event = read_event(event_id)
+    obligation_for_needy(call.message, reminder_call=True, intention_id=event.intention.intention_id)
+    return
+
+
 # 6.4
 @bot.callback_query_handler(func=lambda call: True)
 def process_callback(call):
@@ -3416,19 +3427,19 @@ def process_callback(call):
         event = read_event(event_id)
         if event.type == 'reminder_in':
             # 6.8
-            #print('reminder_in')
+            # print('reminder_in')
             for_me_obligation(call.message, reminder_call=True,
                               intention_id=event.to_id)
             pass
         elif event.type == 'reminder_out':
             if event.status == 'intention':
                 # 6.7
-                #print('reminder_out-intention')
+                # print('reminder_out-intention')
                 intention_for_needy(call.message, reminder_call=True,
                                     intention_id=event.to_id)
             elif event.status == 'obligation':
                 # 6.3
-                #print('reminder_out-obligation')
+                # print('reminder_out-obligation')
                 obligation_for_needy(call.message, reminder_call=True,
                                      intention_id=event.to_id)
                 pass

@@ -141,7 +141,16 @@ def reminder_for_6_10(event_id):
 
 
 def obligation_money_requested_notice(event_id):
-    pass  # 6.3
+    # 6.3
+    event = read_event(event_id)
+    # user = read_exodus_user(event.intention.to_id)
+    message = "Для вас есть уведомление:"
+    keyboard = types.InlineKeyboardMarkup()
+    row = [types.InlineKeyboardButton('Подробнее',
+                                      callback_data='obligation_money_requested-{}'.format(event_id))]
+    keyboard.row(*row)
+    bot.send_message(event.from_id, message, reply_markup=keyboard)
+    return
 
 
 def reminder(event_id, direction=None):
