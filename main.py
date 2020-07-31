@@ -2209,6 +2209,8 @@ def members_menu_profile_link(message, member_id):
     user = read_exodus_user(member_id)
     already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
     already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
+    left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
+    right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
     bot.delete_message(message.chat.id, message.message_id)
     if user.status == 'green':
         bot_text = 'Имя участника {} {}\n\
@@ -2223,8 +2225,8 @@ def members_menu_profile_link(message, member_id):
 {}/{} {}\n\
 Всего участников:{}'.format(user.first_name,
                             user.last_name,
-                            already_payments_intent,
-                            user.max_payments - already_payments_oblig,
+                            left_sum,
+                            right_sum,
                             user.currency,
                             all_users)  # ------------ TODO
 
@@ -2239,8 +2241,8 @@ def members_menu_profile_link(message, member_id):
 {}/{} {}\n\
 Уже помогает: {} человек'.format(user.first_name,
                                  user.last_name,
-                                 already_payments_intent,
-                                 user.max_payments - already_payments_oblig,
+                                 left_sum,
+                                 right_sum,
                                  user.currency,
                                  all_users)  # ------------ TODO
 
@@ -2333,6 +2335,8 @@ def start_orange_invitation(message, user_to, event_id=None):
     ring = read_rings_help(user.telegram_id)
     already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
     already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
+    left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
+    right_sum = right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
     intention = read_intention_one(message.chat.id, user.telegram_id, 1)
     if intention is not None:
         bot_text = f'Вы уже помогаете участнику {user.first_name} {user.last_name}.'
@@ -2355,8 +2359,8 @@ def start_orange_invitation(message, user_to, event_id=None):
 Вы можете помочь этому участнику?'.format(first_name=user.first_name,
                                           last_name=user.last_name,
                                           status=status,
-                                          current=already_payments_intent,
-                                          all=user.max_payments - already_payments_oblig,
+                                          current=left_sum,
+                                          all=right_sum,
                                           users_count=users_count)
 
     markup = types.ReplyKeyboardMarkup()
@@ -2539,6 +2543,8 @@ def start_red_invitation(message, user_to, event_id=None):
     # ring = read_rings_help(user.telegram_id)
     already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
     already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
+    left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
+    right_sum = right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
     intention = read_intention_one(message.chat.id, user.telegram_id, 1)
     if intention is not None:
         bot_text = f'Вы уже помогаете участнику {user.first_name} {user.last_name}.'
@@ -2561,7 +2567,7 @@ def start_red_invitation(message, user_to, event_id=None):
     status = get_status(user.status)
     bot_text = f'Участник {user.first_name} {user.last_name} - {status}\n\
 Период: Ежемесячно\n\
-{already_payments_intent}/{user.max_payments - already_payments_oblig} {user.currency}\n\
+{left_sum}/{right_sum} {user.currency}\n\
 Всего участников: {users_count}\n\
 Осталось {days_end} дней из {user.days}\n\
 Обсуждение: {user.link}\n\
@@ -2670,11 +2676,13 @@ def red_invitation_wizard_check(message, event_id=None):  # ------------------ T
 
     already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
     already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
+    left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
+    right_sum = right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
     status = 'Красный \U0001F534'
     bot_text = f'Записано Ваше намерение помогать участнику {user.first_name} {user.last_name} на сумму {invitation_sum} {user.currency}\n\
 \n\
 Участник {user.first_name} {user.last_name} {status}\n\
-{already_payments_intent}/{user.max_payments - already_payments_oblig} {user.currency}\n\
+{left_sum}/{right_sum} {user.currency}\n\
 Всего участников: {users_count}\n\
 Осталось {days_end} дней из {user.days}\n\
 \n\
@@ -2715,6 +2723,8 @@ def orange_status_wizard(message):
     user = read_exodus_user(message.chat.id)
     already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
     already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
+    left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
+    right_sum = right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
     all_users = session.query(Exodus_Users).count()
     bot_text = 'Ваш статус \U0001f7e0\n\
 \n\
@@ -2722,8 +2732,8 @@ def orange_status_wizard(message):
 {}/{} {}\n\
 Всего участников: {}\n\
 \n\
-Если вы хотите пригласить кого-то помогать вам, перешлите ему эту ссылку:'.format(already_payments_intent,
-                                                                                  user.max_payments - already_payments_oblig,
+Если вы хотите пригласить кого-то помогать вам, перешлите ему эту ссылку:'.format(left_sum,
+                                                                                  right_sum,
                                                                                   user.currency,
                                                                                   all_users)
     bot.send_message(message.chat.id, bot_text)
@@ -2900,9 +2910,11 @@ def red_status_wizard(message):
     days_end = user.days - delta.days
     already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
     already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
+    left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
+    right_sum = right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
     bot_text = f'Ваш статус \U0001F534\n\
 \n\
-{already_payments_intent}/{user.max_payments - already_payments_oblig} {user.currency}\n\
+{left_sum}/{right_sum} {user.currency}\n\
 Всего участников: {all_users}\n\
 Осталось {days_end} дней из {user.days}\n\
 Обсуждение: {user.link}\n\

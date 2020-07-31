@@ -170,6 +170,15 @@ def reminder(event_id, direction=None):
         bot.send_message(intention.to_id, message, reply_markup=keyboard)
 
 
+def check_border(event_id):
+    """Проверяет, что уведомление попало на первый день месяца,
+    что влечет за собой удаление намерения/обязательства и исключение из круга"""
+
+    event = read_event(event_id)
+    if datetime.now().date().day == 1:
+        update_intention(event.to_id, status=0)
+
+
 def confirmation_of_an_obligation(chat_id, name: str, amount: int, currency: int) -> None:
     """Information about a function.
     """
