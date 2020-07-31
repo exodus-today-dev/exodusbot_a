@@ -1734,7 +1734,7 @@ def for_my_wizard_obligation(message):
     bot.send_message(message.chat.id, bot_text, reply_markup=markup)
     bot_text = 'Введите номер, чтобы посмотреть подробную информацию или изменить:'
     msg = bot.send_message(message.chat.id, bot_text)
-    bot.register_next_step_handler(msg, for_my_wizard_intention_check)
+    bot.register_next_step_handler(msg, for_my_wizard_obligation_check)
     return
 
 
@@ -1754,7 +1754,7 @@ def for_my_wizard_obligation_check(message):
         return
     transaction[message.chat.id] = intention_number
     # intention_for_me(message) #bookmark # for_me_obligation(message)
-    for_me_obligation(message, reminder_call=False, intention_id=None)
+    for_me_obligation(message, reminder_call=True, intention_id=intention.intention_id)
     return
 
 
@@ -1789,7 +1789,7 @@ def for_me_obligation_check(message, obligation_id):
     if text == 'Запрос на исполнение':
         obligation_to_execution(message, obligation_id)
     elif text == 'Хранить':
-        keep_obligation(message)
+        keep_obligation(message, obligation_id)
     elif text == 'Напомнить позже':
         remind_later(message, event_status=None, reminder_type='reminder_in', intention_id=obligation_id, to_menu=True)
     else:
@@ -1837,9 +1837,9 @@ def obligation_to_execution(message, obligation_id):
     return
 
 
-def keep_obligation(message):
-    intention_id = transaction[message.chat.id]
-    intention = read_intention_by_id(intention_id=intention_id)
+def keep_obligation(message, obligation_id):
+    # intention_id = transaction[message.chat.id]
+    intention = read_intention_by_id(intention_id=obligation_id)
     user = read_exodus_user(telegram_id=intention.from_id)
     bot_text = f'Обязательство участника {user.first_name} {user.last_name} на ' \
                f'сумму  {intention.payment} {intention.currency} будет хранится у вас, ' \
