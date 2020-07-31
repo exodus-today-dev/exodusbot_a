@@ -68,15 +68,14 @@ def read():
         if event.type == 'reminder_out' and \
                 (current_date == event.reminder_date or current_date > event.reminder_date):
             update_event(event.event_id, True)
-            update_event_status_code(event.event_id, status_code=CLOSED)
+            # update_event_status_code(event.event_id, status_code=CLOSED)
             reminder(event.event_id, direction='out')  # 6.3, 6.7
 
         if event.type == 'reminder_in' and \
                 (current_date == event.reminder_date or current_date > event.reminder_date):
             update_event(event.event_id, True)
-            update_event_status_code(event.event_id, status_code=CLOSED)
+            # update_event_status_code(event.event_id, status_code=CLOSED)
             reminder(event.event_id, direction='in')  # 6.8
-
 
         # 6.10
         if event.type == 'obligation_sended' and (current_date - timedelta(days=5)) == event.reminder_date or (
