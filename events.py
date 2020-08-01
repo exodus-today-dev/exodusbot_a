@@ -1,6 +1,6 @@
 import telebot
 from telebot import types
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 import config
 
 bot = telebot.TeleBot(config.API_TOKEN)
@@ -175,9 +175,17 @@ def check_border(event_id):
     что влечет за собой удаление намерения/обязательства и исключение из круга"""
 
     event = read_event(event_id)
+
+    # уведомдения за 3 дня до 1го числа
+    if (datetime.now() + timedelta(days=3)).day == 1:
+        update_event(event_id, False)
+
+    # удаление намерений 1го числа
     if datetime.now().date().day == 1 and event.status_code == REMIND_LATER and event.status == 'intention':
         update_intention(event.to_id, status=0)
+        update_event_status_code(event_id, CLOSED)
 
+    # напоминание о выполнении обязательства
     if datetime.now().date().day == 1 and event.status_code == REMIND_LATER and event.status == 'obligation':
         update_event(event_id, False)
 
