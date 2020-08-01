@@ -2336,7 +2336,7 @@ def start_orange_invitation(message, user_to, event_id=None):
     already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
     already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
     left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
-    right_sum = right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
+    right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
     intention = read_intention_one(message.chat.id, user.telegram_id, 1)
     if intention is not None:
         bot_text = f'Вы уже помогаете участнику {user.first_name} {user.last_name}.'
@@ -3138,6 +3138,9 @@ def orange_green_wizard_step1(message):
                          reply_markup=markup)
         update_exodus_user(telegram_id=message.chat.id, status='green')
         global_menu(message, True)
+        requisites = read_requisites_user(message.chat.id)
+        if not requisites:
+            add_requisite_name(message)
     else:
         orange_green_wizard(message)
 
@@ -3272,6 +3275,9 @@ def orange_step_final(message):
                 continue
 
         global_menu(message)
+        requisites = read_requisites_user(message.chat.id)
+        if not requisites:
+            add_requisite_name(message)
         # return
     else:
         msg = bot.send_message(message.chat.id, 'Выберите пункт меню')

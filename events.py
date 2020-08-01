@@ -175,8 +175,11 @@ def check_border(event_id):
     что влечет за собой удаление намерения/обязательства и исключение из круга"""
 
     event = read_event(event_id)
-    if datetime.now().date().day == 1:
+    if datetime.now().date().day == 1 and event.status_code == REMIND_LATER and event.status == 'intention':
         update_intention(event.to_id, status=0)
+
+    if datetime.now().date().day == 1 and event.status_code == REMIND_LATER and event.status == 'obligation':
+        update_event(event_id, False)
 
 
 def confirmation_of_an_obligation(chat_id, name: str, amount: int, currency: int) -> None:
