@@ -369,6 +369,7 @@ def read_intention_for_user(from_id=None, to_id=None, statuses=None):
         intentions = session.query(Intention).filter(Intention.from_id == from_id,
                                                      Intention.status.in_(statuses))
         return intentions
+
     elif to_id is not None:
         intentions = session.query(Intention).filter(Intention.to_id == to_id,
                                                      Intention.status.in_(statuses))

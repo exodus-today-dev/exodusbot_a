@@ -439,7 +439,7 @@ def unmark_default_requisites(telegram_id):
 def pre_save_requisite_check(message, requisite_name, requisite_value, edit_id=0):
     bot.delete_message(message.chat.id, message.message_id)
     text = message.text
-
+    to_req_settings = read_requisites_user(message.chat.id)
     if text == 'Нет':
         add_requisite_name(message)
         return
@@ -449,6 +449,9 @@ def pre_save_requisite_check(message, requisite_name, requisite_value, edit_id=0
         else:
             create_requisites_user(telegram_id=message.chat.id, name=requisite_name, value=requisite_value)
         bot.send_message(message.chat.id, 'Реквизиты сохранены')
+        if not to_req_settings:
+            global_menu(message)
+            return
         requisites_wizard(message)
         return
     elif text == 'Да, сделать реквизитами по умолчанию':
@@ -458,9 +461,15 @@ def pre_save_requisite_check(message, requisite_name, requisite_value, edit_id=0
         else:
             create_requisites_user(message.chat.id, requisite_name, requisite_value, True)
         bot.send_message(message.chat.id, 'Реквизиты сохранены')
+        if not to_req_settings:
+            global_menu(message)
+            return
         requisites_wizard(message)
         return
     elif text == 'Отмена':
+        if not to_req_settings:
+            add_requisite_name(message)
+            return
         configuration_menu(message)
         return
     else:
@@ -553,8 +562,8 @@ def members_menu(message, meta_txt=None):
         referal = read_exodus_user(user.ref)
         ref = '{} {}'.format(referal.first_name, referal.last_name)
 
-    transactions_in_count = count_in_transactions(message.chat.id)
-    transactions_out_count = count_out_transactions(message.chat.id)
+    transactions_in_count = read_intention_for_user(to_id=message.chat.id, statuses=(1, 11, 12)).count()
+    transactions_out_count = read_intention_for_user(from_id=message.chat.id, statuses=(1, 11, 12)).count()
     requisites_count = get_requisites_count(message.chat.id)
 
     btn1 = types.KeyboardButton(text='Ссылка на мой профиль')
@@ -2336,7 +2345,7 @@ def start_orange_invitation(message, user_to, event_id=None):
     already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
     already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
     left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
-    right_sum = right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
+    right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
     intention = read_intention_one(message.chat.id, user.telegram_id, 1)
     if intention is not None:
         bot_text = f'Вы уже помогаете участнику {user.first_name} {user.last_name}.'
@@ -3138,6 +3147,9 @@ def orange_green_wizard_step1(message):
                          reply_markup=markup)
         update_exodus_user(telegram_id=message.chat.id, status='green')
         global_menu(message, True)
+        requisites = read_requisites_user(message.chat.id)
+        if not requisites:
+            add_requisite_name(message)
     else:
         orange_green_wizard(message)
 
@@ -3272,6 +3284,9 @@ def orange_step_final(message):
                 continue
 
         global_menu(message)
+        requisites = read_requisites_user(message.chat.id)
+        if not requisites:
+            add_requisite_name(message)
         # return
     else:
         msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
