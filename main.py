@@ -132,9 +132,17 @@ def global_menu(message, dont_show_status=False):
         if user.status == "green":
             status = '\U0001F7E2'
         elif user.status == "orange":
-            status = '\U0001f7e0'
+            already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
+            already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
+            left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
+            right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
+            status = f'\U0001f7e0   {left_sum}/{right_sum}'
         elif user.status == "red":
-            status = '\U0001F534'
+            already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
+            already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
+            left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
+            right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
+            status = f'\U0001F534    {left_sum}/{right_sum}'
         else:
             orange_green_wizard(message)
     markup = types.ReplyKeyboardMarkup()
@@ -629,9 +637,9 @@ def print_members_list_in_network(message, member_id, direction):
     intentions = None
 
     if direction == 'in':
-        intentions = read_intention_for_user(to_id=member_id, statuses=(1, 11, 12, 13)).distinct("from_id")
+        intentions = read_intention_for_user(to_id=member_id, statuses=(1, 11, 12)).distinct("from_id")
     elif direction == 'out':
-        intentions = read_intention_for_user(from_id=member_id, statuses=(1, 11, 12, 13)).distinct("to_id")
+        intentions = read_intention_for_user(from_id=member_id, statuses=(1, 11, 12)).distinct("to_id")
 
     for i, row in enumerate(intentions.all()):
         # warning
@@ -3015,12 +3023,20 @@ def red_edit_wizard_step3(message):
         bot.register_next_step_handler(msg, red_edit_wizard_step3)
         return
     user_dict[message.chat.id].days = days
-    msg = bot.send_message(message.chat.id, 'Введите ссылку на чат:')
+
+    markup = types.ReplyKeyboardMarkup()
+    btn1 = types.KeyboardButton(text='Пропустить')
+    markup.row(btn1)
+
+    msg = bot.send_message(message.chat.id, 'Введите ссылку на чат:', reply_markup=markup)
     bot.register_next_step_handler(msg, red_edit_wizard_step35)
 
 
 def red_edit_wizard_step35(message):
-    link = message.text
+    if message.text != 'Пропустить':
+        link = message.text
+    else:
+        link = None
     user = user_dict[message.chat.id]
     bot_text = f'Пожалуйста проверьте введенные данные:\n\
 \n\
@@ -3180,10 +3196,23 @@ def orange_step_need_payments(message):
                                    user.currency))
         bot.register_next_step_handler(msg, orange_step_need_payments)
         return
-
     update_exodus_user(message.chat.id, max_payments=float(max_payments_orange))
 
-    bot.send_message(chat_id, 'Пожалуйста проверьте введенные данные:\n\
+    markup = types.ReplyKeyboardMarkup()
+    btn1 = types.KeyboardButton(text='Пропустить')
+    markup.row(btn1)
+
+    msg = bot.send_message(message.chat.id, 'Введите ссылку на чат:', reply_markup=markup)
+    bot.register_next_step_handler(msg, orange_step_link)
+
+
+def orange_step_link(message):
+    user = read_exodus_user(message.chat.id)
+    if message.text != 'Пропустить':
+        link = message.text
+    else:
+        link = None
+    bot.send_message(message.chat.id, 'Пожалуйста проверьте введенные данные:\n\
 \n\
 Статус: Оранжевый\n\
 Период: Ежемесячно\n\
@@ -3201,9 +3230,9 @@ def orange_step_need_payments(message):
         btn3 = types.KeyboardButton(text='Сохранить')
         markup.row(btn1, btn2)
         markup.row(btn3)
-    msg = bot.send_message(chat_id, 'Вы хотите изменить свой статус и опубликовать эти данные?\n\
+    msg = bot.send_message(message.chat.id, 'Вы хотите изменить свой статус и опубликовать эти данные?\n\
 Все пользователи, которые связаны с вами внутри Эксодус бота, получат уведомление.', reply_markup=markup)
-    bot.register_next_step_handler(msg, orange_step_final)
+    bot.register_next_step_handler(msg, orange_step_final, link)
 
 
 # Минимальная сумма
@@ -3235,7 +3264,7 @@ def orange_step_need_payments(message):
 #     bot.register_next_step_handler(msg, orange_step_final)
 
 
-def orange_step_final(message):
+def orange_step_final(message, link):
     text = message.text
     bot.delete_message(message.chat.id, message.message_id)
     if text == 'Редактировать':
@@ -3249,7 +3278,7 @@ def orange_step_final(message):
     if text == 'Сохранить':
         bot.send_message(message.chat.id, 'Настройки сохранены')
 
-        update_exodus_user(message.chat.id, status='orange')
+        update_exodus_user(message.chat.id, status='orange', link=link)
         user = read_exodus_user(message.chat.id)
         # all_users = session.query(Exodus_Users).all()
         # users_count = session.query(Exodus_Users).count()
