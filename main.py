@@ -1290,7 +1290,8 @@ def intention_to_obligation(message):
     update_event_status_code(intention.event_id, NEW_OBLIGATION)
     # отправка сообщения
     bot.send_message(message.chat.id, bot_text)
-    remind_later(message, event_status=None, reminder_type='reminder_in', intention_id=intention_id, to_menu=True, now=True)
+    remind_later(message, event_status=None, reminder_type='reminder_in', intention_id=intention_id, to_menu=True,
+                 now=True)
     # global_menu(message)
     return
 
@@ -3486,22 +3487,18 @@ def process_callback(call):
         event = read_event(event_id)
         if event.type == 'reminder_in':
             # 6.8
-            # print('reminder_in')
             for_me_obligation(call.message, reminder_call=True,
                               intention_id=event.to_id)
             pass
         elif event.type == 'reminder_out':
             if event.status == 'intention':
                 # 6.7
-                # print('reminder_out-intention')
                 intention_for_needy(call.message, reminder_call=True,
                                     intention_id=event.to_id)
             elif event.status == 'obligation':
                 # 6.3
-                # print('reminder_out-obligation')
                 obligation_for_needy(call.message, reminder_call=True,
                                      intention_id=event.to_id)
-                pass
         else:
             global_menu(call.message)
     else:
