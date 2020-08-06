@@ -2,13 +2,14 @@
 
 # This is a simple echo bot using the decorator mechanism.
 # It echoes any incoming text messages.
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 import telebot
 import time
 import config
-from models import Events, Exodus_Users, session, update_event, update_event_status_code, CLOSED
+from models import Events, Exodus_Users, session, update_event, update_event_status_code, CLOSED, Intention
 from events import invitation_help_orange, invitation_help_red, notice_of_intent, obligation_sended_notice, \
-    obligation_recieved_notice, obligation_money_requested_notice, reminder, reminder_for_6_10
+    obligation_recieved_notice, obligation_money_requested_notice, reminder, reminder_for_6_10, \
+    check_border_before_3_days, check_border_first_date
 
 from telebot import types
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
@@ -31,6 +32,16 @@ def read():
     all_users = session.query(Exodus_Users).count()
     all = session.query(Events).filter_by(sent=False)
     current_date = date.today()
+
+    # if (datetime.now() + timedelta(days=3)).day == 1:
+    #     check_border_before_3_days()
+    # elif datetime.now().day == 1:
+    #     check_border_first_date()
+
+    if (datetime.now() + timedelta(days=3)).day == 8:
+        check_border_before_3_days()
+    elif datetime.now().day == 1:
+        check_border_first_date()
 
     for event in all:
         if event.type == 'orange':
