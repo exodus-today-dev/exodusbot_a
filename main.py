@@ -201,7 +201,8 @@ def configuration_menu(message):
     """2.3-3"""
     user = read_exodus_user(message.chat.id)
     markup = types.ReplyKeyboardMarkup()
-    btn1 = types.KeyboardButton(text='Редактировать реквизиты')
+    # btn1 = types.KeyboardButton(text='Редактировать реквизиты')
+    btn1 = types.KeyboardButton(text='Редактировать')
     #    btn2 = types.KeyboardButton(text='Настройки уведомлений')
     #    btn3 = types.KeyboardButton(text='Валюта')
     btn4 = types.KeyboardButton(text='Главное меню')
@@ -216,7 +217,6 @@ def configuration_menu(message):
     bot_text = f'Настройки:\n\
 \n\
 Валюта: {user.currency}\n\
-Уведомления: <статус уведомлений>\n\
 \n\
 Реквизиты:'
     requisites = read_requisites_user(message.chat.id)
@@ -241,9 +241,8 @@ def configuration_check(message):
 
     if text == 'Мой статус':
         status_menu(message)
-
-    elif text == 'Редактировать реквизиты':
-        requisites_wizard(message)
+    elif text == 'Редактировать':
+        edit_menu(message)
         return
     elif text == 'Настройки уведомлений':
         bot.send_message(message.chat.id, 'Настройки уведомлений')  # TODO
@@ -269,6 +268,63 @@ def configuration_check(message):
                                reply_markup=markup)
         bot.register_next_step_handler(msg, config_wizzard_currency)
         return
+
+
+def edit_menu(message):
+    markup = types.ReplyKeyboardMarkup()
+    btn1 = types.KeyboardButton(text='Реквизиты')
+    btn2 = types.KeyboardButton(text='Статус')
+    btn3 = types.KeyboardButton(text='Ссылка на чат')
+    btn4 = types.KeyboardButton(text='Назад')
+    markup.row(btn1)
+    markup.row(btn2)
+    markup.row(btn3)
+    markup.row(btn4)
+
+    bot_text = 'Выберите опцию для редактирования:'
+
+    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
+    bot.register_next_step_handler(msg, edit_menu_chek)
+
+
+def edit_menu_chek(message):
+    text = message.text
+    if text == 'Реквизиты':
+        requisites_wizard(message)
+        return
+    elif text == 'Статус':
+        status_menu(message)
+        return
+    elif text == 'Ссылка на чат':
+        edit_link_menu(message)
+        return
+    elif text == 'Назад':
+        configuration_menu(message)
+        return
+
+
+def edit_link_menu(message):
+    markup = types.ReplyKeyboardMarkup()
+    btn1 = types.KeyboardButton(text='Назад')
+    markup.row(btn1)
+
+    user = read_exodus_user(message.chat.id)
+    if user.link is None or user.link == '':
+        link = 'не задана'
+    else:
+        link = user.link
+    bot_text = 'Текущая ссылка: {}\nВведите новую ссылку на чат'.format(link)
+
+    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
+    bot.register_next_step_handler(msg, edit_link_check)
+
+
+def edit_link_check(message):
+    link = message.text
+    bot_text = 'Ваша новая ссылка на чат\n{}'.format(link)
+    update_exodus_user(message.chat.id, link=link)
+    bot.send_message(message.chat.id, bot_text)
+    configuration_menu(message)
 
 
 def requisites_wizard(message):
@@ -311,7 +367,7 @@ def requisites_wizard_check(message):
         add_requisite_name(message)
         return
     elif text == 'Назад':
-        configuration_menu(message)
+        edit_menu(message)
         return
     else:
         msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
@@ -517,15 +573,15 @@ def transactions_menu(message):
             me_obligation = me_obligation + pay.payment
 
     status = get_status(user.status)  # TODO
-    bot_text = f"С момента смены вашего статуса на {status}:\n\
+    bot_text = f"Статус: {status}:\n\
 \n\
-В пользу других:\n\
-Мои намерения: {my_intent} {user.currency}\n\
-Мои обязательства: {my_obligation} {user.currency}\n\
+Намерения: \n\
+В мою пользу: {me_intent} {user.currency}\n\
+В пользу других: {my_intent} {user.currency}\n\
 \n\
-В мою пользу:\n\
-Намерения: {me_intent} {user.currency}\n\
-Обязательства: {me_obligation} {user.currency}"
+Обязательства: \n\
+В мою пользу: {me_obligation} {user.currency}\n\
+В пользу других: {my_obligation} {user.currency}\n"
     markup = types.ReplyKeyboardMarkup()
     btn1 = types.KeyboardButton(text='В пользу других')
     btn2 = types.KeyboardButton(text='В мою пользу')
@@ -1033,8 +1089,8 @@ def show_other_socium(message, user_id):
         string_name = string_name + '\n{}. {} {} {}'.format(i + 1, first_name[i], last_name[i], color_name[i])
 
     bot_text = 'В сети участника:{}'.format(string_name) + '\n\n' \
-               'Введите номер Участника, чтобы ' \
-               'посмотреть подробную информацию:'
+                                                           'Введите номер Участника, чтобы ' \
+                                                           'посмотреть подробную информацию:'
     markup = types.ReplyKeyboardMarkup()
     btn1 = types.KeyboardButton(text='Назад')
     markup.row(btn1)
@@ -1066,8 +1122,8 @@ def show_my_socium(message):
         string_name = string_name + '\n{}. {} {} {}'.format(i + 1, first_name[i], last_name[i], color_name[i])
 
     bot_text = 'В сети участника:{}'.format(string_name) + '\n\n' \
-               'Введите номер Участника, чтобы ' \
-               'посмотреть подробную информацию:'
+                                                           'Введите номер Участника, чтобы ' \
+                                                           'посмотреть подробную информацию:'
     markup = types.ReplyKeyboardMarkup()
     btn1 = types.KeyboardButton(text='Назад')
     markup.row(btn1)
@@ -1107,7 +1163,7 @@ def check_other_socium(message, member_id):
             # bookmark #debug.bookmark #dev.bookmark
 
             members_list = list(get_my_socium(member_id))
-            selected_id = int(text)-1
+            selected_id = int(text) - 1
             user = read_exodus_user(members_list[selected_id])
             user_info_text = generate_user_info_text(user, message.chat.id)
             msg = bot.send_message(message.chat.id, user_info_text)
@@ -1118,7 +1174,6 @@ def check_other_socium(message, member_id):
                                            check_other_socium, member_id)
         return
 
-        
 
 def members_check(message):
     text = message.text
@@ -1427,7 +1482,7 @@ def cancel_intention_check(message):
         update_event_status_code(intention.event_id, CLOSED)
         bot.send_message(message.chat.id, bot_text)
         # рассылка уведомлений
-        list_needy_id = set(read_rings_help(message.chat.id).help_array)
+        list_needy_id = set(read_rings_help(intention.to_id).help_array)
         telegram_name = read_exodus_user(message.chat.id).first_name
 
         list_send_notify = read_rings_help_in_help_array(message.chat.id)
@@ -1437,8 +1492,8 @@ def cancel_intention_check(message):
 
         for row in list_needy_id:
             try:
-                bot.send_message(row, 'Участник {} отменил своё намерение на сумму {} {}'.format(
-                    telegram_name, intention.payment, intention.currency))
+                bot.send_message(row, 'Участник {} отменил своё намерение {} {} на сумму {} {}'.format(
+                    telegram_name, user_to.first_name, user_to.last_name, intention.payment, intention.currency))
             except:
                 continue
 
@@ -2271,15 +2326,18 @@ def members_menu_profile_link(message, member_id):
         all_users = session.query(Exodus_Users).count()
         bot_text = 'Имя участника {} {}\n\
 Статус: Оранжевый \U0001f7e0\n\
+{}/{} {}\n\
 \n\
 Период: Ежемесячно\n\
-{}/{} {}\n\
-Всего участников:{}'.format(user.first_name,
-                            user.last_name,
-                            left_sum,
-                            right_sum,
-                            user.currency,
-                            all_users)  # ------------ TODO
+Всего участников:{}\n\
+Ссылка на обсуждение:\n\
+{}'.format(user.first_name,
+           user.last_name,
+           left_sum,
+           right_sum,
+           user.currency,
+           all_users,
+           user.link)  # ------------ TODO
 
     elif user.status == 'red':
         all_users = session.query(Exodus_Users).count()
@@ -2288,14 +2346,17 @@ def members_menu_profile_link(message, member_id):
         delta = d1 - d0
         bot_text = 'Имя участника {} {}\n\
 Статус: Красный \U0001F534\n\
-\n\
 {}/{} {}\n\
-Уже помогает: {} человек'.format(user.first_name,
-                                 user.last_name,
-                                 left_sum,
-                                 right_sum,
-                                 user.currency,
-                                 all_users)  # ------------ TODO
+\n\
+Уже помогает: {} человек\n\
+Ссылка на обсуждение:\n\
+{}'.format(user.first_name,
+           user.last_name,
+           left_sum,
+           right_sum,
+           user.currency,
+           all_users,
+           user.link)  # ------------ TODO
 
     else:
         bot_text = 'СТАТУС НЕ УКАЗАН. ОШИБКА'
@@ -2345,11 +2406,11 @@ def config_wizzard_currency(message):
 def welcome(message):
     """1.0"""
     bot.clear_step_handler(message)
-    referal = ref_info(message.text)
+    referral = ref_info(message.text)
     bot.send_message(message.chat.id, "Добро пожаловать в бот Exodus.")
-    if referal[0] != '':
-        user_from = read_exodus_user(referal[0])
-        user_to = read_exodus_user(referal[1])
+    if referral[0] != '':
+        user_from = read_exodus_user(referral[0])
+        user_to = read_exodus_user(referral[1])
         bot_text = 'Участник {} {} приглашает вас помогать участнику {} {}'.format(user_from.first_name,
                                                                                    user_from.last_name,
                                                                                    user_to.first_name,
@@ -2718,7 +2779,7 @@ def red_invitation_wizard_check(message, event_id=None):  # ------------------ T
         array.append(message.chat.id)
         update_rings_help(user.telegram_id, array)
     ring = read_rings_help(user.telegram_id)
-    users_count = len(set(ring.help_array))
+    users_count = session.query(Exodus_Users).count()
 
     d0 = user.start_date
     d1 = date.today()
@@ -2778,15 +2839,17 @@ def orange_status_wizard(message):
     right_sum = right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
     all_users = session.query(Exodus_Users).count()
     bot_text = 'Ваш статус \U0001f7e0\n\
-\n\
-Период: Ежемесячно\n\
 {}/{} {}\n\
+Период: Ежемесячно\n\
+\n\
 Всего участников: {}\n\
 \n\
-Если вы хотите пригласить кого-то помогать вам, перешлите ему эту ссылку:'.format(left_sum,
-                                                                                  right_sum,
-                                                                                  user.currency,
-                                                                                  all_users)
+Ссылка на обсуждение:\n\
+{}'.format(left_sum,
+           right_sum,
+           user.currency,
+           all_users,
+           user.link)
     bot.send_message(message.chat.id, bot_text)
     link = create_link(user.telegram_id, user.telegram_id)
     markup = types.ReplyKeyboardMarkup()
@@ -2907,7 +2970,8 @@ def green_status_wizard(message):
     markup.row(btn2)
     markup.row(btn3)
     msg = bot.send_message(message.chat.id,
-                           'Ваш статус \U0001F7E2 (зелёный)\nСписок участников с которыми Вы связаны, можно посмотреть в разделе главного меню "Участники"',
+                           'Ваш статус \U0001F7E2 (зелёный)\nСписок участников с которыми Вы связаны, '
+                           'можно посмотреть в разделе главного меню "Участники"',
                            reply_markup=markup)
     bot.register_next_step_handler(msg, green_status_wizard_check)
 
@@ -2964,11 +3028,12 @@ def red_status_wizard(message):
     left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
     right_sum = right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
     bot_text = f'Ваш статус \U0001F534\n\
-\n\
 {left_sum}/{right_sum} {user.currency}\n\
-Всего участников: {all_users}\n\
+\n\
 Осталось {days_end} дней из {user.days}\n\
-Обсуждение: {user.link}\n\
+Всего участников: {all_users}\n\
+Ссылка на обсуждение:\n\
+{user.link}\n\
 \n\
 Если вы хотите пригласить кого-то помогать вам, перешлите ему эту ссылку:'
     bot.send_message(message.chat.id, bot_text)
