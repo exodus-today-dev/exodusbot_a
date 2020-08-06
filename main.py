@@ -1077,20 +1077,6 @@ def check_my_socium(message):
     if 'Назад' in text:
         members_menu(message)
         return
-    else:
-        try:
-            # bookmark #debug.bookmark #dev.bookmark
-
-            members_list = get_my_socium(message.chat.id)
-            selected_id = int(text) - 1
-            user = read_exodus_user(members_list[selected_id])
-            user_info_text = generate_user_info_text(user, message.chat.id)
-            msg = bot.send_message(message.chat.id, user_info_text)
-            selected_member_action_menu(message, members_list[selected_id])
-        except:
-            msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
-            bot.register_next_step_handler(msg, check_my_socium)
-        return
 
 
 def check_other_socium(message, member_id):
@@ -1099,21 +1085,7 @@ def check_other_socium(message, member_id):
     if 'Назад' in text:
         selected_member_action_menu(message, member_id)
         return
-    else:
-        try:
-            # bookmark #debug.bookmark #dev.bookmark
-
-            members_list = get_my_socium(member_id)
-            selected_id = int(text)-1
-            user = read_exodus_user(members_list[selected_id])
-            user_info_text = generate_user_info_text(user, message.chat.id)
-            msg = bot.send_message(message.chat.id, user_info_text)
-            selected_member_action_menu(message, members_list[selected_id])
-        except:
-            msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
-            bot.register_next_step_handler(msg,
-                                           check_other_socium, member_id)
-        return
+        
 
 def members_check(message):
     text = message.text
