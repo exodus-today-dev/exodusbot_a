@@ -2327,17 +2327,17 @@ def members_menu_profile_link(message, member_id):
         bot_text = 'Имя участника {} {}\n\
 Статус: Оранжевый \U0001f7e0\n\
 {}/{} {}\n\
+Ссылка на обсуждение:\n\
+{}\n\
 \n\
 Период: Ежемесячно\n\
-Всего участников:{}\n\
-Ссылка на обсуждение:\n\
-{}'.format(user.first_name,
-           user.last_name,
-           left_sum,
-           right_sum,
-           user.currency,
-           all_users,
-           user.link)  # ------------ TODO
+Всего участников:{}\n'.format(user.first_name,
+                              user.last_name,
+                              left_sum,
+                              right_sum,
+                              user.currency,
+                              user.link,
+                              all_users)  # ------------ TODO
 
     elif user.status == 'red':
         all_users = session.query(Exodus_Users).count()
@@ -2347,16 +2347,16 @@ def members_menu_profile_link(message, member_id):
         bot_text = 'Имя участника {} {}\n\
 Статус: Красный \U0001F534\n\
 {}/{} {}\n\
-\n\
-Уже помогает: {} человек\n\
 Ссылка на обсуждение:\n\
-{}'.format(user.first_name,
-           user.last_name,
-           left_sum,
-           right_sum,
-           user.currency,
-           all_users,
-           user.link)  # ------------ TODO
+{}\n\
+\n\
+Уже помогает: {} человек\n'.format(user.first_name,
+                                   user.last_name,
+                                   left_sum,
+                                   right_sum,
+                                   user.currency,
+                                   user.link,
+                                   all_users)  # ------------ TODO
 
     else:
         bot_text = 'СТАТУС НЕ УКАЗАН. ОШИБКА'
@@ -2840,16 +2840,16 @@ def orange_status_wizard(message):
     all_users = session.query(Exodus_Users).count()
     bot_text = 'Ваш статус \U0001f7e0\n\
 {}/{} {}\n\
-Период: Ежемесячно\n\
-\n\
 Всего участников: {}\n\
+\n\
+Период: Ежемесячно\n\
 \n\
 Ссылка на обсуждение:\n\
 {}'.format(left_sum,
            right_sum,
            user.currency,
-           all_users,
-           user.link)
+           user.link,
+           all_users)
     bot.send_message(message.chat.id, bot_text)
     link = create_link(user.telegram_id, user.telegram_id)
     markup = types.ReplyKeyboardMarkup()
@@ -3029,11 +3029,11 @@ def red_status_wizard(message):
     right_sum = right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
     bot_text = f'Ваш статус \U0001F534\n\
 {left_sum}/{right_sum} {user.currency}\n\
+Ссылка на обсуждение:\n\
+{user.link}\n\
 \n\
 Осталось {days_end} дней из {user.days}\n\
 Всего участников: {all_users}\n\
-Ссылка на обсуждение:\n\
-{user.link}\n\
 \n\
 Если вы хотите пригласить кого-то помогать вам, перешлите ему эту ссылку:'
     bot.send_message(message.chat.id, bot_text)
