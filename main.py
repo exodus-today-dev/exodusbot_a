@@ -1672,6 +1672,11 @@ def obligation_sent_confirm_yes(message):
 
     intentions = read_intention(to_id=intention.to_id)
     users_count = len(intentions.all())
+    ring = read_rings_help(user.telegram_id)
+    if ring is None:
+        all_users = 0
+    else:
+        all_users = len(set(ring.help_array))
     reminder_date = date.today()
 
     # 6.4
@@ -1684,7 +1689,7 @@ def obligation_sent_confirm_yes(message):
                  current_payments=intention.payment,
                  max_payments=None,
                  currency=intention.currency,
-                 users=users_count,
+                 users=all_users,
                  to_id=intention.to_id,
                  sent=False,
                  reminder_date=reminder_date,
@@ -1918,6 +1923,11 @@ def obligation_to_execution(message, obligation_id):
     currency = intention.currency
     intentions = read_intention(to_id=obligation_id)
     users_count = len(intentions.all())
+    ring = read_rings_help(user.telegram_id)
+    if ring is None:
+        all_users = 0
+    else:
+        all_users = len(set(ring.help_array))
     from_id = intention.from_id
     reminder_date = date.today()
 
@@ -1930,7 +1940,7 @@ def obligation_to_execution(message, obligation_id):
                  current_payments=payment,
                  max_payments=None,
                  currency=currency,
-                 users=users_count,
+                 users=all_users,
                  to_id=message.chat.id,
                  reminder_date=reminder_date,
                  sent=False,
@@ -2284,6 +2294,11 @@ def executed_was_sent(message):
 
     intentions = read_intention(to_id=intention.to_id)
     users_count = len(intentions.all())
+    ring = read_rings_help(user.telegram_id)
+    if ring is None:
+        all_users = 0
+    else:
+        all_users = len(set(ring.help_array))
     reminder_date = date.today()
 
     # 6.4
@@ -2296,7 +2311,7 @@ def executed_was_sent(message):
                  current_payments=intention.payment,
                  max_payments=None,
                  currency=intention.currency,
-                 users=users_count,
+                 users=all_users,
                  to_id=intention.to_id,
                  sent=False,
                  reminder_date=reminder_date)
@@ -2323,7 +2338,11 @@ def members_menu_profile_link(message, member_id):
 Статус: Зелёный \U0001F7E2'.format(user.first_name, user.last_name)
 
     elif user.status == 'orange':
-        all_users = session.query(Exodus_Users).count()
+        ring = read_rings_help(user.telegram_id)
+        if ring is None:
+            all_users = 0
+        else:
+            all_users = len(set(ring.help_array))
         bot_text = 'Имя участника {} {}\n\
 Статус: Оранжевый \U0001f7e0\n\
 {}/{} {}\n\
@@ -2331,7 +2350,7 @@ def members_menu_profile_link(message, member_id):
 {}\n\
 \n\
 Период: Ежемесячно\n\
-Всего участников:{}\n'.format(user.first_name,
+Уже помогает: {}\n'.format(user.first_name,
                               user.last_name,
                               left_sum,
                               right_sum,
@@ -2340,7 +2359,11 @@ def members_menu_profile_link(message, member_id):
                               all_users)  # ------------ TODO
 
     elif user.status == 'red':
-        all_users = session.query(Exodus_Users).count()
+        ring = read_rings_help(user.telegram_id)
+        if ring is None:
+            all_users = 0
+        else:
+            all_users = len(set(ring.help_array))
         d0 = user.start_date
         d1 = date.today()
         delta = d1 - d0
@@ -2350,7 +2373,7 @@ def members_menu_profile_link(message, member_id):
 Ссылка на обсуждение:\n\
 {}\n\
 \n\
-Уже помогает: {} человек\n'.format(user.first_name,
+Уже помогает: {}'.format(user.first_name,
                                    user.last_name,
                                    left_sum,
                                    right_sum,
@@ -2466,7 +2489,7 @@ def start_orange_invitation(message, user_to, event_id=None):
     bot_text = 'Участник {first_name} {last_name} - {status}\n\
 Период: Ежемесячно\n\
 {current}/{all}\n\
-Всего участников: {users_count}\n\
+Уже помогают: {users_count}\n\
 \n\
 Вы можете помочь этому участнику?'.format(first_name=user.first_name,
                                           last_name=user.last_name,
@@ -2666,8 +2689,8 @@ def start_red_invitation(message, user_to, event_id=None):
         return
 
     # user = user_to
-    # ring = read_rings_help(user_to.telegram_id)
-    ring = read_rings_help(user_to)
+    ring = read_rings_help(user_to.telegram_id)
+    # ring = read_rings_help(user_to)
     if ring is None:
         users_count = 0
     else:
@@ -2680,7 +2703,7 @@ def start_red_invitation(message, user_to, event_id=None):
     bot_text = f'Участник {user.first_name} {user.last_name} - {status}\n\
 Период: Ежемесячно\n\
 {left_sum}/{right_sum} {user.currency}\n\
-Всего участников: {users_count}\n\
+Уже помогают: {users_count}\n\
 Осталось {days_end} дней из {user.days}\n\
 Обсуждение: {user.link}\n\
 \n\
@@ -2780,6 +2803,11 @@ def red_invitation_wizard_check(message, event_id=None):  # ------------------ T
         update_rings_help(user.telegram_id, array)
     ring = read_rings_help(user.telegram_id)
     users_count = session.query(Exodus_Users).count()
+    ring = read_rings_help(user.telegram_id)
+    if ring is None:
+        all_users = 0
+    else:
+        all_users = len(set(ring.help_array))
 
     d0 = user.start_date
     d1 = date.today()
@@ -2795,7 +2823,7 @@ def red_invitation_wizard_check(message, event_id=None):  # ------------------ T
 \n\
 Участник {user.first_name} {user.last_name} {status}\n\
 {left_sum}/{right_sum} {user.currency}\n\
-Всего участников: {users_count}\n\
+Всего участников: {all_users}\n\
 Осталось {days_end} дней из {user.days}\n\
 \n\
 За три дня до наступления периода бот напомнит о намерении и попросит перевести его в статус "обязательства".'
@@ -2837,7 +2865,11 @@ def orange_status_wizard(message):
     already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
     left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
     right_sum = right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
-    all_users = session.query(Exodus_Users).count()
+    ring = read_rings_help(user.telegram_id)
+    if ring is None:
+        all_users = 0
+    else:
+        all_users = len(set(ring.help_array))
     bot_text = 'Ваш статус \U0001f7e0\n\
 {}/{} {}\n\
 Всего участников: {}\n\
@@ -2848,8 +2880,8 @@ def orange_status_wizard(message):
 {}'.format(left_sum,
            right_sum,
            user.currency,
-           user.link,
-           all_users)
+           all_users,
+           user.link)
     bot.send_message(message.chat.id, bot_text)
     link = create_link(user.telegram_id, user.telegram_id)
     markup = types.ReplyKeyboardMarkup()
@@ -3018,7 +3050,11 @@ def check_orange_red(message):
 
 def red_status_wizard(message):
     user = read_exodus_user(message.chat.id)
-    all_users = session.query(Exodus_Users).count()
+    ring = read_rings_help(user.telegram_id)
+    if ring is None:
+        all_users = 0
+    else:
+        all_users = len(set(ring.help_array))
     d0 = user.start_date
     d1 = date.today()
     delta = d1 - d0
