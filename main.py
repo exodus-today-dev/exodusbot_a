@@ -201,19 +201,17 @@ def configuration_menu(message):
     """2.3-3"""
     user = read_exodus_user(message.chat.id)
     markup = types.ReplyKeyboardMarkup()
-    # btn1 = types.KeyboardButton(text='Редактировать реквизиты')
-    btn1 = types.KeyboardButton(text='Редактировать')
-    #    btn2 = types.KeyboardButton(text='Настройки уведомлений')
-    #    btn3 = types.KeyboardButton(text='Валюта')
+
+    btn1 = types.KeyboardButton(text='Статус')
+    btn3 = types.KeyboardButton(text='Реквизиты')
+    btn2 = types.KeyboardButton(text='Изменить ссылку на чат')
     btn4 = types.KeyboardButton(text='Главное меню')
 
-    btn5 = types.KeyboardButton(text='Мой статус')
-
-    markup.row(btn5)
     markup.row(btn1)
-    #    markup.row(btn2)
-    #    markup.row(btn3,btn4)                    # ________________ TODO
+    markup.row(btn2)
+    markup.row(btn3)
     markup.row(btn4)
+
     bot_text = f'Настройки:\n\
 \n\
 Валюта: {user.currency}\n\
@@ -239,10 +237,14 @@ def configuration_check(message):
         pass
     text = message.text
 
-    if text == 'Мой статус':
+    if text == 'Статус':
         status_menu(message)
-    elif text == 'Редактировать':
-        edit_menu(message)
+        return
+    elif text == 'Реквизиты':
+        requisites_wizard(message)
+        return
+    elif text == 'Изменить ссылку на чат':
+        edit_link_menu(message)
         return
     elif text == 'Настройки уведомлений':
         bot.send_message(message.chat.id, 'Настройки уведомлений')  # TODO
@@ -267,39 +269,6 @@ def configuration_check(message):
         msg = bot.send_message(message.chat.id, 'Валюта по умолчанию: {}\nВыберите Другую валюту'.format(user.currency),
                                reply_markup=markup)
         bot.register_next_step_handler(msg, config_wizzard_currency)
-        return
-
-
-def edit_menu(message):
-    markup = types.ReplyKeyboardMarkup()
-    btn1 = types.KeyboardButton(text='Реквизиты')
-    btn2 = types.KeyboardButton(text='Статус')
-    btn3 = types.KeyboardButton(text='Ссылка на чат')
-    btn4 = types.KeyboardButton(text='Назад')
-    markup.row(btn1)
-    markup.row(btn2)
-    markup.row(btn3)
-    markup.row(btn4)
-
-    bot_text = 'Выберите опцию для редактирования:'
-
-    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
-    bot.register_next_step_handler(msg, edit_menu_chek)
-
-
-def edit_menu_chek(message):
-    text = message.text
-    if text == 'Реквизиты':
-        requisites_wizard(message)
-        return
-    elif text == 'Статус':
-        status_menu(message)
-        return
-    elif text == 'Ссылка на чат':
-        edit_link_menu(message)
-        return
-    elif text == 'Назад':
-        configuration_menu(message)
         return
 
 
@@ -367,13 +336,12 @@ def requisites_wizard_check(message):
         add_requisite_name(message)
         return
     elif text == 'Назад':
-        edit_menu(message)
+        configuration_menu(message)
         return
     else:
         msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
         bot.register_next_step_handler(msg, requisites_wizard_check)
         return
-    return
 
 
 def select_requisite(message):
@@ -1490,6 +1458,10 @@ def cancel_intention_check(message):
         for row in list_send_notify:
             list_needy_id.add(row.needy_id)
 
+        list_needy_id.discard(message.chat.id)
+        # удаление из круга
+        delete_from_help_array(intention.to_id, message.chat.id)
+
         for row in list_needy_id:
             try:
                 bot.send_message(row, 'Участник {} отменил своё намерение {} {} на сумму {} {}'.format(
@@ -2434,6 +2406,10 @@ def welcome(message):
     if referral[0] != '':
         user_from = read_exodus_user(referral[0])
         user_to = read_exodus_user(referral[1])
+        if user_from.status == 'green':
+            start_without_invitation(message)
+            return
+
         bot_text = 'Участник {} {} приглашает вас помогать участнику {} {}'.format(user_from.first_name,
                                                                                    user_from.last_name,
                                                                                    user_to.first_name,
@@ -2887,12 +2863,10 @@ def orange_status_wizard(message):
     markup = types.ReplyKeyboardMarkup()
     btn1 = types.KeyboardButton(text='Редактировать')
     btn2 = types.KeyboardButton(text='Изменить статус')
-    btn3 = types.KeyboardButton(text='Главное меню')
-    btn4 = types.KeyboardButton(text='Участники')
+    btn3 = types.KeyboardButton(text='Назад')
     markup.row(btn1)
     markup.row(btn2)
     markup.row(btn3)
-    markup.row(btn4)
     link = create_link(user.telegram_id, user.telegram_id)
     msg = bot.send_message(message.chat.id, link, reply_markup=markup)
     bot.register_next_step_handler(msg, orange_menu_check)
@@ -2905,10 +2879,8 @@ def orange_menu_check(message):
         orange_edit_wizard(message)
     elif text == 'Изменить статус':
         green_red_wizard(message)
-    elif text == 'Главное меню':
-        global_menu(message, True)
-    elif text == 'Участники':
-        members_menu(message)
+    elif text == 'Назад':
+        configuration_menu(message)
     else:
         msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
         bot.register_next_step_handler(msg, orange_menu_check)
@@ -2996,11 +2968,9 @@ def green_status_wizard(message):
     """2.0.1"""
     markup = types.ReplyKeyboardMarkup()
     btn1 = types.KeyboardButton(text='Изменить статус')
-    btn2 = types.KeyboardButton(text='Главное меню')
-    btn3 = types.KeyboardButton(text='Участники')
+    btn2 = types.KeyboardButton(text='Назад')
     markup.row(btn1)
     markup.row(btn2)
-    markup.row(btn3)
     msg = bot.send_message(message.chat.id,
                            'Ваш статус \U0001F7E2 (зелёный)\nСписок участников с которыми Вы связаны, '
                            'можно посмотреть в разделе главного меню "Участники"',
@@ -3013,10 +2983,8 @@ def green_status_wizard_check(message):
     text = message.text
     if text == 'Изменить статус':
         select_orange_red(message)
-    elif text == 'Главное меню':
-        global_menu(message, True)
-    elif text == 'Участники':
-        members_menu(message)
+    elif text == 'Назад':
+        configuration_menu(message)
     else:
         msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
         bot.register_next_step_handler(msg, green_status_wizard_check)
@@ -3076,12 +3044,10 @@ def red_status_wizard(message):
     markup = types.ReplyKeyboardMarkup()
     btn1 = types.KeyboardButton(text='Редактировать')
     btn2 = types.KeyboardButton(text='Изменить статус')
-    btn3 = types.KeyboardButton(text='Главное меню')
-    btn4 = types.KeyboardButton(text='Участники')
+    btn3 = types.KeyboardButton(text='Назад')
     markup.row(btn1)
     markup.row(btn2)
     markup.row(btn3)
-    markup.row(btn4)
     link = create_link(user.telegram_id, user.telegram_id)
     msg = bot.send_message(message.chat.id, link, reply_markup=markup)
     bot.register_next_step_handler(msg, red_status_wizard_check)
@@ -3094,10 +3060,8 @@ def red_status_wizard_check(message):
         red_edit_wizard(message)
     elif text == 'Изменить статус':
         green_orange_wizard(message)
-    elif text == 'Главное меню':
-        global_menu(message)
-    elif text == 'Участники':
-        members_menu(message)
+    elif text == 'Назад':
+        configuration_menu(message)
     else:
         msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
         bot.register_next_step_handler(msg, red_status_wizard_check)
