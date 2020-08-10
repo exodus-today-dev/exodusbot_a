@@ -2407,12 +2407,12 @@ def members_menu_profile_link(message, member_id):
 \n\
 Период: Ежемесячно\n\
 Уже помогает: {}\n'.format(user.first_name,
-                              user.last_name,
-                              left_sum,
-                              right_sum,
-                              user.currency,
-                              user.link,
-                              all_users)  # ------------ TODO
+                           user.last_name,
+                           left_sum,
+                           right_sum,
+                           user.currency,
+                           user.link,
+                           all_users)  # ------------ TODO
 
     elif user.status == 'red':
         ring = read_rings_help(user.telegram_id)
@@ -2430,12 +2430,12 @@ def members_menu_profile_link(message, member_id):
 {}\n\
 \n\
 Уже помогает: {}'.format(user.first_name,
-                                   user.last_name,
-                                   left_sum,
-                                   right_sum,
-                                   user.currency,
-                                   user.link,
-                                   all_users)  # ------------ TODO
+                         user.last_name,
+                         left_sum,
+                         right_sum,
+                         user.currency,
+                         user.link,
+                         all_users)  # ------------ TODO
 
     else:
         bot_text = 'СТАТУС НЕ УКАЗАН. ОШИБКА'
@@ -2895,7 +2895,7 @@ def red_invitation_wizard_check(message, event_id=None):  # ------------------ T
 \n\
 Участник {user.first_name} {user.last_name} {status}\n\
 {left_sum}/{right_sum} {user.currency}\n\
-Всего участников: {all_users}\n\
+Уже помогают: {all_users}\n\
 Осталось {days_end} дней из {user.days}\n\
 \n\
 За три дня до наступления периода бот напомнит о намерении и попросит перевести его в статус "обязательства".'
@@ -2944,16 +2944,15 @@ def orange_status_wizard(message):
         all_users = len(set(ring.help_array))
     bot_text = 'Ваш статус \U0001f7e0\n\
 {}/{} {}\n\
-Всего участников: {}\n\
+Ссылка на обсуждение: {}\n\
 \n\
 Период: Ежемесячно\n\
 \n\
-Ссылка на обсуждение:\n\
-{}'.format(left_sum,
-           right_sum,
-           user.currency,
-           all_users,
-           user.link)
+Уже помогают: {}'.format(left_sum,
+                         right_sum,
+                         user.currency,
+                         user.link,
+                         all_users)
     bot.send_message(message.chat.id, bot_text)
     link = create_link(user.telegram_id, user.telegram_id)
     markup = types.ReplyKeyboardMarkup()
@@ -3143,7 +3142,7 @@ def red_status_wizard(message):
 {user.link}\n\
 \n\
 Осталось {days_end} дней из {user.days}\n\
-Всего участников: {all_users}\n\
+Уже помогают: {all_users}\n\
 \n\
 Если вы хотите пригласить кого-то помогать вам, перешлите ему эту ссылку:'
     bot.send_message(message.chat.id, bot_text)
@@ -3582,6 +3581,7 @@ def restart_invitation(message, users_dict):
 
 def freeze_intentions(user):
     intentions = read_intention(to_id=user.telegram_id, status=1)
+    update_exodus_user(telegram_id=user.telegram_id, min_payments=user.max_payments)
 
     for intention in intentions:
         update_intention(intention.intention_id, 2)
@@ -3590,6 +3590,7 @@ def freeze_intentions(user):
 
 def unfreeze_intentions(user):
     intentions = read_intention(to_id=user.telegram_id, status=2)
+    update_exodus_user(telegram_id=user.telegram_id, max_payments=user.min_payments)
 
     for intention in intentions:
         update_intention(intention.intention_id, 1)
