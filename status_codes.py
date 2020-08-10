@@ -18,9 +18,11 @@ NEW_OBLIGATION = 'NEW_OBLIGATION'
 OBLIGATION_APPROVED = 'OBLIGATION_APPROVED'
 OBLIGATION_DECLINE = 'OBLIGATION_DECLINE'
 
-#
+# other
 MONEY_HAS_BEEN_SENT = 'MONEY_HAS_BEEN_SENT'
 REMIND_LATER = 'REMIND_LATER'
+BEFORE_3_DAYS = 'BEFORE_3_DAYS'
+LAST_REMIND = 'LAST_REMIND'
 
 # closed
 CLOSED = 'CLOSED'
@@ -30,8 +32,14 @@ CLOSED = 'CLOSED'
 # Статусы, пока что не доконца продуманные
 # 0 - отменённое намерение
 # 1 - созданное намерение
+# 2 - замороженое намерение
 # 10 - отменённое обязательство
 # 11 - созданное обязательство (намерение переведено в обязательство)
 # 12 - деньги на обязательство отправлены, но не подтверждены получателем
 # 13 - деньги подтверждены отправка и получение
 # 15 - запрос получателя на исполнение (дай денег)
+
+# events types
+
+#
+# frozen замороженное намерение (при красном статусе)

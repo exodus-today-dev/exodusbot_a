@@ -295,6 +295,18 @@ def update_rings_help(needy_id, help_array):
         conn.execute(u, q=help_array, id=needy_id)
 
 
+def delete_from_help_array(needy_id, delete_id):
+    """
+    :param needy_id: в пользу кого была помощь
+    :param delete_id: кто перестал помогать и вышел из круга
+    :return:
+    """
+
+    rings_help = set(read_rings_help(needy_id).help_array)
+    rings_help.discard(delete_id)
+    update_rings_help(needy_id, list(rings_help))
+
+
 def create_intention(from_id, to_id, payment, currency, status=None, event_id=None):
     intention = Intention(from_id=from_id, to_id=to_id, payment=payment, currency=currency, status=status,
                           create_date=datetime.now(), event_id=event_id)

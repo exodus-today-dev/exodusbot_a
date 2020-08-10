@@ -170,24 +170,76 @@ def reminder(event_id, direction=None):
         bot.send_message(intention.to_id, message, reply_markup=keyboard)
 
 
-def check_border(event_id):
+def check_border_first_date():
     """Проверяет, что уведомление попало на первый день месяца,
     что влечет за собой удаление намерения/обязательства и исключение из круга"""
+    intentions = session.query(Intention).filter(Intention.status.in_((1, 11, 12))).all()
 
-    event = read_event(event_id)
+    for intention in intentions:
+        event = read_event(intention.event_id)
+        if event.status_code != BEFORE_3_DAYS:
+            continue
+        if intention.status == 1:
+            update_intention(intention.intention_id, status=0)
+            update_event_status_code(intention.event_id, CLOSED)
+        elif intention.status == 11:
+            update_event_status_code(intention.event_id, LAST_REMIND)
+            create_event(from_id=intention.from_id,
+                         first_name=None,
+                         last_name=None,
+                         status='obligation',
+                         type='reminder_out',
+                         min_payments=None,
+                         current_payments=None,
+                         max_payments=None,
+                         currency=None,
+                         users=None,
+                         to_id=intention.intention_id,
+                         reminder_date=datetime.now(),
+                         sent=False,
+                         status_code=REMIND_LATER)
 
+
+def check_border_before_3_days():
     # уведомдения за 3 дня до 1го числа
-    if (datetime.now() + timedelta(days=3)).day == 1:
-        update_event(event_id, False)
+    intentions = session.query(Intention).filter(Intention.status.in_((1, 11))).all()
 
-    # удаление намерений 1го числа
-    if datetime.now().date().day == 1 and event.status_code == REMIND_LATER and event.status == 'intention':
-        update_intention(event.to_id, status=0)
-        update_event_status_code(event_id, CLOSED)
-
-    # напоминание о выполнении обязательства
-    if datetime.now().date().day == 1 and event.status_code == REMIND_LATER and event.status == 'obligation':
-        update_event(event_id, False)
+    for intention in intentions:
+        event = read_event(intention.event_id)
+        if event.status_code not in (APPROVE_RED_STATUS, APPROVE_ORANGE_STATUS, NEW_OBLIGATION):
+            continue
+        if intention.status == 1:
+            update_event_status_code(intention.event_id, BEFORE_3_DAYS)
+            create_event(from_id=intention.from_id,
+                         first_name=None,
+                         last_name=None,
+                         status='intention',
+                         type='reminder_out',
+                         min_payments=None,
+                         current_payments=None,
+                         max_payments=None,
+                         currency=None,
+                         users=None,
+                         to_id=intention.intention_id,
+                         reminder_date=datetime.now(),
+                         sent=False,
+                         status_code=REMIND_LATER)
+        elif intention.status == 11:
+            update_event_status_code(intention.event_id, BEFORE_3_DAYS)
+            create_event(from_id=intention.from_id,
+                         first_name=None,
+                         last_name=None,
+                         status='obligation',
+                         type='reminder_out',
+                         min_payments=None,
+                         current_payments=None,
+                         max_payments=None,
+                         currency=None,
+                         users=None,
+                         to_id=intention.intention_id,
+                         reminder_date=datetime.now(),
+                         sent=False,
+                         status_code=REMIND_LATER)
 
 
 def confirmation_of_an_obligation(chat_id, name: str, amount: int, currency: int) -> None:
