@@ -3389,11 +3389,16 @@ def orange_edit_wizard(message):
     user = read_exodus_user(message.chat.id)
     if read_rings_help(user.telegram_id) is None:
         create_rings_help(user.telegram_id, [])
-    markup = types.ReplyKeyboardRemove(selective=False)
-    msg = bot.send_message(message.chat.id,
-                           'Какая сумма вам необходима на базовые нужды в {}?'.format(user.currency),
-                           reply_markup=markup)
-    bot.register_next_step_handler(msg, orange_step_need_payments)
+    if user.status == 'red':
+        msg = bot.send_message(message.chat.id,
+                               'Ваш статус возвращается на оранжевый')
+        bot.register_next_step_handler(msg, orange_step_link)
+    else:
+        markup = types.ReplyKeyboardRemove(selective=False)
+        msg = bot.send_message(message.chat.id,
+                               'Какая сумма вам необходима на базовые нужды в {}?'.format(user.currency),
+                               reply_markup=markup)
+        bot.register_next_step_handler(msg, orange_step_need_payments)
 
 
 def orange_step_need_payments(message):
@@ -3423,11 +3428,15 @@ def orange_step_link(message):
         link = message.text
     else:
         link = None
+    if user.status == 'red':
+        payments = user.min_payments
+    else:
+        payments = user.max_payments
     bot.send_message(message.chat.id, 'Пожалуйста проверьте введенные данные:\n\
 \n\
 Статус: Оранжевый\n\
 Период: Ежемесячно\n\
-Необходимая сумма: {} {}'.format(user.max_payments, user.currency))
+Необходимая сумма: {} {}'.format(payments, user.currency))
     markup = types.ReplyKeyboardMarkup()
     # user = read_exodus_user(message.chat.id)
     if user.status == '':
@@ -3489,16 +3498,21 @@ def orange_step_final(message, link):
     if text == 'Сохранить':
         bot.send_message(message.chat.id, 'Настройки сохранены')
 
-        update_exodus_user(message.chat.id, status='orange', link=link)
         user = read_exodus_user(message.chat.id)
-        count_unfreez_intentions = unfreeze_intentions(user)
+        if user.status == 'red':
+            count_unfreez_intentions = unfreeze_intentions(user)
+        else:
+            count_unfreez_intentions = 0
+
+        update_exodus_user(message.chat.id, status='orange', link=link)
+
         # all_users = session.query(Exodus_Users).all()
         # users_count = session.query(Exodus_Users).count()
 
         # создаем список с моей сетью
         list_needy_id = get_my_socium(message.chat.id)
 
-        if count_unfreez_intentions > 0:
+        if count_unfreez_intentions == 0:
             for users in list_needy_id:
                 # TODO           рассылка кругу лиц из таблицы rings
                 if users != message.chat.id:
@@ -3582,7 +3596,7 @@ def restart_invitation(message, users_dict):
 def freeze_intentions(user):
     intentions = read_intention(to_id=user.telegram_id, status=1)
     update_exodus_user(telegram_id=user.telegram_id, min_payments=user.max_payments)
-
+    print(user.max_payments)
     for intention in intentions:
         update_intention(intention.intention_id, 2)
         update_event_type(intention.event_id, 'frozen')
@@ -3591,6 +3605,7 @@ def freeze_intentions(user):
 def unfreeze_intentions(user):
     intentions = read_intention(to_id=user.telegram_id, status=2)
     update_exodus_user(telegram_id=user.telegram_id, max_payments=user.min_payments)
+    print(user.min_payments)
 
     for intention in intentions:
         update_intention(intention.intention_id, 1)
