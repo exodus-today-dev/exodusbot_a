@@ -2675,7 +2675,7 @@ def show_all_members_check(message):
 def start_red_invitation(message, user_to, event_id=None):
     """6.2"""
     user = read_exodus_user(telegram_id=user_to)
-    # ring = read_rings_help(user.telegram_id)
+    ring = read_rings_help(user.telegram_id)
     already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
     already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
     left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
@@ -2689,7 +2689,7 @@ def start_red_invitation(message, user_to, event_id=None):
         return
 
     # user = user_to
-    ring = read_rings_help(user_to.telegram_id)
+    # ring = read_rings_help(user_to.telegram_id)
     # ring = read_rings_help(user_to)
     if ring is None:
         users_count = 0
