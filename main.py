@@ -3596,7 +3596,8 @@ def restart_invitation(message, users_dict):
 def freeze_intentions(user):
     intentions = read_intention(to_id=user.telegram_id, status=1)
     update_exodus_user(telegram_id=user.telegram_id, min_payments=user.max_payments)
-    print(user.max_payments)
+    freez_events(user.telegram_id)
+
     for intention in intentions:
         update_intention(intention.intention_id, 2)
         update_event_type(intention.event_id, 'frozen')
@@ -3605,7 +3606,7 @@ def freeze_intentions(user):
 def unfreeze_intentions(user):
     intentions = read_intention(to_id=user.telegram_id, status=2)
     update_exodus_user(telegram_id=user.telegram_id, max_payments=user.min_payments)
-    print(user.min_payments)
+    unfreez_events(user.telegram_id)
 
     for intention in intentions:
         update_intention(intention.intention_id, 1)

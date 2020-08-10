@@ -2,7 +2,7 @@ from datetime import date, datetime
 from operator import or_
 
 from sqlalchemy import create_engine, Column, Integer, String, Float, Date, Boolean, DateTime, ARRAY, text, desc, \
-    ForeignKey
+    ForeignKey, update
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.testing import in_
@@ -411,6 +411,32 @@ def update_intetion_status_from_event(event_id, status):
     # except:
     #     session.rollback()
     #     raise
+    session.commit()
+
+
+def freez_events(to_id):
+    session.query(Events).filter_by(to_id=to_id, status_code=NEW_ORANGE_STATUS).update(
+        {'status_code': NEW_ORANGE_STATUS_F})
+    session.query(Events).filter_by(to_id=to_id, status_code=NEW_RED_STATUS).update(
+        {'status_code': NEW_RED_STATUS_F})
+    session.query(Events).filter_by(to_id=to_id, status_code=APPROVE_ORANGE_STATUS).update(
+        {'status_code': APPROVE_ORANGE_STATUS_F})
+    session.query(Events).filter_by(to_id=to_id, status_code=APPROVE_RED_STATUS).update(
+        {'status_code': APPROVE_RED_STATUS_F})
+
+    session.commit()
+
+
+def unfreez_events(to_id):
+    session.query(Events).filter_by(to_id=to_id, status_code=NEW_ORANGE_STATUS_F).update(
+        {'status_code': NEW_ORANGE_STATUS})
+    session.query(Events).filter_by(to_id=to_id, status_code=NEW_RED_STATUS_F).update(
+        {'status_code': NEW_RED_STATUS})
+    session.query(Events).filter_by(to_id=to_id, status_code=APPROVE_ORANGE_STATUS_F).update(
+        {'status_code': APPROVE_ORANGE_STATUS})
+    session.query(Events).filter_by(to_id=to_id, status_code=APPROVE_RED_STATUS_F).update(
+        {'status_code': APPROVE_RED_STATUS})
+
     session.commit()
 
 
