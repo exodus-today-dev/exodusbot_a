@@ -3390,9 +3390,34 @@ def orange_edit_wizard(message):
     if read_rings_help(user.telegram_id) is None:
         create_rings_help(user.telegram_id, [])
     if user.status == 'red':
-        msg = bot.send_message(message.chat.id,
+        bot.send_message(message.chat.id,
                                'Ваш статус возвращается на оранжевый')
-        bot.register_next_step_handler(msg, orange_step_link)
+        link = user.link
+        if user.status == 'red':
+            payments = user.min_payments
+        else:
+            payments = user.max_payments
+        bot.send_message(message.chat.id, 'Пожалуйста проверьте введенные данные:\n\
+\n\
+Статус: Оранжевый\n\
+Период: Ежемесячно\n\
+Необходимая сумма: {} {}'.format(payments, user.currency))
+        markup = types.ReplyKeyboardMarkup()
+        # user = read_exodus_user(message.chat.id)
+        if user.status == '':
+            btn1 = types.KeyboardButton(text='Редактировать')
+            btn2 = types.KeyboardButton(text='Сохранить')
+            markup.row(btn1)
+            markup.row(btn2)
+        else:
+            btn1 = types.KeyboardButton(text='Редактировать')
+            btn2 = types.KeyboardButton(text='Отмена')
+            btn3 = types.KeyboardButton(text='Сохранить')
+            markup.row(btn1, btn2)
+            markup.row(btn3)
+        msg = bot.send_message(message.chat.id, 'Вы хотите изменить свой статус и опубликовать эти данные?\n\
+Все пользователи, которые связаны с вами внутри Эксодус бота, получат уведомление.', reply_markup=markup)
+        bot.register_next_step_handler(msg, orange_step_final, link)
     else:
         markup = types.ReplyKeyboardRemove(selective=False)
         msg = bot.send_message(message.chat.id,
