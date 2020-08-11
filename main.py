@@ -145,12 +145,11 @@ def global_menu(message, dont_show_status=False):
             status = f'\U0001F534    {left_sum}/{right_sum}'
         else:
             orange_green_wizard(message)
+            dont_show_status = True
     markup = types.ReplyKeyboardMarkup()
-    # btn1 = types.KeyboardButton(text='Мой статус')
     btn2 = types.KeyboardButton(text='\U0001f4ca Транзакции')
     btn3 = types.KeyboardButton(text='\U0001f527 Настройки')
     btn4 = types.KeyboardButton(text='\U0001f465 Участники')
-    # markup.row(btn1, btn2)
     markup.row(btn2)
     markup.row(btn3, btn4)
     if not dont_show_status:
@@ -201,19 +200,17 @@ def configuration_menu(message):
     """2.3-3"""
     user = read_exodus_user(message.chat.id)
     markup = types.ReplyKeyboardMarkup()
-    # btn1 = types.KeyboardButton(text='Редактировать реквизиты')
-    btn1 = types.KeyboardButton(text='Редактировать')
-    #    btn2 = types.KeyboardButton(text='Настройки уведомлений')
-    #    btn3 = types.KeyboardButton(text='Валюта')
+
+    btn1 = types.KeyboardButton(text='Статус')
+    btn3 = types.KeyboardButton(text='Реквизиты')
+    btn2 = types.KeyboardButton(text='Изменить ссылку на чат')
     btn4 = types.KeyboardButton(text='Главное меню')
 
-    btn5 = types.KeyboardButton(text='Мой статус')
-
-    markup.row(btn5)
     markup.row(btn1)
-    #    markup.row(btn2)
-    #    markup.row(btn3,btn4)                    # ________________ TODO
+    markup.row(btn2)
+    markup.row(btn3)
     markup.row(btn4)
+
     bot_text = f'Настройки:\n\
 \n\
 Валюта: {user.currency}\n\
@@ -239,10 +236,14 @@ def configuration_check(message):
         pass
     text = message.text
 
-    if text == 'Мой статус':
+    if text == 'Статус':
         status_menu(message)
-    elif text == 'Редактировать':
-        edit_menu(message)
+        return
+    elif text == 'Реквизиты':
+        requisites_wizard(message)
+        return
+    elif text == 'Изменить ссылку на чат':
+        edit_link_menu(message)
         return
     elif text == 'Настройки уведомлений':
         bot.send_message(message.chat.id, 'Настройки уведомлений')  # TODO
@@ -268,38 +269,8 @@ def configuration_check(message):
                                reply_markup=markup)
         bot.register_next_step_handler(msg, config_wizzard_currency)
         return
-
-
-def edit_menu(message):
-    markup = types.ReplyKeyboardMarkup()
-    btn1 = types.KeyboardButton(text='Реквизиты')
-    btn2 = types.KeyboardButton(text='Статус')
-    btn3 = types.KeyboardButton(text='Ссылка на чат')
-    btn4 = types.KeyboardButton(text='Назад')
-    markup.row(btn1)
-    markup.row(btn2)
-    markup.row(btn3)
-    markup.row(btn4)
-
-    bot_text = 'Выберите опцию для редактирования:'
-
-    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
-    bot.register_next_step_handler(msg, edit_menu_chek)
-
-
-def edit_menu_chek(message):
-    text = message.text
-    if text == 'Реквизиты':
-        requisites_wizard(message)
-        return
-    elif text == 'Статус':
-        status_menu(message)
-        return
-    elif text == 'Ссылка на чат':
-        edit_link_menu(message)
-        return
-    elif text == 'Назад':
-        configuration_menu(message)
+    elif "/start" in text:
+        welcome_base(message)
         return
 
 
@@ -367,13 +338,15 @@ def requisites_wizard_check(message):
         add_requisite_name(message)
         return
     elif text == 'Назад':
-        edit_menu(message)
+        configuration_menu(message)
+        return
+    elif "/start" in text:
+        welcome_base(message)
         return
     else:
-        msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
+        msg = bot.send_message(message.chat.id, 'Пошло что-то не так. Попробуйте снова')
         bot.register_next_step_handler(msg, requisites_wizard_check)
         return
-    return
 
 
 def select_requisite(message):
@@ -416,8 +389,11 @@ def select_requisite_check(message, requisite):
     elif text == 'Назад':
         requisites_wizard(message)
         return
+    elif "/start" in text:
+        welcome_base(message)
+        return
     else:
-        msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
+        msg = bot.send_message(message.chat.id, 'Пошло что-то не так. Попробуйте снова')
         bot.register_next_step_handler(msg, select_requisite_check)
         return
     return
@@ -447,8 +423,11 @@ def delete_requisite_check(message, requisite):
     elif text == 'Нет':
         select_requisite(message, requisite.name)
         return
+    elif "/start" in text:
+        welcome_base(message)
+        return
     else:
-        msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
+        msg = bot.send_message(message.chat.id, 'Пошло что-то не так. Попробуйте снова')
         bot.register_next_step_handler(msg, delete_requisite_check, requisite)
         return
     return
@@ -536,8 +515,11 @@ def pre_save_requisite_check(message, requisite_name, requisite_value, edit_id=0
             return
         configuration_menu(message)
         return
+    elif "/start" in text:
+        welcome_base(message)
+        return
     else:
-        msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
+        msg = bot.send_message(message.chat.id, 'Пошло что-то не так. Попробуйте снова')
         bot.register_next_step_handler(msg, pre_save_requisite_check)
         return
     return
@@ -612,6 +594,13 @@ def transactions_check(message):
         not_executed_wizard(message)
         return
     elif text == 'Главное меню':
+        global_menu(message)
+        return
+    elif "/start" in text:
+        welcome_base(message)
+        return
+    else:
+        bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
         global_menu(message)
         return
 
@@ -1028,7 +1017,11 @@ def selected_member_action_check(message, member_id):  # bookmark
     elif 'Сеть участника' in text:
         show_other_socium(message, member_id)
 
+    elif "/start" in text:
+        welcome_base(message)
+
     else:
+        bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
         selected_member_action_menu(message, member_id)
 
 
@@ -1043,6 +1036,11 @@ def members_list_in_network_check(message, member_id, direction):
     elif text == 'Назад':
         members_menu(message)
         return
+
+    elif "/start" in text:
+        welcome_base(message)
+        return
+
     else:
         try:
             # bookmark #debug.bookmark #dev.bookmark
@@ -1054,7 +1052,7 @@ def members_list_in_network_check(message, member_id, direction):
             msg = bot.send_message(message.chat.id, user_info_text)
             selected_member_action_menu(message, members_list[selected_id])
         except:
-            msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
+            bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
             bot.register_next_step_handler(msg,
                                            members_list_in_network_check,
                                            member_id, direction)
@@ -1137,6 +1135,9 @@ def check_my_socium(message):
     if 'Назад' in text:
         members_menu(message)
         return
+    elif "/start" in text:
+        welcome_base(message)
+        return
     else:
         try:
             # bookmark #debug.bookmark #dev.bookmark
@@ -1148,7 +1149,7 @@ def check_my_socium(message):
             msg = bot.send_message(message.chat.id, user_info_text)
             selected_member_action_menu(message, members_list[selected_id])
         except:
-            msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
+            msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
             bot.register_next_step_handler(msg, check_my_socium)
         return
 
@@ -1157,6 +1158,9 @@ def check_other_socium(message, member_id):
     text = message.text
     if 'Назад' in text:
         selected_member_action_menu(message, member_id)
+        return
+    elif "/start" in text:
+        welcome_base(message)
         return
     else:
         try:
@@ -1169,7 +1173,7 @@ def check_other_socium(message, member_id):
             msg = bot.send_message(message.chat.id, user_info_text)
             selected_member_action_menu(message, members_list[selected_id])
         except:
-            msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
+            msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
             bot.register_next_step_handler(msg,
                                            check_other_socium, member_id)
         return
@@ -1198,8 +1202,12 @@ def members_check(message):
         show_my_socium(message)
         return
 
+    elif "/start" in text:
+        welcome_base(message)
+        return
+
     else:
-        msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
+        msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
         bot.register_next_step_handler(msg, members_check)
         return
     return
@@ -1254,8 +1262,13 @@ def for_other_check(message):
         bot.clear_step_handler(message)
         transactions_menu(message)
         return
+
+    elif "/start" in text:
+        welcome_base(message)
+        return
+
     else:
-        msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
+        msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
         bot.register_next_step_handler(msg, for_other_check)
         return
     return
@@ -1362,8 +1375,13 @@ def intention_for_needy_check(message, intention_id=None):
         return
     elif 'Главное меню' in text:
         global_menu(message, True)
+
+    elif "/start" in text:
+        welcome_base(message)
+        return
+
     else:
-        msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
+        msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
         bot.register_next_step_handler(msg, for_my_check)
     return
 
@@ -1490,6 +1508,10 @@ def cancel_intention_check(message):
         for row in list_send_notify:
             list_needy_id.add(row.needy_id)
 
+        list_needy_id.discard(message.chat.id)
+        # удаление из круга
+        delete_from_help_array(intention.to_id, message.chat.id)
+
         for row in list_needy_id:
             try:
                 bot.send_message(row, 'Участник {} отменил своё намерение {} {} на сумму {} {}'.format(
@@ -1499,8 +1521,13 @@ def cancel_intention_check(message):
 
         global_menu(message)
         return
+
+    elif "/start" in text:
+        welcome_base(message)
+        return
+
     else:
-        msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
+        msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
         bot.register_next_step_handler(msg, for_my_check)
     return
 
@@ -1592,6 +1619,9 @@ def obligation_for_needy(message, reminder_call, intention_id):
     bot_text = f"{req_value}"
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
 
+    # Может тут добавить добавление в словарь на всякий случай
+    transaction[message.chat.id] = intention_id
+
     bot.register_next_step_handler(msg, obligation_for_needy_check, intention_id)
     return
 
@@ -1607,6 +1637,9 @@ def obligation_for_needy_check(message, intention_id):
     elif text == 'Напомнить позже':
         remind_later(message, event_status='obligation', reminder_type='reminder_out',
                      intention_id=intention_id, to_menu=True)
+        return
+    elif "/start" in text:
+        welcome_base(message)
         return
     else:
         msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
@@ -1651,8 +1684,11 @@ def obligation_sent_confirm_check(message):
     elif text == 'Нет':
         obligation_for_needy(message, reminder_call=False, intention_id=None)
         return
+    elif "/start" in text:
+        welcome_base(message)
+        return
     else:
-        msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
+        msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
         bot.register_next_step_handler(msg, for_my_check)
     return
 
@@ -1749,8 +1785,11 @@ def for_my_check(message):
         bot.clear_step_handler(message)
         transactions_menu(message)
         return
+    elif "/start" in text:
+        welcome_base(message)
+        return
     else:
-        msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
+        msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
         bot.register_next_step_handler(msg, for_my_check)
     return
 
@@ -1903,8 +1942,10 @@ def for_me_obligation_check(message, obligation_id):
         keep_obligation(message, obligation_id)
     elif text == 'Напомнить позже':
         remind_later(message, event_status=None, reminder_type='reminder_in', intention_id=obligation_id, to_menu=True)
+    elif "/start" in text:
+        welcome_base(message)
     else:
-        msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
+        msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
         bot.register_next_step_handler(msg, for_me_obligation_check, obligation_id)
     return
 
@@ -2009,8 +2050,11 @@ def for_all_time_check(message):
         bot.clear_step_handler(message)
         transactions_menu(message)
         return
+    elif "/start" in text:
+        welcome_base(message)
+        return
     else:
-        msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
+        msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
         bot.register_next_step_handler(msg, for_my_check)
     return
 
@@ -2052,8 +2096,11 @@ def not_executed_check(message):
         bot.clear_step_handler(message)
         transactions_menu(message)
         return
+    elif "/start" in text:
+        welcome_base(message)
+        return
     else:
-        msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
+        msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
         bot.register_next_step_handler(msg, not_executed_check)
     return
 
@@ -2137,8 +2184,11 @@ def executed_not_confirm_me_check(message):
     if text == 'Повторный запрос на исполнение':
         repeat_executed_request(message)
         return
+    elif "/start" in text:
+        welcome_base(message)
+        return
     else:
-        msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
+        msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
         bot.register_next_step_handler(msg, executed_not_confirm_check)
     return
 
@@ -2179,8 +2229,11 @@ def executed_confirm_check(message):
     if text == 'Да, я получил':
         executed_confirm_confirmed(message)
         return
+    elif "/start" in text:
+        welcome_base(message)
+        return
     else:
-        msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
+        msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
         bot.register_next_step_handler(msg, executed_confirm_check)
     return
 
@@ -2281,8 +2334,11 @@ def executed_not_confirm_check(message):
     if text == 'Я отправил эту сумму':
         executed_was_sent(message)
         return
+    elif "/start" in text:
+        welcome_base(message)
+        return
     else:
-        msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
+        msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
         bot.register_next_step_handler(msg, executed_not_confirm_check)
     return
 
@@ -2351,12 +2407,12 @@ def members_menu_profile_link(message, member_id):
 \n\
 Период: Ежемесячно\n\
 Уже помогает: {}\n'.format(user.first_name,
-                              user.last_name,
-                              left_sum,
-                              right_sum,
-                              user.currency,
-                              user.link,
-                              all_users)  # ------------ TODO
+                           user.last_name,
+                           left_sum,
+                           right_sum,
+                           user.currency,
+                           user.link,
+                           all_users)  # ------------ TODO
 
     elif user.status == 'red':
         ring = read_rings_help(user.telegram_id)
@@ -2374,12 +2430,12 @@ def members_menu_profile_link(message, member_id):
 {}\n\
 \n\
 Уже помогает: {}'.format(user.first_name,
-                                   user.last_name,
-                                   left_sum,
-                                   right_sum,
-                                   user.currency,
-                                   user.link,
-                                   all_users)  # ------------ TODO
+                         user.last_name,
+                         left_sum,
+                         right_sum,
+                         user.currency,
+                         user.link,
+                         all_users)  # ------------ TODO
 
     else:
         bot_text = 'СТАТУС НЕ УКАЗАН. ОШИБКА'
@@ -2420,13 +2476,15 @@ def config_wizzard_currency(message):
     elif text == 'Главное меню':
         global_menu(message)
         return
+    elif "/start" in text:
+        welcome_base(message)
+        return
     else:
-        msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
+        msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
         bot.register_next_step_handler(msg, config_wizzard_currency)
 
 
-@bot.message_handler(commands=['start'])
-def welcome(message):
+def welcome_base(message):
     """1.0"""
     bot.clear_step_handler(message)
     referral = ref_info(message.text)
@@ -2434,6 +2492,10 @@ def welcome(message):
     if referral[0] != '':
         user_from = read_exodus_user(referral[0])
         user_to = read_exodus_user(referral[1])
+        if user_from.status == 'green':
+            start_without_invitation(message)
+            return
+
         bot_text = 'Участник {} {} приглашает вас помогать участнику {} {}'.format(user_from.first_name,
                                                                                    user_from.last_name,
                                                                                    user_to.first_name,
@@ -2446,6 +2508,12 @@ def welcome(message):
             start_red_invitation(message, user_to.telegram_id)
     else:
         start_without_invitation(message)
+
+
+@bot.message_handler(commands=['start'])
+def welcome(message):
+    """1.0"""
+    welcome_base(message)
 
 
 def start_without_invitation(message):
@@ -2553,8 +2621,10 @@ def orange_invitation_check(message, event_id=None):
     elif 'Главное меню' in text:
         global_menu(message, True)
 
+    elif "/start" in text:
+        welcome_base(message)
     else:
-        msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
+        msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
         bot.register_next_step_handler(msg, orange_invitation_check)
 
 
@@ -2675,7 +2745,7 @@ def show_all_members_check(message):
 def start_red_invitation(message, user_to, event_id=None):
     """6.2"""
     user = read_exodus_user(telegram_id=user_to)
-    # ring = read_rings_help(user.telegram_id)
+    ring = read_rings_help(user.telegram_id)
     already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
     already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
     left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
@@ -2689,7 +2759,7 @@ def start_red_invitation(message, user_to, event_id=None):
         return
 
     # user = user_to
-    ring = read_rings_help(user_to.telegram_id)
+    # ring = read_rings_help(user.telegram_id)
     # ring = read_rings_help(user_to)
     if ring is None:
         users_count = 0
@@ -2764,8 +2834,10 @@ def red_invitation_check(message, event_id=None):
     elif 'Главное меню' in text:
         global_menu(message, True)
 
+    elif "/start" in text:
+        welcome_base(message)
     else:
-        msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
+        msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
         bot.register_next_step_handler(msg, red_invitation_check)
 
 
@@ -2823,7 +2895,7 @@ def red_invitation_wizard_check(message, event_id=None):  # ------------------ T
 \n\
 Участник {user.first_name} {user.last_name} {status}\n\
 {left_sum}/{right_sum} {user.currency}\n\
-Всего участников: {all_users}\n\
+Уже помогают: {all_users}\n\
 Осталось {days_end} дней из {user.days}\n\
 \n\
 За три дня до наступления периода бот напомнит о намерении и попросит перевести его в статус "обязательства".'
@@ -2844,13 +2916,13 @@ def red_invitation_wizard_check(message, event_id=None):  # ------------------ T
                              reminder_date=date.today(),
                              status_code=APPROVE_RED_STATUS,
                              intention=Intention(from_id=message.chat.id, to_id=user.telegram_id,
-                                                 payment=invitation_sum, currency=user.currency, status=1,
+                                                 payment=invitation_sum, currency=user.currency, status=11,
                                                  create_date=datetime.now()))  # someday: intention_id
     else:
         update_event_status_code(event_id, APPROVE_RED_STATUS)
         update_event_type(event_id, 'notice')
         update_event(event_id, False)
-        create_intention(message.chat.id, user.telegram_id, invitation_sum, user.currency, status=1, event_id=event_id)
+        create_intention(message.chat.id, user.telegram_id, invitation_sum, user.currency, status=11, event_id=event_id)
 
     bot.send_message(message.chat.id, bot_text)
     global_menu(message, True)
@@ -2872,27 +2944,24 @@ def orange_status_wizard(message):
         all_users = len(set(ring.help_array))
     bot_text = 'Ваш статус \U0001f7e0\n\
 {}/{} {}\n\
-Всего участников: {}\n\
+Ссылка на обсуждение: {}\n\
 \n\
 Период: Ежемесячно\n\
 \n\
-Ссылка на обсуждение:\n\
-{}'.format(left_sum,
-           right_sum,
-           user.currency,
-           all_users,
-           user.link)
+Уже помогают: {}'.format(left_sum,
+                         right_sum,
+                         user.currency,
+                         user.link,
+                         all_users)
     bot.send_message(message.chat.id, bot_text)
     link = create_link(user.telegram_id, user.telegram_id)
     markup = types.ReplyKeyboardMarkup()
     btn1 = types.KeyboardButton(text='Редактировать')
     btn2 = types.KeyboardButton(text='Изменить статус')
-    btn3 = types.KeyboardButton(text='Главное меню')
-    btn4 = types.KeyboardButton(text='Участники')
+    btn3 = types.KeyboardButton(text='Назад')
     markup.row(btn1)
     markup.row(btn2)
     markup.row(btn3)
-    markup.row(btn4)
     link = create_link(user.telegram_id, user.telegram_id)
     msg = bot.send_message(message.chat.id, link, reply_markup=markup)
     bot.register_next_step_handler(msg, orange_menu_check)
@@ -2905,12 +2974,12 @@ def orange_menu_check(message):
         orange_edit_wizard(message)
     elif text == 'Изменить статус':
         green_red_wizard(message)
-    elif text == 'Главное меню':
-        global_menu(message, True)
-    elif text == 'Участники':
-        members_menu(message)
+    elif text == 'Назад':
+        configuration_menu(message)
+    elif "/start" in text:
+        welcome_base(message)
     else:
-        msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
+        msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
         bot.register_next_step_handler(msg, orange_menu_check)
 
 
@@ -2934,8 +3003,10 @@ def green_red_check(message):
         red_edit_wizard(message)
     elif text == 'Назад':
         orange_status_wizard(message)
+    elif "/start" in text:
+        welcome_base(message)
     else:
-        msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
+        msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
         bot.register_next_step_handler(msg, green_red_check)
 
 
@@ -2986,8 +3057,10 @@ def green_edit_wizard_check(message):
     elif text == 'Отмена':
         bot.send_message(message.chat.id, 'Статус не сохранён')
         global_menu(message)
+    elif "/start" in text:
+        welcome_base(message)
     else:
-        msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
+        msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
         bot.register_next_step_handler(msg, green_edit_wizard_check)
 
 
@@ -2996,11 +3069,9 @@ def green_status_wizard(message):
     """2.0.1"""
     markup = types.ReplyKeyboardMarkup()
     btn1 = types.KeyboardButton(text='Изменить статус')
-    btn2 = types.KeyboardButton(text='Главное меню')
-    btn3 = types.KeyboardButton(text='Участники')
+    btn2 = types.KeyboardButton(text='Назад')
     markup.row(btn1)
     markup.row(btn2)
-    markup.row(btn3)
     msg = bot.send_message(message.chat.id,
                            'Ваш статус \U0001F7E2 (зелёный)\nСписок участников с которыми Вы связаны, '
                            'можно посмотреть в разделе главного меню "Участники"',
@@ -3013,12 +3084,12 @@ def green_status_wizard_check(message):
     text = message.text
     if text == 'Изменить статус':
         select_orange_red(message)
-    elif text == 'Главное меню':
-        global_menu(message, True)
-    elif text == 'Участники':
-        members_menu(message)
+    elif text == 'Назад':
+        configuration_menu(message)
+    elif "/start" in text:
+        welcome_base(message)
     else:
-        msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
+        msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
         bot.register_next_step_handler(msg, green_status_wizard_check)
 
 
@@ -3043,8 +3114,10 @@ def check_orange_red(message):
         red_edit_wizard(message)
     elif text == 'Главное меню':
         global_menu(message)
+    elif "/start" in text:
+        welcome_base(message)
     else:
-        msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
+        msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
         bot.register_next_step_handler(msg, check_orange_red)
 
 
@@ -3069,19 +3142,17 @@ def red_status_wizard(message):
 {user.link}\n\
 \n\
 Осталось {days_end} дней из {user.days}\n\
-Всего участников: {all_users}\n\
+Уже помогают: {all_users}\n\
 \n\
 Если вы хотите пригласить кого-то помогать вам, перешлите ему эту ссылку:'
     bot.send_message(message.chat.id, bot_text)
     markup = types.ReplyKeyboardMarkup()
     btn1 = types.KeyboardButton(text='Редактировать')
     btn2 = types.KeyboardButton(text='Изменить статус')
-    btn3 = types.KeyboardButton(text='Главное меню')
-    btn4 = types.KeyboardButton(text='Участники')
+    btn3 = types.KeyboardButton(text='Назад')
     markup.row(btn1)
     markup.row(btn2)
     markup.row(btn3)
-    markup.row(btn4)
     link = create_link(user.telegram_id, user.telegram_id)
     msg = bot.send_message(message.chat.id, link, reply_markup=markup)
     bot.register_next_step_handler(msg, red_status_wizard_check)
@@ -3094,12 +3165,12 @@ def red_status_wizard_check(message):
         red_edit_wizard(message)
     elif text == 'Изменить статус':
         green_orange_wizard(message)
-    elif text == 'Главное меню':
-        global_menu(message)
-    elif text == 'Участники':
-        members_menu(message)
+    elif text == 'Назад':
+        configuration_menu(message)
+    elif "/start" in text:
+        welcome_base(message)
     else:
-        msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
+        msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
         bot.register_next_step_handler(msg, red_status_wizard_check)
 
 
@@ -3107,6 +3178,7 @@ def red_status_wizard_check(message):
 def red_edit_wizard(message):
     """2.2"""
     user = read_exodus_user(message.chat.id)
+    freeze_intentions(user)
     if read_rings_help(user.telegram_id) is None:
         create_rings_help(user.telegram_id, [])
     markup = types.ReplyKeyboardRemove(selective=False)
@@ -3244,8 +3316,10 @@ def red_edit_wizard_step4(message, link):
                 continue
 
         global_menu(message)
+    elif "/start" in text:
+        welcome_base(message)
     else:
-        msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
+        msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
         bot.register_next_step_handler(msg, red_edit_wizard_step4, link)
 
 
@@ -3269,8 +3343,10 @@ def green_orange_check(message):
         orange_edit_wizard(message)
     elif text == 'Назад':
         red_status_wizard(message)
+    elif "/start" in text:
+        welcome_base(message)
     else:
-        msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
+        msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
         bot.register_next_step_handler(msg, green_orange_check)
 
     # ------------------ ORANGE GREEN WIZARD-------
@@ -3313,11 +3389,41 @@ def orange_edit_wizard(message):
     user = read_exodus_user(message.chat.id)
     if read_rings_help(user.telegram_id) is None:
         create_rings_help(user.telegram_id, [])
-    markup = types.ReplyKeyboardRemove(selective=False)
-    msg = bot.send_message(message.chat.id,
-                           'Какая сумма вам необходима на базовые нужды в {}?'.format(user.currency),
-                           reply_markup=markup)
-    bot.register_next_step_handler(msg, orange_step_need_payments)
+    if user.status == 'red':
+        bot.send_message(message.chat.id,
+                               'Ваш статус возвращается на оранжевый')
+        link = user.link
+        if user.status == 'red':
+            payments = user.min_payments
+        else:
+            payments = user.max_payments
+        bot.send_message(message.chat.id, 'Пожалуйста проверьте введенные данные:\n\
+\n\
+Статус: Оранжевый\n\
+Период: Ежемесячно\n\
+Необходимая сумма: {} {}'.format(payments, user.currency))
+        markup = types.ReplyKeyboardMarkup()
+        # user = read_exodus_user(message.chat.id)
+        if user.status == '':
+            btn1 = types.KeyboardButton(text='Редактировать')
+            btn2 = types.KeyboardButton(text='Сохранить')
+            markup.row(btn1)
+            markup.row(btn2)
+        else:
+            btn1 = types.KeyboardButton(text='Редактировать')
+            btn2 = types.KeyboardButton(text='Отмена')
+            btn3 = types.KeyboardButton(text='Сохранить')
+            markup.row(btn1, btn2)
+            markup.row(btn3)
+        msg = bot.send_message(message.chat.id, 'Вы хотите изменить свой статус и опубликовать эти данные?\n\
+Все пользователи, которые связаны с вами внутри Эксодус бота, получат уведомление.', reply_markup=markup)
+        bot.register_next_step_handler(msg, orange_step_final, link)
+    else:
+        markup = types.ReplyKeyboardRemove(selective=False)
+        msg = bot.send_message(message.chat.id,
+                               'Какая сумма вам необходима на базовые нужды в {}?'.format(user.currency),
+                               reply_markup=markup)
+        bot.register_next_step_handler(msg, orange_step_need_payments)
 
 
 def orange_step_need_payments(message):
@@ -3347,11 +3453,15 @@ def orange_step_link(message):
         link = message.text
     else:
         link = None
+    if user.status == 'red':
+        payments = user.min_payments
+    else:
+        payments = user.max_payments
     bot.send_message(message.chat.id, 'Пожалуйста проверьте введенные данные:\n\
 \n\
 Статус: Оранжевый\n\
 Период: Ежемесячно\n\
-Необходимая сумма: {} {}'.format(user.max_payments, user.currency))
+Необходимая сумма: {} {}'.format(payments, user.currency))
     markup = types.ReplyKeyboardMarkup()
     # user = read_exodus_user(message.chat.id)
     if user.status == '':
@@ -3413,32 +3523,39 @@ def orange_step_final(message, link):
     if text == 'Сохранить':
         bot.send_message(message.chat.id, 'Настройки сохранены')
 
-        update_exodus_user(message.chat.id, status='orange', link=link)
         user = read_exodus_user(message.chat.id)
+        if user.status == 'red':
+            count_unfreez_intentions = unfreeze_intentions(user)
+        else:
+            count_unfreez_intentions = 0
+
+        update_exodus_user(message.chat.id, status='orange', link=link)
+
         # all_users = session.query(Exodus_Users).all()
         # users_count = session.query(Exodus_Users).count()
 
         # создаем список с моей сетью
         list_needy_id = get_my_socium(message.chat.id)
 
-        for users in list_needy_id:
-            # TODO           рассылка кругу лиц из таблицы rings
-            if users != message.chat.id:
-                t_user = read_exodus_user(users)
-                create_event(from_id=users,
-                             first_name=t_user.first_name,
-                             last_name=t_user.last_name,
-                             status='orange',
-                             type='orange',
-                             min_payments=None,
-                             current_payments=user.current_payments,
-                             max_payments=user.max_payments,
-                             currency=user.currency,
-                             users=len(list_needy_id),
-                             to_id=message.chat.id,
-                             sent=False,
-                             reminder_date=date.today(),
-                             status_code=NEW_ORANGE_STATUS)  # someday: intention_id
+        if count_unfreez_intentions == 0:
+            for users in list_needy_id:
+                # TODO           рассылка кругу лиц из таблицы rings
+                if users != message.chat.id:
+                    t_user = read_exodus_user(users)
+                    create_event(from_id=users,
+                                 first_name=t_user.first_name,
+                                 last_name=t_user.last_name,
+                                 status='orange',
+                                 type='orange',
+                                 min_payments=None,
+                                 current_payments=user.current_payments,
+                                 max_payments=user.max_payments,
+                                 currency=user.currency,
+                                 users=len(list_needy_id),
+                                 to_id=message.chat.id,
+                                 sent=False,
+                                 reminder_date=date.today(),
+                                 status_code=NEW_ORANGE_STATUS)  # someday: intention_id
 
         telegram_name = read_exodus_user(message.chat.id).first_name
         for row in list_needy_id:
@@ -3452,8 +3569,11 @@ def orange_step_final(message, link):
         if not requisites:
             add_requisite_name(message)
         # return
+    elif "/start" in text:
+        welcome_base(message)
+        return
     else:
-        msg = bot.send_message(message.chat.id, 'Выберите пункт меню')
+        msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
         bot.register_next_step_handler(msg, orange_step_final)
         return
 
@@ -3498,26 +3618,48 @@ def restart_invitation(message, users_dict):
     global_menu(message)
 
 
+def freeze_intentions(user):
+    intentions = read_intention(to_id=user.telegram_id, status=1)
+    update_exodus_user(telegram_id=user.telegram_id, min_payments=user.max_payments)
+    freez_events(user.telegram_id)
+
+    for intention in intentions:
+        update_intention(intention.intention_id, 2)
+        update_event_type(intention.event_id, 'frozen')
+
+
+def unfreeze_intentions(user):
+    intentions = read_intention(to_id=user.telegram_id, status=2)
+    update_exodus_user(telegram_id=user.telegram_id, max_payments=user.min_payments)
+    unfreez_events(user.telegram_id)
+
+    for intention in intentions:
+        update_intention(intention.intention_id, 1)
+        update_event_type(intention.event_id, 'frozen')
+
+    return intentions.count()
+
+
 # -------------------------------------------
 
 
-@bot.message_handler(commands=['add'])
-def welcome(message):
-    """1.0"""
-    create_event(from_id=message.chat.id,
-                 first_name='Loh',  # TODO не нужно
-                 last_name='Pidr',  # TODO не нужно
-                 status='orange',
-                 type='orange',
-                 min_payments=None,
-                 current_payments=4,
-                 max_payments=100,
-                 currency='USD',
-                 users=0,
-                 to_id=message.chat.id,
-                 sent=False,
-                 reminder_date=date.today())  # someday intention_id
-    return
+# @bot.message_handler(commands=['add'])
+# def welcome(message):
+#     """1.0"""
+#     create_event(from_id=message.chat.id,
+#                  first_name='Loh',  # TODO не нужно
+#                  last_name='Pidr',  # TODO не нужно
+#                  status='orange',
+#                  type='orange',
+#                  min_payments=None,
+#                  current_payments=4,
+#                  max_payments=100,
+#                  currency='USD',
+#                  users=0,
+#                  to_id=message.chat.id,
+#                  sent=False,
+#                  reminder_date=date.today())  # someday intention_id
+#     return
 
 
 @bot.callback_query_handler(func=lambda call: call.data[0:18] == 'orange_invitation-')
@@ -3537,7 +3679,6 @@ def red_invitation(call):
     bot.delete_message(call.message.chat.id, call.message.message_id)
     user_id = call.data.split('-')[1]
     event_id = call.data.split('-')[2]
-    # update_event_status_code(event_id, CLOSED)
     start_red_invitation(call.message, user_id, event_id)
     return
 

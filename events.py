@@ -41,11 +41,23 @@ def notice_of_intent(event_id):
     """
     event = read_event(event_id)
     user = read_exodus_user(telegram_id=event.from_id)
-    intent = read_intention(event.to_id, event.to_id, 1)[-1]  # берем последний элемент из списка, чтобы обеспечить корреткность событий
+    intent = read_intention(event.to_id, event.to_id, 1)[
+        -1]  # берем последний элемент из списка, чтобы обеспечить корреткность событий
     print('Отправлено-{}'.format(event_id))
     bot_text = f"{intent.create_date.strftime('%d %B %Y')}\n\
 Участник {user.first_name} {user.last_name} записал свое намерение помогать вам на сумму: {intent.payment} {event.currency}"
     bot.send_message(event.to_id, bot_text)
+
+    # рассылка уведомлений другим помогающим
+    list_needy_id = set(read_rings_help(event.to_id).help_array)
+    user_needy = read_exodus_user(telegram_id=event.to_id)
+    list_needy_id.discard(event.from_id)
+    list_needy_id.discard(event.to_id)
+    bot_text_for_all = f"{intent.create_date.strftime('%d %B %Y')}\n\
+Участник {user.first_name} {user.last_name} записал свое намерение помогать участнику {user_needy.first_name} {user_needy.last_name} на сумму: {intent.payment} {event.currency}"
+    print(list_needy_id)
+    for id in list_needy_id:
+        bot.send_message(id, bot_text_for_all)
 
 
 # 6.4

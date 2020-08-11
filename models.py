@@ -2,7 +2,7 @@ from datetime import date, datetime
 from operator import or_
 
 from sqlalchemy import create_engine, Column, Integer, String, Float, Date, Boolean, DateTime, ARRAY, text, desc, \
-    ForeignKey
+    ForeignKey, update
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.testing import in_
@@ -295,6 +295,18 @@ def update_rings_help(needy_id, help_array):
         conn.execute(u, q=help_array, id=needy_id)
 
 
+def delete_from_help_array(needy_id, delete_id):
+    """
+    :param needy_id: в пользу кого была помощь
+    :param delete_id: кто перестал помогать и вышел из круга
+    :return:
+    """
+
+    rings_help = set(read_rings_help(needy_id).help_array)
+    rings_help.discard(delete_id)
+    update_rings_help(needy_id, list(rings_help))
+
+
 def create_intention(from_id, to_id, payment, currency, status=None, event_id=None):
     intention = Intention(from_id=from_id, to_id=to_id, payment=payment, currency=currency, status=status,
                           create_date=datetime.now(), event_id=event_id)
@@ -399,6 +411,32 @@ def update_intetion_status_from_event(event_id, status):
     # except:
     #     session.rollback()
     #     raise
+    session.commit()
+
+
+def freez_events(to_id):
+    session.query(Events).filter_by(to_id=to_id, status_code=NEW_ORANGE_STATUS).update(
+        {'status_code': NEW_ORANGE_STATUS_F})
+    session.query(Events).filter_by(to_id=to_id, status_code=NEW_RED_STATUS).update(
+        {'status_code': NEW_RED_STATUS_F})
+    session.query(Events).filter_by(to_id=to_id, status_code=APPROVE_ORANGE_STATUS).update(
+        {'status_code': APPROVE_ORANGE_STATUS_F})
+    session.query(Events).filter_by(to_id=to_id, status_code=APPROVE_RED_STATUS).update(
+        {'status_code': APPROVE_RED_STATUS_F})
+
+    session.commit()
+
+
+def unfreez_events(to_id):
+    session.query(Events).filter_by(to_id=to_id, status_code=NEW_ORANGE_STATUS_F).update(
+        {'status_code': NEW_ORANGE_STATUS})
+    session.query(Events).filter_by(to_id=to_id, status_code=NEW_RED_STATUS_F).update(
+        {'status_code': NEW_RED_STATUS})
+    session.query(Events).filter_by(to_id=to_id, status_code=APPROVE_ORANGE_STATUS_F).update(
+        {'status_code': APPROVE_ORANGE_STATUS})
+    session.query(Events).filter_by(to_id=to_id, status_code=APPROVE_RED_STATUS_F).update(
+        {'status_code': APPROVE_RED_STATUS})
+
     session.commit()
 
 
