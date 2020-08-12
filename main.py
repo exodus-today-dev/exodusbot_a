@@ -898,7 +898,9 @@ def generate_user_info_preview(user_id):
 def generate_user_info_text(user, self_id):
     """ 5.2 """
 
-    ref = user.ref
+    # ref = user.ref
+    referal = read_exodus_user(user.ref)
+    ref = '{} {}'.format(referal.first_name, referal.last_name)
     data = user.create_date
     first_name = user.first_name
     last_name = user.last_name
@@ -2494,7 +2496,7 @@ def welcome_base(message):
         user_from = read_exodus_user(referral[0])
         user_to = read_exodus_user(referral[1])
         if user_from.status == 'green':
-            start_without_invitation(message)
+            start_without_invitation(message, ref=user_from.telegram_id)
             return
 
         bot_text = 'Участник {} {} приглашает вас помогать участнику {} {}'.format(user_from.first_name,
@@ -2504,9 +2506,9 @@ def welcome_base(message):
         bot.send_message(message.chat.id, bot_text)
 
         if user_to.status == 'orange':
-            start_orange_invitation(message, user_to.telegram_id)
+            start_orange_invitation(message, user_to.telegram_id, ref=user_from.telegram_id)
         elif user_to.status == 'red':
-            start_red_invitation(message, user_to.telegram_id)
+            start_red_invitation(message, user_to.telegram_id, ref=user_from.telegram_id)
     else:
         start_without_invitation(message)
 
@@ -2517,13 +2519,13 @@ def welcome(message):
     welcome_base(message)
 
 
-def start_without_invitation(message):
+def start_without_invitation(message, ref=""):
     """1.1"""
 
     exists = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
     if not exists:
         create_exodus_user(message.from_user.id, message.from_user.first_name, message.from_user.last_name,
-                           message.from_user.username)
+                           message.from_user.username, ref=ref)
         exists = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
     if exists.status == '':
         orange_green_wizard(message)
@@ -2532,7 +2534,7 @@ def start_without_invitation(message):
 
 
 # ----------------------------- 6.1 ORANGE ----------------------
-def start_orange_invitation(message, user_to, event_id=None):
+def start_orange_invitation(message, user_to, event_id=None, ref=None):
     """6.1"""
     # print(user_to)
     user = read_exodus_user(telegram_id=user_to)
@@ -2581,10 +2583,10 @@ def start_orange_invitation(message, user_to, event_id=None):
     temp_dict[
         message.chat.id].step = 'orange'  # TODO ---------- убрать этот костыль, так как при большом кол-во пользователей будет съедать память
 
-    bot.register_next_step_handler(msg, orange_invitation_check, event_id)
+    bot.register_next_step_handler(msg, orange_invitation_check, event_id=event_id, ref=ref)
 
 
-def orange_invitation_check(message, event_id=None):
+def orange_invitation_check(message, event_id=None, ref=None):
     """6.1.1"""
     user_to = temp_dict[
         message.chat.id]  # TODO ---------- убрать этот костыль, так как при большом кол-во пользователей будет съедать память
@@ -2616,7 +2618,7 @@ def orange_invitation_check(message, event_id=None):
         exists = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
         if not exists:
             create_exodus_user(message.from_user.id, message.from_user.first_name, message.from_user.last_name,
-                               message.from_user.username)
+                               message.from_user.username, ref=ref)
         orange_invitation_wizard(message, user_to, event_id)
 
     elif 'Главное меню' in text:
@@ -2751,7 +2753,7 @@ def show_all_members_check(message):
 
 
 # ----------------------- 6.2 RED ---------------------------
-def start_red_invitation(message, user_to, event_id=None):
+def start_red_invitation(message, user_to, event_id=None, ref=None):
     """6.2"""
     user = read_exodus_user(telegram_id=user_to)
     status = get_status(user.status)
@@ -2807,10 +2809,10 @@ def start_red_invitation(message, user_to, event_id=None):
     temp_dict[
         message.chat.id].step = 'red'  # TODO ---------- убрать этот костыль, так как при большом кол-во пользователей будет съедать память
 
-    bot.register_next_step_handler(msg, red_invitation_check, event_id=event_id)
+    bot.register_next_step_handler(msg, red_invitation_check, event_id=event_id, ref=ref)
 
 
-def red_invitation_check(message, event_id=None):
+def red_invitation_check(message, event_id=None, ref=None):
     """6.1.1"""
     user_to = temp_dict[
         message.chat.id]  # TODO ---------- убрать этот костыль, так как при большом кол-во пользователей будет съедать память
@@ -2842,7 +2844,7 @@ def red_invitation_check(message, event_id=None):
         exists = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
         if not exists:
             create_exodus_user(message.from_user.id, message.from_user.first_name, message.from_user.last_name,
-                               message.from_user.username)
+                               message.from_user.username, ref=ref)
         red_invitation_wizard(message, user_to, event_id)
 
     elif 'Главное меню' in text:
