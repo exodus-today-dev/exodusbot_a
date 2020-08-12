@@ -89,11 +89,41 @@ class Rings_Help(base):
     rings_id = Column(Integer, primary_key=True)
     needy_id = Column(Integer, unique=True)
     help_array = Column(ARRAY(Integer))
+    help_array_red = Column(ARRAY(Integer))
+
+
+class Temp_Intention(base):
+    __tablename__ = 'temp_intention'
+
+    id = Column(Integer, primary_key=True)
+    to_id = Column(Integer)
+    status = Column(Integer)
+    intention_array = Column(ARRAY(Integer))
 
 
 Session = sessionmaker(db)
 session = Session()
 base.metadata.create_all(db)
+
+
+def create_temp_intention(to_id, status, intention_array):
+    temp = Temp_Intention(to_id=to_id, status=status, intention_array=intention_array)
+    session.add(temp)
+    session.commit()
+
+
+def delete_temp_intention(to_id):
+    try:
+        temp_intention = session.query(Temp_Intention).filter_by(to_id=to_id).all()
+        for intention in temp_intention:
+            session.delete(intention)
+        session.commit()
+    except:
+        session.rollback()
+
+
+def read_all_temp_intention(to_id):
+    return session.query(Temp_Intention).filter_by(to_id=to_id).all()
 
 
 # Create
@@ -264,8 +294,8 @@ def read_event(event_id):
     return event
 
 
-def create_rings_help(needy_id, help_array):
-    ring = Rings_Help(needy_id=needy_id, help_array=help_array)
+def create_rings_help(needy_id, help_array=None, help_array_red=None):
+    ring = Rings_Help(needy_id=needy_id, help_array=help_array, help_array_red=help_array_red)
     # try:
     #     session.add(ring)
     #     session.commit()
@@ -293,6 +323,15 @@ def update_rings_help(needy_id, help_array):
     with db.connect() as conn:
         u = text('UPDATE rings_help SET help_array = :q WHERE needy_id = :id')  # так работает
         conn.execute(u, q=help_array, id=needy_id)
+
+
+def update_rings_help_array_red(needy_id, help_array_red):
+    #    ring = session.query(Rings_Help).filter_by(needy_id=needy_id).first()      # так почему-то не работатет
+    #    ring.help_array = help_array
+    #    session.commit()
+    with db.connect() as conn:
+        u = text('UPDATE rings_help SET help_array_red = :q WHERE needy_id = :id')  # так работает
+        conn.execute(u, q=help_array_red, id=needy_id)
 
 
 def delete_from_help_array(needy_id, delete_id):
@@ -413,6 +452,12 @@ def update_intetion_status_from_event(event_id, status):
     #     raise
     session.commit()
 
+def delete_intention(to_id, status):
+    try:
+        session.query(Intention).filter_by(to_id=to_id, status=status).delete()
+        session.commit()
+    except:
+        session.rollback()
 
 def freez_events(to_id):
     session.query(Events).filter_by(to_id=to_id, status_code=NEW_ORANGE_STATUS).update(
