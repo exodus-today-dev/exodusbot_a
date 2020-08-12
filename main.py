@@ -3077,7 +3077,7 @@ def green_edit_wizard_check(message):
             try:
                 bot.send_message(row, 'Участник {} сменил статус на Зеленый'.format(telegram_name))
                 # закрываем намерения и event
-                intention = read_intention(from_id=row, to_id=message.chat.id).first()
+                intention = read_intention(from_id=row, to_id=message.chat.id).all()[-1]
                 update_intention(intention.intention_id, status=0)
                 update_event_status_code(intention.event_id, CLOSED)
             except:
