@@ -3077,11 +3077,17 @@ def green_edit_wizard_check(message):
             try:
                 bot.send_message(row, 'Участник {} сменил статус на Зеленый'.format(telegram_name))
                 # закрываем намерения и event
-                intention = read_intention(from_id=row, to_id=message.chat.id).all()[-1]
-                update_intention(intention.intention_id, status=0)
-                update_event_status_code(intention.event_id, CLOSED)
+                intention = read_intention(from_id=row, to_id=message.chat.id).all()
+                for id in intention:
+                    update_intention(id.intention_id, status=0)
+                    update_event_status_code(id.event_id, CLOSED)
             except:
                 continue
+        # удаляем данные из буфферной таблицы
+        delete_temp_intention(message.chat.id)
+
+        # очищаем массив помощников для красного
+        update_rings_help_array_red(message.chat.id, [])
 
         update_exodus_user(telegram_id=message.chat.id, status='green', min_payments=0, max_payments=0)
 
@@ -3559,6 +3565,11 @@ def orange_step_final(message, link):
         if user.status == 'red' and user.min_payments != 0:
             count_unfreez_intentions = unfreeze_intentions(user)
         else:
+            list_statuses = [1, 11, 12, 13, 15]
+            # удаляем все активные записи для красного
+            for status in list_statuses:
+                delete_intention(to_id=message.chat.id, status=status)
+
             count_unfreez_intentions = 0
 
         update_exodus_user(message.chat.id, status='orange', link=link)
