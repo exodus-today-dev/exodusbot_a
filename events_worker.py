@@ -29,7 +29,7 @@ list_event_id_for_6_10 = []
 
 
 def read():
-    # all_users = session.query(Exodus_Users).count()
+    all_users = session.query(Exodus_Users).count()
     all = session.query(Events).filter_by(sent=False)
     current_date = date.today()
 
