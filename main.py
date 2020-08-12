@@ -3079,11 +3079,10 @@ def green_edit_wizard_check(message):
                 intention = read_intention(from_id=row, to_id=message.chat.id).first()
                 update_intention(intention.intention_id, status=0)
                 update_event_status_code(intention.event_id, CLOSED)
-                update_exodus_user(message.chat.id, min_payments=0, max_payments=0)
             except:
                 continue
 
-        update_exodus_user(telegram_id=message.chat.id, status='green')
+        update_exodus_user(telegram_id=message.chat.id, status='green', min_payments=0, max_payments=0)
 
         global_menu(message)
     elif text == 'Отмена':
@@ -3404,7 +3403,7 @@ def orange_green_wizard_step1(message):
         bot.send_message(message.chat.id,
                          'Ваш статус \U0001F7E2 (зелёный)\nСписок участников с которыми Вы связаны, можно посмотреть в разделе главного меню "Участники"',
                          reply_markup=markup)
-        update_exodus_user(telegram_id=message.chat.id, status='green')
+        update_exodus_user(telegram_id=message.chat.id, status='green', min_payments=0, max_payments=0)
         global_menu(message, True)
         requisites = read_requisites_user(message.chat.id)
         if not requisites:
