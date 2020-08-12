@@ -2382,13 +2382,12 @@ def executed_was_sent(message):
 
 
 def members_menu_profile_link(message, member_id):
-    user_id = message.chat.id
     user = read_exodus_user(member_id)
     already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
     already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
     left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
     right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
-    bot.delete_message(user_id, message.message_id)
+    bot.delete_message(message.chat.id, message.message_id)
     if user.status == 'green':
         bot_text = '\U0001F464 Имя участника: {} {}\n\
 Статус: Зелёный \U0001F7E2'.format(user.first_name, user.last_name)
@@ -2401,12 +2400,18 @@ def members_menu_profile_link(message, member_id):
             all_users = len(set(ring.help_array))
         bot_text = '\U0001F464 Имя участника: {} {}\n\
 Статус: Оранжевый \U0001f7e0\n\
-\U0001F4B0 {}/{} {}\nУже помогает: {}\n'.format(user.first_name,
-                                                user.last_name,
-                                                left_sum,
-                                                right_sum,
-                                                user.currency,
-                                                all_users)
+\U0001F4B0 {}/{} {}\n\
+Ссылка на обсуждение \U0001F4E2\n\
+{}\n\
+\n\
+Период: Ежемесячно\n\
+Уже помогает: {}\n'.format(user.first_name,
+                           user.last_name,
+                           left_sum,
+                           right_sum,
+                           user.currency,
+                           user.link,
+                           all_users)  # ------------ TODO
 
     elif user.status == 'red':
         ring = read_rings_help(user.telegram_id)
@@ -2421,29 +2426,23 @@ def members_menu_profile_link(message, member_id):
         delta = d1 - d0
         bot_text = '\U0001F464 Имя участника: {} {}\n\
 Статус: Красный \U0001F534\n\
-\U0001F4B0 {}/{} {}\nУже помогает: {}'.format(user.first_name,
-                                              user.last_name,
-                                              left_sum,
-                                              right_sum,
-                                              user.currency,
-                                              all_users)  # ------------ TODO
+\U0001F4B0 {}/{} {}\n\
+Ссылка на обсуждение \U0001F4E2\n\
+{}\n\
+\n\
+Уже помогает: {}'.format(user.first_name,
+                         user.last_name,
+                         left_sum,
+                         right_sum,
+                         user.currency,
+                         user.link,
+                         all_users)  # ------------ TODO
 
     else:
         bot_text = 'СТАТУС НЕ УКАЗАН. ОШИБКА'
-
-    bot.send_message(user_id, bot_text)  # общий текст
-
-    bot.send_message(user_id, "Ссылка на обсуждение \U0001F4E2")  # ссылка на обсуждение
-    if user.link == '':
-        bot.send_message(user_id, "-")  # ссылка на обсуждение
-    else:
-        bot.send_message(user_id, user.link)  # ссылка на обсуждение
-
+    bot.send_message(message.chat.id, bot_text)
     link = create_link(user.telegram_id, user.telegram_id)
-
-    bot.send_message(user_id, "Ссылка для помощи \U0001F4E9")  # отправка сообщений с ссылкой-приглашением
-    bot.send_message(user_id, link)  # отправка сообщений с ссылкой-приглашением
-
+    bot.send_message(message.chat.id, link)
     global_menu(message, True)
 
 def config_wizzard_currency(message):
