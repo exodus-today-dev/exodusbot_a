@@ -8,10 +8,20 @@ bot = telebot.TeleBot(config.API_TOKEN)
 from models import *
 
 
+def get_status(text):
+    if text == "green":
+        status = 'Зелёный \U0001F7E2'
+    elif text == "orange":
+        status = 'Оранжевый \U0001f7e0'
+    elif 'red' in text:
+        status = 'Красный \U0001F534'
+    return status
+
+
 def invitation_help_orange(event_id):
     event = read_event(event_id)
     user = read_exodus_user(event.to_id)
-    bot_text = f"Приглашение помогать {user.first_name} {user.last_name}"
+    bot_text = f"Уведомление о запросе на ежемесячную помощь для {user.first_name} {user.last_name}"
     print('Отправлено-orange-{}-{}-{}'.format(event_id, event.from_id, event.to_id))
     keyboard = types.InlineKeyboardMarkup()
     row = []
@@ -25,7 +35,7 @@ def invitation_help_orange(event_id):
 def invitation_help_red(event_id):
     event = read_event(event_id)
     user = read_exodus_user(event.to_id)
-    bot_text = f"Приглашение помогать {user.first_name} {user.last_name}"
+    bot_text = f"Запрос на экстренную помощь для {user.first_name} {user.last_name}"
     print('Отправлено-red-{}-{}-{}'.format(event_id, event.from_id, event.to_id))
     keyboard = types.InlineKeyboardMarkup()
     row = []
@@ -52,9 +62,25 @@ def notice_of_intent(event_id):
     list_needy_id = set(read_rings_help(event.to_id).help_array)
     user_needy = read_exodus_user(telegram_id=event.to_id)
     list_needy_id.discard(event.from_id)
-    list_needy_id.discard(event.to_id)
+
+    status = get_status(user_needy.status)
+    ring = read_rings_help(user_needy.telegram_id)
+    already_payments_oblig = get_intention_sum(user_needy.telegram_id, statuses=(11, 12, 13))
+    already_payments_intent = get_intention_sum(user_needy.telegram_id, statuses=(1,))
+    left_sum = max(already_payments_intent, already_payments_oblig - user_needy.max_payments)
+    right_sum = user_needy.max_payments - already_payments_oblig if user_needy.max_payments - already_payments_oblig > 0 else 0
+
+    if ring is None:
+        users_count = 0
+    else:
+        users_count = len(set(ring.help_array))
+
     bot_text_for_all = f"{intent.create_date.strftime('%d %B %Y')}\n\
-Участник {user.first_name} {user.last_name} записал свое намерение помогать участнику {user_needy.first_name} {user_needy.last_name} на сумму: {intent.payment} {event.currency}"
+Участник {user.first_name} {user.last_name} записал свое намерение помогать участнику {user_needy.first_name} {user_needy.last_name} на сумму: {intent.payment} {event.currency}\n\n\
+Участник {user_needy.first_name} {user_needy.last_name} - {status}\n\
+{left_sum}/{right_sum}\n\
+Уже помогают: {users_count}"
+
     print(list_needy_id)
     for id in list_needy_id:
         bot.send_message(id, bot_text_for_all)
@@ -114,7 +140,24 @@ def obligation_recieved_notice(event_id):
     event = read_event(event_id)
     user = read_exodus_user(telegram_id=event.to_id)
     print(user.first_name)
-    confirmation_of_an_obligation(event.from_id, user.first_name, event.current_payments, event.currency)
+    status = get_status(user.status)
+
+    ring = read_rings_help(user.telegram_id)
+    already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
+    already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
+    left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
+    right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
+
+    if ring is None:
+        users_count = 0
+    else:
+        users_count = len(set(ring.help_array))
+
+    # confirmation_of_an_obligation(event.from_id, user.first_name, event.current_payments, event.currency)
+    bot_text = f"Участник {user.first_name} подтвердил, что ваше обязательство на сумму {event.current_payments} {event.currency} исполнено.\n\n\
+Участник {user.first_name} {user.last_name} - {status}\n\
+{left_sum}/{right_sum}"
+    bot.send_message(event.from_id, bot_text)
     # update_event(event_id, True)
 
 
