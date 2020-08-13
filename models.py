@@ -294,6 +294,13 @@ def read_event(event_id):
     return event
 
 
+def delete_event_new_status(to_id):
+    session.query(Events).filter(Events.to_id == to_id,
+                                 or_(Events.status_code == NEW_ORANGE_STATUS,
+                                     Events.status_code == NEW_RED_STATUS)).delete()
+    session.commit()
+
+
 def create_rings_help(needy_id, help_array=None, help_array_red=None):
     ring = Rings_Help(needy_id=needy_id, help_array=help_array, help_array_red=help_array_red)
     # try:
@@ -452,12 +459,14 @@ def update_intetion_status_from_event(event_id, status):
     #     raise
     session.commit()
 
+
 def delete_intention(to_id, status):
     try:
         session.query(Intention).filter_by(to_id=to_id, status=status).delete()
         session.commit()
     except:
         session.rollback()
+
 
 def freez_events(to_id):
     session.query(Events).filter_by(to_id=to_id, status_code=NEW_ORANGE_STATUS).update(
