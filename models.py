@@ -101,15 +101,18 @@ class Temp_Intention(base):
     intention_array = Column(ARRAY(Integer))
 
 
+base.metadata.create_all(db)
 Session = sessionmaker(db)
 session = Session()
-base.metadata.create_all(db)
 
 
 def create_temp_intention(to_id, status, intention_array):
-    temp = Temp_Intention(to_id=to_id, status=status, intention_array=intention_array)
-    session.add(temp)
-    session.commit()
+    try:
+        temp = Temp_Intention(to_id=to_id, status=status, intention_array=intention_array)
+        session.add(temp)
+        session.commit()
+    except:
+        session.rollback()
 
 
 def delete_temp_intention(to_id):
@@ -123,41 +126,40 @@ def delete_temp_intention(to_id):
 
 
 def read_all_temp_intention(to_id):
-    return session.query(Temp_Intention).filter_by(to_id=to_id).all()
+    temp_intention = session.query(Temp_Intention).filter_by(to_id=to_id).all()
+
+    return temp_intention
 
 
 # Create
 def create_exodus_user(telegram_id, first_name, last_name, username, ref='', link='', min_payments=0,
                        current_payments=0, max_payments=0, currency='USD', status='', days=0, start_date=date.today()):
-    exodus_user = Exodus_Users(telegram_id=telegram_id,
-                               first_name=first_name,
-                               last_name=last_name,
-                               username=username,
-                               ref=ref,
-                               link=link,
-                               min_payments=min_payments,
-                               current_payments=current_payments,
-                               max_payments=max_payments,
-                               currency=currency,
-                               status=status,
-                               days=days,
-                               start_date=start_date,
-                               create_date=datetime.now())
+    try:
+        exodus_user = Exodus_Users(telegram_id=telegram_id,
+                                   first_name=first_name,
+                                   last_name=last_name,
+                                   username=username,
+                                   ref=ref,
+                                   link=link,
+                                   min_payments=min_payments,
+                                   current_payments=current_payments,
+                                   max_payments=max_payments,
+                                   currency=currency,
+                                   status=status,
+                                   days=days,
+                                   start_date=start_date,
+                                   create_date=datetime.now())
 
-    # try:
-    #     session.add(exodus_user)
-    #     session.commit()
-    # except:
-    #     session.rollback()
-    #     raise
-
-    session.add(exodus_user)
-    session.commit()
+        session.add(exodus_user)
+        session.commit()
+    except:
+        session.rollback()
 
 
 # Read
 def read_exodus_user(telegram_id):
     exodus_user = session.query(Exodus_Users).filter_by(telegram_id=telegram_id).first()
+
     return exodus_user
 
 
@@ -165,161 +167,150 @@ def read_exodus_user(telegram_id):
 def update_exodus_user(telegram_id, first_name=None, last_name=None, username=None, ref=None, link=None,
                        min_payments=None, current_payments=None, max_payments=None, currency=None, status=None,
                        days=None, start_date=None):
-    exodus_user = session.query(Exodus_Users).filter_by(telegram_id=telegram_id).first()
-    if first_name is not None:
-        exodus_user.first_name = first_name
-    if last_name is not None:
-        exodus_user.last_name = last_name
-    if ref is not None:
-        exodus_user.ref = ref
-    if link is not None:
-        exodus_user.link = link
-    if username is not None:
-        exodus_user.username = username
-    if min_payments is not None:
-        exodus_user.min_payments = min_payments
-    if current_payments is not None:
-        exodus_user.current_payments = current_payments
-    if max_payments is not None:
-        exodus_user.max_payments = max_payments
-    if currency is not None:
-        exodus_user.currency = currency
-    if status is not None:
-        exodus_user.status = status
-    if days is not None:
-        exodus_user.days = days
-    if start_date is not None:
-        exodus_user.start_date = start_date
+    try:
+        exodus_user = session.query(Exodus_Users).filter_by(telegram_id=telegram_id).first()
+        if first_name is not None:
+            exodus_user.first_name = first_name
+        if last_name is not None:
+            exodus_user.last_name = last_name
+        if ref is not None:
+            exodus_user.ref = ref
+        if link is not None:
+            exodus_user.link = link
+        if username is not None:
+            exodus_user.username = username
+        if min_payments is not None:
+            exodus_user.min_payments = min_payments
+        if current_payments is not None:
+            exodus_user.current_payments = current_payments
+        if max_payments is not None:
+            exodus_user.max_payments = max_payments
+        if currency is not None:
+            exodus_user.currency = currency
+        if status is not None:
+            exodus_user.status = status
+        if days is not None:
+            exodus_user.days = days
+        if start_date is not None:
+            exodus_user.start_date = start_date
 
-    # try:
-    #     session.commit()
-    # except:
-    #     session.rollback()
-    #     raise
-
-    session.commit()
+        session.commit()
+    except:
+        session.rollback()
 
 
 # Delete
 def delete_exodus_user(telegram_id):
-    exodus_user = session.query(Exodus_Users).filter_by(telegram_id=telegram_id).first()
-    # try:
-    #     session.delete(exodus_user)
-    #     session.commit()
-    # except:
-    #     session.rollback()
-    #     raise
-    session.delete(exodus_user)
-    session.commit()
+    try:
+        exodus_user = session.query(Exodus_Users).filter_by(telegram_id=telegram_id).first()
+
+        session.delete(exodus_user)
+        session.commit()
+    except:
+        session.rollback()
 
 
 def create_event(from_id, first_name, last_name, status, type, min_payments, current_payments,
                  max_payments, currency, users, to_id, reminder_date, sent=False, status_code=None, intention=None):
-    event = Events(from_id=from_id,
-                   first_name=first_name,
-                   last_name=last_name,
-                   status=status,
-                   type=type,
-                   min_payments=min_payments,
-                   current_payments=current_payments,
-                   max_payments=max_payments,
-                   currency=currency,
-                   users=users,
-                   to_id=to_id,
-                   reminder_date=reminder_date,
-                   # intention_id = intention_id,
-                   sent=False,
-                   status_code=status_code,
-                   intention=intention)
+    try:
+        event = Events(from_id=from_id,
+                       first_name=first_name,
+                       last_name=last_name,
+                       status=status,
+                       type=type,
+                       min_payments=min_payments,
+                       current_payments=current_payments,
+                       max_payments=max_payments,
+                       currency=currency,
+                       users=users,
+                       to_id=to_id,
+                       reminder_date=reminder_date,
+                       # intention_id = intention_id,
+                       sent=sent,
+                       status_code=status_code,
+                       intention=intention)
 
-    # try:
-    #     session.add(event)
-    #     session.commit()
-    # except:
-    #     session.rollback()
-    #     raise
-    session.add(event)
-    session.commit()
+        session.add(event)
+        session.commit()
+    except:
+        session.rollback()
 
 
 def update_event(event_id, sent):
-    event = session.query(Events).filter_by(event_id=event_id).first()
-    event.sent = sent
-
-    # try:
-    #     session.commit()
-    # except:
-    #     session.rollback()
-    #     raise
-    session.commit()
+    try:
+        event = session.query(Events).filter_by(event_id=event_id).first()
+        event.sent = sent
+        session.commit()
+    except:
+        session.rollback()
 
 
 def update_event_reminder_date(event_id, reminder_date):
-    event = session.query(Events).filter_by(event_id=event_id).first()
-    event.reminder_date = reminder_date
-    # try:
-    #     session.commit()
-    # except:
-    #     session.rollback()
-    #     raise
-
-    session.commit()
+    try:
+        event = session.query(Events).filter_by(event_id=event_id).first()
+        event.reminder_date = reminder_date
+        session.commit()
+    except:
+        session.rollback()
 
 
 def update_event_type(event_id, type):
-    event = session.query(Events).filter_by(event_id=event_id).first()
-    event.type = type
-    # try:
-    #     session.commit()
-    # except:
-    #     session.rollback()
-    #     raise
-    session.commit()
+    try:
+        event = session.query(Events).filter_by(event_id=event_id).first()
+        event.type = type
+        session.commit()
+    except:
+        session.rollback()
 
 
 def update_event_status_code(event_id, status_code):
-    event = session.query(Events).filter_by(event_id=event_id).first()
-    event.status_code = status_code
-
-    # try:
-    #     session.commit()
-    # except:
-    #     session.rollback()
-    #     raise
-    session.commit()
+    try:
+        event = session.query(Events).filter_by(event_id=event_id).first()
+        event.status_code = status_code
+        session.commit()
+    except:
+        session.rollback()
 
 
 def read_event(event_id):
     event = session.query(Events).filter_by(event_id=event_id).first()
+
     return event
+
+def read_event_sent(sent):
+    all = session.query(Events).filter_by(sent=sent)
+
+    return all
 
 
 def delete_event_new_status(to_id):
-    session.query(Events).filter(Events.to_id == to_id,
-                                 or_(Events.status_code == NEW_ORANGE_STATUS,
-                                     Events.status_code == NEW_RED_STATUS)).delete()
-    session.commit()
+    try:
+        session.query(Events).filter(Events.to_id == to_id,
+                                     or_(Events.status_code == NEW_ORANGE_STATUS,
+                                         Events.status_code == NEW_RED_STATUS)).delete()
+        session.commit()
+    except:
+        session.rollback()
 
 
 def create_rings_help(needy_id, help_array=None, help_array_red=None):
-    ring = Rings_Help(needy_id=needy_id, help_array=help_array, help_array_red=help_array_red)
-    # try:
-    #     session.add(ring)
-    #     session.commit()
-    # except:
-    #     session.rollback()
-    #     raise
-    session.add(ring)
-    session.commit()
+    try:
+        ring = Rings_Help(needy_id=needy_id, help_array=help_array, help_array_red=help_array_red)
+        session.add(ring)
+        session.commit()
+    except:
+        session.rollback()
 
 
 def read_rings_help(needy_id):
     ring = session.query(Rings_Help).filter_by(needy_id=needy_id).first()
+
     return ring
 
 
 def read_rings_help_in_help_array(telegram_id):
     list_send_notify = session.query(Rings_Help).filter(Rings_Help.help_array.any(telegram_id)).all()
+
     return list_send_notify
 
 
@@ -354,21 +345,19 @@ def delete_from_help_array(needy_id, delete_id):
 
 
 def create_intention(from_id, to_id, payment, currency, status=None, event_id=None):
-    intention = Intention(from_id=from_id, to_id=to_id, payment=payment, currency=currency, status=status,
-                          create_date=datetime.now(), event_id=event_id)
+    try:
+        intention = Intention(from_id=from_id, to_id=to_id, payment=payment, currency=currency, status=status,
+                              create_date=datetime.now(), event_id=event_id)
 
-    # try:
-    #     session.add(intention)
-    #     session.commit()
-    # except:
-    #     session.rollback()
-    #     raise
-    session.add(intention)
-    session.commit()
+        session.add(intention)
+        session.commit()
+    except:
+        session.rollback()
 
 
 def read_intention_with_payment(from_id, to_id, payment, status):
     intention = session.query(Intention).filter_by(from_id=from_id, to_id=to_id, payment=payment, status=status).first()
+
     return intention
 
 
@@ -383,6 +372,7 @@ def read_intention(from_id=None, to_id=None, status=None):
             intention = session.query(Intention).filter_by(to_id=to_id, status=status)
         else:
             intention = session.query(Intention).filter_by(to_id=to_id)
+
     return intention
 
 
@@ -397,40 +387,37 @@ def read_intention_by_id(intention_id):
 
 
 def update_intention(intention_id, status=None, payment=None):
-    intention = session.query(Intention).filter_by(intention_id=intention_id).first()
-    if status is not None:
-        intention.status = status
-    if payment is not None:
-        intention.payment = payment
-    # try:
-    #     session.commit()
-    # except:
-    #     session.rollback()
-    #     raise
-    session.commit()
+    try:
+        intention = session.query(Intention).filter_by(intention_id=intention_id).first()
+        if status is not None:
+            intention.status = status
+        if payment is not None:
+            intention.payment = payment
+        session.commit()
+    except:
+        session.rollback()
 
 
 def update_intention_from_all_params(from_id, to_id, payment, status=None):
-    intention = session.query(Intention).filter_by(from_id=from_id, to_id=to_id, payment=payment).first()
-    if status is not None:
-        intention.status = status
-    # try:
-    #     session.commit()
-    # except:
-    #     session.rollback()
-    #     raise
-    session.commit()
+    try:
+        intention = session.query(Intention).filter_by(from_id=from_id, to_id=to_id, payment=payment).first()
+        if status is not None:
+            intention.status = status
+        session.commit()
+    except:
+        session.rollback()
 
 
 def read_intention_for_user(from_id=None, to_id=None, statuses=None):
     if from_id is not None:
         intentions = session.query(Intention).filter(Intention.from_id == from_id,
-                                                     Intention.status.in_(statuses))
+                                                         Intention.status.in_(statuses))
+
         return intentions
 
     elif to_id is not None:
         intentions = session.query(Intention).filter(Intention.to_id == to_id,
-                                                     Intention.status.in_(statuses))
+                                                         Intention.status.in_(statuses))
         return intentions
 
 
@@ -449,15 +436,12 @@ def get_intention_sum(to_id, statuses=None):
 
 
 def update_intetion_status_from_event(event_id, status):
-    intention = session.query(Intention).filter_by(event_id=event_id)
-    intention.status = status
-
-    # try:
-    #     session.commit()
-    # except:
-    #     session.rollback()
-    #     raise
-    session.commit()
+    try:
+        intention = session.query(Intention).filter_by(event_id=event_id)
+        intention.status = status
+        session.commit()
+    except:
+        session.rollback()
 
 
 def delete_intention(to_id, status):
@@ -469,47 +453,49 @@ def delete_intention(to_id, status):
 
 
 def freez_events(to_id):
-    session.query(Events).filter_by(to_id=to_id, status_code=NEW_ORANGE_STATUS).update(
-        {'status_code': NEW_ORANGE_STATUS_F})
-    session.query(Events).filter_by(to_id=to_id, status_code=NEW_RED_STATUS).update(
-        {'status_code': NEW_RED_STATUS_F})
-    session.query(Events).filter_by(to_id=to_id, status_code=APPROVE_ORANGE_STATUS).update(
-        {'status_code': APPROVE_ORANGE_STATUS_F})
-    session.query(Events).filter_by(to_id=to_id, status_code=APPROVE_RED_STATUS).update(
-        {'status_code': APPROVE_RED_STATUS_F})
+    try:
+        session.query(Events).filter_by(to_id=to_id, status_code=NEW_ORANGE_STATUS).update(
+            {'status_code': NEW_ORANGE_STATUS_F})
+        session.query(Events).filter_by(to_id=to_id, status_code=NEW_RED_STATUS).update(
+            {'status_code': NEW_RED_STATUS_F})
+        session.query(Events).filter_by(to_id=to_id, status_code=APPROVE_ORANGE_STATUS).update(
+            {'status_code': APPROVE_ORANGE_STATUS_F})
+        session.query(Events).filter_by(to_id=to_id, status_code=APPROVE_RED_STATUS).update(
+            {'status_code': APPROVE_RED_STATUS_F})
 
-    session.commit()
+        session.commit()
+    except:
+        session.rollback()
 
 
 def unfreez_events(to_id):
-    session.query(Events).filter_by(to_id=to_id, status_code=NEW_ORANGE_STATUS_F).update(
-        {'status_code': NEW_ORANGE_STATUS})
-    session.query(Events).filter_by(to_id=to_id, status_code=NEW_RED_STATUS_F).update(
-        {'status_code': NEW_RED_STATUS})
-    session.query(Events).filter_by(to_id=to_id, status_code=APPROVE_ORANGE_STATUS_F).update(
-        {'status_code': APPROVE_ORANGE_STATUS})
-    session.query(Events).filter_by(to_id=to_id, status_code=APPROVE_RED_STATUS_F).update(
-        {'status_code': APPROVE_RED_STATUS})
+    try:
+        session.query(Events).filter_by(to_id=to_id, status_code=NEW_ORANGE_STATUS_F).update(
+            {'status_code': NEW_ORANGE_STATUS})
+        session.query(Events).filter_by(to_id=to_id, status_code=NEW_RED_STATUS_F).update(
+            {'status_code': NEW_RED_STATUS})
+        session.query(Events).filter_by(to_id=to_id, status_code=APPROVE_ORANGE_STATUS_F).update(
+            {'status_code': APPROVE_ORANGE_STATUS})
+        session.query(Events).filter_by(to_id=to_id, status_code=APPROVE_RED_STATUS_F).update(
+            {'status_code': APPROVE_RED_STATUS})
 
-    session.commit()
-
+        session.commit()
+    except:
+        session.rollback()
 
 # -----------------------requisites-------------------
 # Create
 def create_requisites_user(telegram_id, name='', value='', is_default=False):
-    requisites = Requisites(telegram_id=telegram_id,
-                            name=name,
-                            value=value,
-                            is_default=is_default)
+    try:
+        requisites = Requisites(telegram_id=telegram_id,
+                                name=name,
+                                value=value,
+                                is_default=is_default)
 
-    # try:
-    #     session.add(requisites)
-    #     session.commit()
-    # except:
-    #     session.rollback()
-    #     raise
-    session.add(requisites)
-    session.commit()
+        session.add(requisites)
+        session.commit()
+    except:
+        session.rollback()
 
 
 # Read
@@ -548,29 +534,29 @@ def get_requisites_count(telegram_id):
 
 # Update
 def update_requisites_user(requisites_id, name='', value='', is_default=False):
-    requisites_user = session.query(Requisites).filter_by(requisites_id=requisites_id).first()
-    requisites_user.name = name
-    requisites_user.value = value
-    requisites_user.is_default = is_default
-
-    # try:
-    #     session.commit()
-    # except:
-    #     session.rollback()
-    #     raise
-    session.commit()
+    try:
+        requisites_user = session.query(Requisites).filter_by(requisites_id=requisites_id).first()
+        requisites_user.name = name
+        requisites_user.value = value
+        requisites_user.is_default = is_default
+        session.commit()
+    except:
+        session.rollback()
 
 
 # Delete
 def delete_requisites_user(requisites_id):
-    requisites_user = session.query(Requisites).filter_by(requisites_id=requisites_id).first()
+    try:
+        requisites_user = session.query(Requisites).filter_by(requisites_id=requisites_id).first()
 
-    # try:
-    #     session.delete(requisites_user)
-    #     session.commit()
-    # except:
-    #     session.rollback()
-    #     raise
+        # try:
+        #     session.delete(requisites_user)
+        #     session.commit()
+        # except:
+        #     session.rollback()
+        #     raise
 
-    session.delete(requisites_user)
-    session.commit()
+        session.delete(requisites_user)
+        session.commit()
+    except:
+        session.rollback()
