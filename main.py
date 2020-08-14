@@ -41,12 +41,6 @@ def get_my_socium(telegram_id):
     except:
         list_needy_id = set()
 
-    # список из красного массива
-    try:
-        list_needy_red = set(read_rings_help(telegram_id).help_array_red)
-    except:
-        list_needy_red = set()
-
     list_send_notify = read_rings_help_in_help_array(telegram_id)
 
     # добавляем в список тех, кому помогаю я
@@ -57,10 +51,6 @@ def get_my_socium(telegram_id):
     for row in list_send_notify:
         for id in row.help_array:
             list_needy_id.add(id)
-
-    # добавляем в список из красного статуса
-    for row in list_needy_red:
-        list_needy_id.add(row)
 
     # удаляем себя из списка
     list_needy_id.discard(telegram_id)
@@ -133,8 +123,7 @@ def global_menu(message, dont_show_status=False):
     if user is None:
         create_exodus_user(message.from_user.id, message.from_user.first_name, message.from_user.last_name,
                            message.from_user.username)
-    # user = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
-    user = read_exodus_user(message.chat.id)
+    user = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
 
     if user is None:
         welcome(message)
@@ -1064,7 +1053,7 @@ def members_list_in_network_check(message, member_id, direction):
             msg = bot.send_message(message.chat.id, user_info_text)
             selected_member_action_menu(message, members_list[selected_id])
         except:
-            msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
+            bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
             bot.register_next_step_handler(msg,
                                            members_list_in_network_check,
                                            member_id, direction)
@@ -2533,13 +2522,11 @@ def welcome(message):
 def start_without_invitation(message, ref=""):
     """1.1"""
 
-    # exists = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
-    exists = read_exodus_user(message.chat.id)
+    exists = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
     if not exists:
         create_exodus_user(message.from_user.id, message.from_user.first_name, message.from_user.last_name,
                            message.from_user.username, ref=ref)
-        # exists = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
-        exists = read_exodus_user(message.chat.id)
+        exists = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
     if exists.status == '':
         orange_green_wizard(message)
     else:
@@ -2626,15 +2613,13 @@ def orange_invitation_check(message, event_id=None, ref=None):
                          sent=False,
                          reminder_date=date.today(),
                          status_code=NEW_ORANGE_STATUS)
-        # exists = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
-        exists = read_exodus_user(message.chat.id)
+        exists = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
         if not exists:
             start_without_invitation(message)
         else:
             global_menu(message)
     elif text == 'Да'.format(0):
-        # exists = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
-        exists = read_exodus_user(message.chat.id)
+        exists = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
         if not exists:
             create_exodus_user(message.from_user.id, message.from_user.first_name, message.from_user.last_name,
                                message.from_user.username, ref=ref)
@@ -2855,15 +2840,13 @@ def red_invitation_check(message, event_id=None, ref=None):
                          sent=True,
                          reminder_date=date.today(),
                          status_code=NEW_RED_STATUS)
-        # exists = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
-        exists = read_exodus_user(message.chat.id)
+        exists = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
         if not exists:
             start_without_invitation(message)
         else:
             global_menu(message)
     elif text == 'Да'.format(0):
-        # exists = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
-        exists = read_exodus_user(message.chat.id)
+        exists = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
         if not exists:
             create_exodus_user(message.from_user.id, message.from_user.first_name, message.from_user.last_name,
                                message.from_user.username, ref=ref)
@@ -2971,6 +2954,7 @@ def red_invitation_wizard_check(message, event_id=None):  # ------------------ T
     user_from = read_exodus_user(telegram_id=message.chat.id)
 
     bot_text_for_all = f"Участник {user_from.first_name} {user_from.last_name} записал обязательство участнику {user.first_name} {user.last_name} на сумму: {invitation_sum} {user.currency}"
+    print(list_needy_id)
     for id in list_needy_id:
         bot.send_message(id, bot_text_for_all)
 
@@ -3698,19 +3682,23 @@ def restart_invitation(message, users_dict):
 
 def freeze_intentions(user):
     to_id = user.telegram_id
+    print(to_id)
     # сохраняем сумму запроса от оранжевого
     update_exodus_user(telegram_id=to_id, min_payments=user.max_payments)
     # обновляем статусы в таблице events с окончанием F
     freez_events(to_id)
+    print("frez")
 
     list_statuses = [1, 11, 12, 13, 15]
     for status in list_statuses:
         intentions = read_intention(to_id=to_id, status=status)
+        print(intentions)
         status_dict = [id.intention_id for id in intentions]
         # заполняем буфферную таблицу для каждого юзера, intention_id и статусами соответсвующими
         create_temp_intention(to_id, status, status_dict)
         for intention in intentions:
             # зануляем все статусы согласно intention_id
+            print("intention", intention)
             update_intention(intention.intention_id, 0)
 
 

@@ -6,7 +6,7 @@ from datetime import date, timedelta, datetime
 import telebot
 import time
 import config
-from models import update_event, read_event_sent
+from models import Events, Exodus_Users, session, update_event, update_event_status_code, CLOSED, Intention
 from events import invitation_help_orange, invitation_help_red, notice_of_intent, obligation_sended_notice, \
     obligation_recieved_notice, obligation_money_requested_notice, reminder, reminder_for_6_10, \
     check_border_before_3_days, check_border_first_date
@@ -17,6 +17,7 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 bot = telebot.TeleBot(config.API_TOKEN)
 
 # --------------------------------- DB ------------------------------
+
 
 user_dict = {}
 bot.remove_webhook()
@@ -29,8 +30,7 @@ list_event_id_for_6_10 = []
 
 def read():
     # all_users = session.query(Exodus_Users).count()
-    #all = session.query(Events).filter_by(sent=False)
-    all = read_event_sent(False)
+    all = session.query(Events).filter_by(sent=False)
     current_date = date.today()
 
     # if (datetime.now() + timedelta(days=3)).day == 1:
