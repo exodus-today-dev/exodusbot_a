@@ -1050,13 +1050,15 @@ def members_list_in_network_check(message, member_id, direction):
             selected_id = int(text)
             user = read_exodus_user(members_list[selected_id])
             user_info_text = generate_user_info_text(user, message.chat.id)
-            msg = bot.send_message(message.chat.id, user_info_text)
+            bot.send_message(message.chat.id, user_info_text)
             selected_member_action_menu(message, members_list[selected_id])
+
         except:
-            bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
+            msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
             bot.register_next_step_handler(msg,
                                            members_list_in_network_check,
                                            member_id, direction)
+
         return
     return
 
@@ -1392,7 +1394,7 @@ def intention_to_obligation(message):
     intention = read_intention_by_id(intention_id)
     user_to = read_exodus_user(telegram_id=intention.to_id)
     bot_text = f"Вы перевели в обязательство свое намерение помогать участнику {user_to.first_name} {user_to.last_name} на {intention.payment} {intention.currency}\n\
-Когда участник {user_to.first_name} {user_to.last_name} решит что делать с вашим обязательством, вы получите уведомление."
+Когда участник {user_to.first_name} {user_to.last_name} решит что делать с Вашим обязательством, вы получите уведомление."
     update_intention(intention_id, status=11)
     update_event_status_code(intention.event_id, NEW_OBLIGATION)
     # отправка сообщения
@@ -1756,7 +1758,7 @@ def for_my_wizard(message):
     for obligation in obligations:
         members.append(obligation.from_id)
     count = len(set(members))
-    bot_text = f"{count} участников записали в вашу пользу {intentions_count} намерений и {obligations_count} обязательств:"  # TODO
+    bot_text = f"{count} участников записали в Вашу пользу {intentions_count} намерений и {obligations_count} обязательств:"  # TODO
 
     markup = types.ReplyKeyboardMarkup()
     btn1 = types.KeyboardButton(text=f"Намерения ({intentions_count})")
@@ -1926,8 +1928,10 @@ def for_me_obligation(message, reminder_call, intention_id):
     btn1 = types.KeyboardButton(text='Запрос на исполнение')
     btn2 = types.KeyboardButton(text='Хранить')
     btn3 = types.KeyboardButton(text='Напомнить позже')
+    btn4 = types.KeyboardButton(text='Главное меню')
     markup.row(btn1)
     markup.row(btn2, btn3)
+    markup.row(btn4)
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
     bot.register_next_step_handler(msg, for_me_obligation_check, intention_id)
     return
@@ -1943,6 +1947,8 @@ def for_me_obligation_check(message, obligation_id):
         keep_obligation(message, obligation_id)
     elif text == 'Напомнить позже':
         remind_later(message, event_status=None, reminder_type='reminder_in', intention_id=obligation_id, to_menu=True)
+    elif text == 'Главное меню':
+        global_menu(message, True)
     elif "/start" in text:
         welcome_base(message)
     else:
@@ -2954,7 +2960,6 @@ def red_invitation_wizard_check(message, event_id=None):  # ------------------ T
     user_from = read_exodus_user(telegram_id=message.chat.id)
 
     bot_text_for_all = f"Участник {user_from.first_name} {user_from.last_name} записал обязательство участнику {user.first_name} {user.last_name} на сумму: {invitation_sum} {user.currency}"
-    print(list_needy_id)
     for id in list_needy_id:
         bot.send_message(id, bot_text_for_all)
 
@@ -3058,9 +3063,9 @@ def green_edit_wizard(message):
     msg = bot.send_message(message.chat.id, 'Вы собираетесь сменить статус на Зеленый\n\
 Пожалуйста подтвердите смену статуса:\n\
 \n\
-Если ваш статус был Оранжевый или красный, все намерения участников в вашу пользу будут автоматически удалены.\n\
+Если ваш статус был Оранжевый или красный, все намерения участников в Вашу пользу будут автоматически удалены.\n\
 \n\
-Все обязательства участников в вашу пользу останутся в силе. Посмотреть все обязательства можно в разделе главного меню "Транзакции" > "Все обязательства"',
+Все обязательства участников в Вашу пользу останутся в силе. Посмотреть все обязательства можно в разделе главного меню "Транзакции" > "Все обязательства"',
                            reply_markup=markup)
     bot.register_next_step_handler(msg, green_edit_wizard_check)
 
@@ -3682,23 +3687,19 @@ def restart_invitation(message, users_dict):
 
 def freeze_intentions(user):
     to_id = user.telegram_id
-    print(to_id)
     # сохраняем сумму запроса от оранжевого
     update_exodus_user(telegram_id=to_id, min_payments=user.max_payments)
     # обновляем статусы в таблице events с окончанием F
     freez_events(to_id)
-    print("frez")
 
     list_statuses = [1, 11, 12, 13, 15]
     for status in list_statuses:
         intentions = read_intention(to_id=to_id, status=status)
-        print(intentions)
         status_dict = [id.intention_id for id in intentions]
         # заполняем буфферную таблицу для каждого юзера, intention_id и статусами соответсвующими
         create_temp_intention(to_id, status, status_dict)
         for intention in intentions:
             # зануляем все статусы согласно intention_id
-            print("intention", intention)
             update_intention(intention.intention_id, 0)
 
 

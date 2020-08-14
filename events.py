@@ -51,17 +51,10 @@ def notice_of_intent(event_id):
     """
     event = read_event(event_id)
     user = read_exodus_user(telegram_id=event.from_id)
+    user_needy = read_exodus_user(telegram_id=event.to_id)
     intent = read_intention(event.to_id, event.to_id, 1)[
         -1]  # берем последний элемент из списка, чтобы обеспечить корреткность событий
     print('Отправлено-{}'.format(event_id))
-    bot_text = f"{intent.create_date.strftime('%d %B %Y')}\n\
-Участник {user.first_name} {user.last_name} записал свое намерение помогать вам на сумму: {intent.payment} {event.currency}"
-    bot.send_message(event.to_id, bot_text)
-
-    # рассылка уведомлений другим помогающим
-    list_needy_id = set(read_rings_help(event.to_id).help_array)
-    user_needy = read_exodus_user(telegram_id=event.to_id)
-    list_needy_id.discard(event.from_id)
 
     status = get_status(user_needy.status)
     ring = read_rings_help(user_needy.telegram_id)
@@ -74,6 +67,17 @@ def notice_of_intent(event_id):
         users_count = 0
     else:
         users_count = len(set(ring.help_array))
+
+    bot_text = f"{intent.create_date.strftime('%d %B %Y')}\n\
+Участник {user.first_name} {user.last_name} записал свое намерение помогать Вам на сумму: {intent.payment} {event.currency}\n\
+Вы - {status}\n\
+{left_sum}/{right_sum}\n\
+Вам помогают: {users_count}"
+    bot.send_message(event.to_id, bot_text)
+
+    # рассылка уведомлений другим помогающим
+    list_needy_id = set(read_rings_help(event.to_id).help_array)
+    list_needy_id.discard(event.from_id)
 
     bot_text_for_all = f"{intent.create_date.strftime('%d %B %Y')}\n\
 Участник {user.first_name} {user.last_name} записал свое намерение помогать участнику {user_needy.first_name} {user_needy.last_name} на сумму: {intent.payment} {event.currency}\n\n\
@@ -115,7 +119,7 @@ def obligation_sended_notice(event_id):
 
     message = 'Участник {first_name} {last_name} исполнил ' \
               'обязательства на сумму {sum} {currency}.\n\n' \
-              'Пожалуйста, проверьте ваши реквизиты {req_name} {req_value} и ' \
+              'Пожалуйста, проверьте Ваши реквизиты {req_name} {req_value} и ' \
               'подтвердите получение:'.format(first_name=first_name,
                                               last_name=last_name,
                                               sum=sum, currency=currency,
@@ -172,7 +176,7 @@ def reminder_for_6_10(event_id):
               'Участник {first_name} исполнил ' \
               'обязательство на сумму {sum} {currency}.' \
               'Это произошло болеее 5 дней назад, но вы так и не подтвердили получение средств.\n\n' \
-              'Пожалуйста, проверьте ваши реквизиты и ' \
+              'Пожалуйста, проверьте Ваши реквизиты и ' \
               'подтвердите получение:'.format(first_name=first_name,
                                               sum=event.current_payments, currency=event.currency)
 
