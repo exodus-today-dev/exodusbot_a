@@ -13,6 +13,11 @@ from status_codes import *
 db = create_engine(config.DATABASE_URL)
 base = declarative_base()
 
+Session = sessionmaker(db)
+session = Session()
+
+base.metadata.create_all(db)
+
 
 # добавил внешнюю связь для двух таблиц events и intention, в надежде, что это поможет при обновлении статуса с 12 на 13
 class Events(base):
