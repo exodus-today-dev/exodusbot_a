@@ -753,8 +753,8 @@ def count_in_transactions(user_id):
     count += obligations.count()
     obligations = read_intention(to_id=user_id, status=12)
     count += obligations.count()
-    executed = read_intention(to_id=user_id, status=13)
-    count += executed.count()
+    # executed = read_intention(to_id=user_id, status=13)
+    # count += executed.count()
     return count
 
 
@@ -766,8 +766,8 @@ def count_out_transactions(user_id):
     count += obligations.count()
     obligations = read_intention(from_id=user_id, status=12)
     count += obligations.count()
-    executed = read_intention(from_id=user_id, status=13)
-    count += executed.count()
+    # executed = read_intention(from_id=user_id, status=13)
+    # count += executed.count()
     return count
 
 
