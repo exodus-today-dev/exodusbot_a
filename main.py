@@ -641,8 +641,8 @@ def members_menu(message, meta_txt=None):
     obligations_out_sum = sum_out_obligations(user_id)
     executed_out_sum = sum_out_executed(user_id)
 
-    transactions_in_count = count_in_transactions(user_id)
-    transactions_out_count = count_out_transactions(user_id)
+    # transactions_in_count = count_in_transactions(user_id)
+    # transactions_out_count = count_out_transactions(user_id)
 
     bot_text = 'Я в сети Эксодус с {data}\n ' \
                'Меня пригласил: {ref}\n' \
@@ -898,9 +898,12 @@ def generate_user_info_preview(user_id):
 def generate_user_info_text(user, self_id):
     """ 5.2 """
 
-    # ref = user.ref
-    referal = read_exodus_user(user.ref)
-    ref = '{} {}'.format(referal.first_name, referal.last_name)
+    ref = user.ref
+    if type(ref) is int:
+        referal = read_exodus_user(user.ref)
+        ref = '{} {}'.format(referal.first_name, referal.last_name)
+    else:
+        ref = ''
     data = user.create_date
     first_name = user.first_name
     last_name = user.last_name
@@ -954,7 +957,6 @@ def generate_user_info_text(user, self_id):
 
 def members_list_in_network_menu(message, member_id, direction):
     """ 5.2 """
-
     print_members_list_in_network(message, member_id, direction)
 
     markup = types.ReplyKeyboardMarkup()

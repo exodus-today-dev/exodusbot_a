@@ -162,8 +162,11 @@ def create_exodus_user(telegram_id, first_name, last_name, username, ref='', lin
 
 # Read
 def read_exodus_user(telegram_id):
-    exodus_user = session.query(Exodus_Users).filter_by(telegram_id=telegram_id).first()
-    return exodus_user
+    try:
+        exodus_user = session.query(Exodus_Users).filter_by(telegram_id=telegram_id).first()
+        return exodus_user
+    except:
+        session.rollback()
 
 
 # Update
