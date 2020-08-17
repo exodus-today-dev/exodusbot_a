@@ -1,6 +1,5 @@
 import telebot
 from telebot import types
-from datetime import datetime, date, timedelta
 import config
 
 bot = telebot.TeleBot(config.API_TOKEN)
@@ -10,11 +9,11 @@ from models import *
 
 def get_status(text):
     if text == "green":
-        status = 'Зелёный \U0001F7E2'
+        status = '\U0001F7E2'
     elif text == "orange":
-        status = 'Оранжевый \U0001f7e0'
+        status = '\U0001f7e0'
     elif 'red' in text:
-        status = 'Красный \U0001F534'
+        status = '\U0001F534'
     return status
 
 
@@ -76,8 +75,10 @@ def notice_of_intent(event_id):
     bot.send_message(event.to_id, bot_text)
 
     # рассылка уведомлений другим помогающим
-    list_needy_id = set(read_rings_help(event.to_id).help_array)
-    list_needy_id.discard(event.from_id)
+    # list_needy_id = set(read_rings_help(event.to_id).help_array)
+    # list_needy_id.discard(event.from_id)
+
+    list_needy_id = get_my_socium(event.to_id)
 
     bot_text_for_all = f"{intent.create_date.strftime('%d %B %Y')}\n\
 Участник {user.first_name} {user.last_name} записал свое намерение помогать участнику {user_needy.first_name} {user_needy.last_name} на сумму: {intent.payment} {event.currency}\n\n\

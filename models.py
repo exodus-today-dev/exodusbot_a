@@ -582,3 +582,39 @@ def delete_requisites_user(requisites_id):
 
     session.delete(requisites_user)
     session.commit()
+
+
+# создаем список с моей сетью
+def get_my_socium(telegram_id):
+    # создаем список с теми, кто помогает мне
+    try:
+        list_needy_id = set(read_rings_help(telegram_id).help_array)
+    except:
+        list_needy_id = set()
+
+    list_send_notify = read_rings_help_in_help_array(telegram_id)
+
+    # добавляем в список тех, кому помогаю я
+    for row in list_send_notify:
+        list_needy_id.add(row.needy_id)
+
+    # добавляем в список людей, которые вместе со мной помогат кому то
+    for row in list_send_notify:
+        for id in row.help_array:
+            list_needy_id.add(id)
+            # люди, которым помогает кто-то из тех, с кем мы вместе помогаемкому то
+            list_other_needy = read_rings_help_in_help_array(id)
+            for id_other in list_other_needy:
+                list_needy_id.add(id_other.needy_id)
+
+    # добавляем в список еще помогающих от красного
+    # try:
+    #     list_red_needy = set(read_rings_help(telegram_id).help_array_red)
+    #     for i in list_red_needy:
+    #         list_needy_id.add(i)
+    # except:
+    #     list_red_needy = set()
+
+    # удаляем себя из списка
+    list_needy_id.discard(telegram_id)
+    return list_needy_id
