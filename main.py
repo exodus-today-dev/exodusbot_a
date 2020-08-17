@@ -3032,8 +3032,8 @@ def orange_menu_check(message):
 
 def green_red_wizard(message):
     markup = types.ReplyKeyboardMarkup()
-    btn1 = types.KeyboardButton(text='Зелёный \U0001F7E2')
-    btn2 = types.KeyboardButton(text='Красный \U0001F534')
+    btn1 = types.KeyboardButton(text='\U0001F7E2')
+    btn2 = types.KeyboardButton(text='\U0001F534')
     btn3 = types.KeyboardButton(text='Назад')
     markup.row(btn1, btn2)
     markup.row(btn3)
@@ -3044,9 +3044,9 @@ def green_red_wizard(message):
 def green_red_check(message):
     bot.delete_message(message.chat.id, message.message_id)
     text = message.text
-    if text == 'Зелёный \U0001F7E2':
+    if text == '\U0001F7E2':
         green_edit_wizard(message)
-    elif text == 'Красный \U0001F534':
+    elif text == '\U0001F534':
         red_edit_wizard(message)
     elif text == 'Назад':
         orange_status_wizard(message)
@@ -3063,10 +3063,10 @@ def green_edit_wizard(message):
     btn2 = types.KeyboardButton(text='Отмена')
     markup.row(btn1)
     markup.row(btn2)
-    msg = bot.send_message(message.chat.id, 'Вы собираетесь сменить статус на Зеленый\n\
+    msg = bot.send_message(message.chat.id, 'Вы собираетесь сменить статус на \U0001F7E2\n\
 Пожалуйста подтвердите смену статуса:\n\
 \n\
-Если ваш статус был Оранжевый или красный, все намерения участников в Вашу пользу будут автоматически удалены.\n\
+Если ваш статус был \U0001f7e0 или \U0001F534, все намерения участников в Вашу пользу будут автоматически удалены.\n\
 \n\
 Все обязательства участников в Вашу пользу останутся в силе. Посмотреть все обязательства можно в разделе главного меню "Транзакции" > "Все обязательства"',
                            reply_markup=markup)
@@ -3090,7 +3090,7 @@ def green_edit_wizard_check(message):
 
         for row in list_needy_id:
             try:
-                bot.send_message(row, 'Участник {} сменил статус на Зеленый'.format(telegram_name))
+                bot.send_message(row, 'Участник {} сменил статус на \U0001F7E2'.format(telegram_name))
                 # закрываем намерения и event
                 intention = read_intention(from_id=row, to_id=message.chat.id).all()
                 for id in intention:
@@ -3131,7 +3131,7 @@ def green_status_wizard(message):
     markup.row(btn1)
     markup.row(btn2)
     msg = bot.send_message(message.chat.id,
-                           'Ваш статус \U0001F7E2 (зелёный)\nСписок участников с которыми Вы связаны, '
+                           'Ваш статус \U0001F7E2\nСписок участников с которыми Вы связаны, '
                            'можно посмотреть в разделе главного меню "Участники"',
                            reply_markup=markup)
     bot.register_next_step_handler(msg, green_status_wizard_check)
@@ -3153,8 +3153,8 @@ def green_status_wizard_check(message):
 
 def select_orange_red(message):
     markup = types.ReplyKeyboardMarkup()
-    btn1 = types.KeyboardButton(text='Оранжевый \U0001f7e0')
-    btn2 = types.KeyboardButton(text='Красный \U0001F534')
+    btn1 = types.KeyboardButton(text='\U0001f7e0')
+    btn2 = types.KeyboardButton(text='\U0001F534')
     btn3 = types.KeyboardButton(text='Главное меню')
     markup.row(btn1, btn2)
     markup.row(btn3)
@@ -3165,10 +3165,10 @@ def select_orange_red(message):
 def check_orange_red(message):
     bot.delete_message(message.chat.id, message.message_id)
     text = message.text
-    if text == 'Оранжевый \U0001f7e0':
-        bot.send_message(message.chat.id, "Вы меняете статус на Оранжевый \U0001f7e0:")
+    if text == '\U0001f7e0':
+        bot.send_message(message.chat.id, "Вы меняете статус на \U0001f7e0:")
         orange_edit_wizard(message)
-    elif text == 'Красный \U0001F534':
+    elif text == '\U0001F534':
         red_edit_wizard(message)
     elif text == 'Главное меню':
         global_menu(message)
@@ -3209,9 +3209,9 @@ def red_status_wizard(message):
     # btn2 = types.KeyboardButton(text='Изменить статус')
     user_status = user.status
     if 'orange' in user_status:
-        btn2 = types.KeyboardButton(text='Вернуться к Оранжевому \U0001f7e0')
+        btn2 = types.KeyboardButton(text='Вернуться к \U0001f7e0') # orange
     if 'green' in user_status:
-        btn2 = types.KeyboardButton(text='Вернуться к Зеленому \U0001F7E2')
+        btn2 = types.KeyboardButton(text='Вернуться к \U0001F7E2') # green
     btn3 = types.KeyboardButton(text='Назад')
     markup.row(btn1)
     markup.row(btn2)
@@ -3378,7 +3378,7 @@ def red_edit_wizard_step4(message, link):
         telegram_name = read_exodus_user(message.chat.id).first_name
         for row in list_needy_id:
             try:
-                bot.send_message(row, 'Участник {} сменил статус на Красный'.format(telegram_name))
+                bot.send_message(row, 'Участник {} сменил статус на \U0001F534'.format(telegram_name))
             except:
                 continue
 
@@ -3400,13 +3400,12 @@ def red_edit_wizard_step4(message, link):
 #     msg = bot.send_message(message.chat.id, 'Выберите новый статус', reply_markup=markup)
 #     bot.register_next_step_handler(msg, green_orange_check)
 
-
 def green_orange_check(message):
     # bot.delete_message(message.chat.id, message.message_id)
     text = message.text
-    if 'Зелен' in text:
+    if '\U0001F7E2' in text:
         green_edit_wizard(message)
-    elif 'Оранж' in text:
+    elif '\U0001f7e0' in text:
         orange_edit_wizard(message)
     elif "/start" in text:
         welcome_base(message)
@@ -3420,8 +3419,8 @@ def green_orange_check(message):
 def orange_green_wizard(message):
     #    bot.delete_message(message.chat.id, message.message_id)
     markup = types.ReplyKeyboardMarkup()
-    btn1 = types.KeyboardButton(text='Оранжевый \U0001f7e0')
-    btn2 = types.KeyboardButton(text='Зелёный \U0001F7E2')
+    btn1 = types.KeyboardButton(text='\U0001f7e0')
+    btn2 = types.KeyboardButton(text='\U0001F7E2')
     markup.row(btn1, btn2)
     msg = bot.send_message(message.chat.id, 'Пожалуйста выберите Ваш статус', reply_markup=markup)
     bot.register_next_step_handler(msg, orange_green_wizard_step1)
@@ -3429,13 +3428,13 @@ def orange_green_wizard(message):
 
 def orange_green_wizard_step1(message):
     markup = types.ReplyKeyboardRemove(selective=False)
-    if message.text == 'Оранжевый \U0001f7e0':
-        bot.send_message(message.chat.id, 'Вы выбрали Оранжевый \U0001f7e0 статус', reply_markup=markup)
+    if message.text == '\U0001f7e0':
+        bot.send_message(message.chat.id, 'Вы выбрали \U0001f7e0 статус', reply_markup=markup)
         orange_edit_wizard(message)
         return
-    if message.text == 'Зелёный \U0001F7E2':
+    if message.text == '\U0001F7E2':
         bot.send_message(message.chat.id,
-                         'Ваш статус \U0001F7E2 (зелёный)\nСписок участников с которыми Вы связаны, можно посмотреть в разделе главного меню "Участники"',
+                         'Ваш статус \U0001F7E2\nСписок участников с которыми Вы связаны, можно посмотреть в разделе главного меню "Участники"',
                          reply_markup=markup)
         update_exodus_user(telegram_id=message.chat.id, status='green', min_payments=0, max_payments=0)
         global_menu(message, True)
@@ -3456,7 +3455,7 @@ def orange_edit_wizard(message):
         create_rings_help(user.telegram_id, [])
     if 'red' in user.status and user.min_payments != 0:
         bot.send_message(message.chat.id,
-                         'Ваш статус возвращается на оранжевый')
+                         'Ваш статус возвращается на \U0001f7e0')
         link = user.link
         if 'red' in user.status:
             payments = user.min_payments
@@ -3630,7 +3629,7 @@ def orange_step_final(message, link):
         telegram_name = read_exodus_user(message.chat.id).first_name
         for row in list_needy_id:
             try:
-                bot.send_message(row, 'Участник {} сменил статус на Оранжевый'.format(telegram_name))
+                bot.send_message(row, 'Участник {} сменил статус на \U0001f7e0'.format(telegram_name))
             except:
                 continue
 

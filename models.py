@@ -602,14 +602,18 @@ def get_my_socium(telegram_id):
     for row in list_send_notify:
         for id in row.help_array:
             list_needy_id.add(id)
+            # люди, которым помогает кто-то из тех, с кем мы вместе помогаемкому то
+            list_other_needy = read_rings_help_in_help_array(id)
+            for id_other in list_other_needy:
+                list_needy_id.add(id_other.needy_id)
 
     # добавляем в список еще помогающих от красного
-    try:
-        list_red_needy = set(read_rings_help(telegram_id).help_array_red)
-        for i in list_red_needy:
-            list_needy_id.add(i)
-    except:
-        list_red_needy = set()
+    # try:
+    #     list_red_needy = set(read_rings_help(telegram_id).help_array_red)
+    #     for i in list_red_needy:
+    #         list_needy_id.add(i)
+    # except:
+    #     list_red_needy = set()
 
     # удаляем себя из списка
     list_needy_id.discard(telegram_id)
