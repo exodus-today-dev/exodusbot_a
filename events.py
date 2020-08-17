@@ -5,16 +5,7 @@ import config
 bot = telebot.TeleBot(config.API_TOKEN)
 
 from models import *
-
-
-def get_status(text):
-    if text == "green":
-        status = '\U0001F7E2'
-    elif text == "orange":
-        status = '\U0001f7e0'
-    elif 'red' in text:
-        status = '\U0001F534'
-    return status
+from symbols import *
 
 
 def invitation_help_orange(event_id):
@@ -56,6 +47,7 @@ def notice_of_intent(event_id):
     print('Отправлено-{}'.format(event_id))
 
     status = get_status(user_needy.status)
+    status_from = get_status(user.status)
     ring = read_rings_help(user_needy.telegram_id)
     already_payments_oblig = get_intention_sum(user_needy.telegram_id, statuses=(11, 12, 13))
     already_payments_intent = get_intention_sum(user_needy.telegram_id, statuses=(1,))
@@ -68,10 +60,10 @@ def notice_of_intent(event_id):
         users_count = len(set(ring.help_array))
 
     bot_text = f"{intent.create_date.strftime('%d %B %Y')}\n\
-Участник {user.first_name} {user.last_name} записал свое намерение помогать Вам на сумму: {intent.payment} {event.currency}\n\
+{user.first_name} {user.last_name} {status_from} {RIGHT_ARROW} {HEART_RED} {intent.payment}\n\
 Вы - {status}\n\
 {left_sum}/{right_sum}\n\
-Вам помогают: {users_count}"
+Помогают: {users_count}"
     bot.send_message(event.to_id, bot_text)
 
     # рассылка уведомлений другим помогающим
@@ -79,12 +71,13 @@ def notice_of_intent(event_id):
     # list_needy_id.discard(event.from_id)
 
     list_needy_id = get_my_socium(event.to_id)
+    list_needy_id.discard(event.from_id)
 
     bot_text_for_all = f"{intent.create_date.strftime('%d %B %Y')}\n\
-Участник {user.first_name} {user.last_name} записал свое намерение помогать участнику {user_needy.first_name} {user_needy.last_name} на сумму: {intent.payment} {event.currency}\n\n\
-Участник {user_needy.first_name} {user_needy.last_name} - {status}\n\
+{user.first_name} {user.last_name} {status_from} {RIGHT_ARROW} {HEART_RED} {user_needy.first_name} {user_needy.last_name} на сумму: {intent.payment}\n\n\
+{user_needy.first_name} {user_needy.last_name} - {status}\n\
 {left_sum}/{right_sum}\n\
-Уже помогают: {users_count}"
+Помогают: {users_count}"
 
     print(list_needy_id)
     for id in list_needy_id:
@@ -96,12 +89,14 @@ def obligation_sended_notice(event_id):
     event = read_event(event_id)
 
     user = read_exodus_user(telegram_id=event.from_id)
+    status_from = get_status(user.status)
     first_name = user.first_name
     last_name = user.last_name
-    intent = read_intention_with_payment(event.from_id, event.to_id, event.current_payments, 12)  # check status
 
+    intent = read_intention_with_payment(event.from_id, event.to_id, event.current_payments, 12)  # check status
     intention_id = intent.intention_id
     intention = read_intention_by_id(intention_id)
+
     user_to = read_exodus_user(telegram_id=intention.to_id)
     requisites = read_requisites_user(user_to.telegram_id)
     if requisites == []:
@@ -118,11 +113,13 @@ def obligation_sended_notice(event_id):
     # requisites_name = requisites.name
     # requisites_value = requisites.value
 
-    message = 'Участник {first_name} {last_name} исполнил ' \
-              'обязательства на сумму {sum} {currency}.\n\n' \
+    message = '{first_name} {last_name} {status_from} {RIGHT_ARROW} ' \
+              '{HANDSHAKE} на сумму {sum}.\n\n' \
               'Пожалуйста, проверьте Ваши реквизиты {req_name} {req_value} и ' \
               'подтвердите получение:'.format(first_name=first_name,
                                               last_name=last_name,
+                                              status_from=status_from, RIGHT_ARROW=RIGHT_ARROW,
+                                              HANDSHAKE=HANDSHAKE,
                                               sum=sum, currency=currency,
                                               req_name=req_name,
                                               req_value=req_value)
@@ -159,8 +156,8 @@ def obligation_recieved_notice(event_id):
         users_count = len(set(ring.help_array))
 
     # confirmation_of_an_obligation(event.from_id, user.first_name, event.current_payments, event.currency)
-    bot_text = f"Участник {user.first_name} подтвердил, что ваше обязательство на сумму {event.current_payments} {event.currency} исполнено.\n\n\
-Участник {user.first_name} {user.last_name} - {status}\n\
+    bot_text = f"{user.first_name} подтвердил, что ваше обязательство на сумму {event.current_payments} {event.currency} исполнено.\n\n\
+{user.first_name} {user.last_name} - {status}\n\
 {left_sum}/{right_sum}"
     bot.send_message(event.from_id, bot_text)
     # update_event(event_id, True)
@@ -174,7 +171,7 @@ def reminder_for_6_10(event_id):
     first_name = user.first_name
 
     message = 'Требуется ваше действие!' \
-              'Участник {first_name} исполнил ' \
+              '{first_name} исполнил ' \
               'обязательство на сумму {sum} {currency}.' \
               'Это произошло болеее 5 дней назад, но вы так и не подтвердили получение средств.\n\n' \
               'Пожалуйста, проверьте Ваши реквизиты и ' \
