@@ -1236,9 +1236,9 @@ def for_other_check(message):
     elif text == 'Обязательства (0)':
         msg = bot.send_message(message.chat.id, 'у Вас нет обязательств')
         bot.register_next_step_handler(msg, for_other_check)
-    elif text[0:9] == f'{HEART_RED}':
+    elif f'{HEART_RED}' in text:
         for_other_wizard_intention(message)
-    elif text[0:13] == 'Обязательства':
+    elif 'Обязательства' in text:
         bot.send_message(message.chat.id, 'Обязательства')
         for_other_wizard_obligation(message)
     elif text == 'Назад':
@@ -1770,9 +1770,9 @@ def for_my_check(message):
     elif text == 'Обязательства (0)':
         msg = bot.send_message(message.chat.id, 'у Вас нет обязательств')
         bot.register_next_step_handler(msg, for_my_check)
-    elif text[0:9] == f'{HEART_RED}':
+    elif f'{HEART_RED}' in text:
         for_my_wizard_intention(message)
-    elif text[0:13] == 'Обязательства':
+    elif 'Обязательства' in text:
         for_my_wizard_obligation(message)
     elif text == 'Назад':
         bot.clear_step_handler(message)
