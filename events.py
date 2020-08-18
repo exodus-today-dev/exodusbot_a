@@ -60,7 +60,7 @@ def notice_of_intent(event_id):
         users_count = len(set(ring.help_array))
 
     bot_text = f"{intent.create_date.strftime('%d %B %Y')}\n\
-{user.first_name} {user.last_name} {status_from} {RIGHT_ARROW} {HEART_RED} {intent.payment}\n\
+{user.first_name} {user.last_name} {status_from}  {RIGHT_ARROW}  {HEART_RED} {intent.payment}\n\
 Вы - {status}\n\
 {left_sum}/{right_sum}\n\
 Помогают: {users_count}"
@@ -74,7 +74,7 @@ def notice_of_intent(event_id):
     list_needy_id.discard(event.from_id)
 
     bot_text_for_all = f"{intent.create_date.strftime('%d %B %Y')}\n\
-{user.first_name} {user.last_name} {status_from} {RIGHT_ARROW} {HEART_RED} {user_needy.first_name} {user_needy.last_name} на сумму: {intent.payment}\n\n\
+{user.first_name} {user.last_name} {status_from}  {RIGHT_ARROW}  {HEART_RED} {user_needy.first_name} {user_needy.last_name} на сумму: {intent.payment}\n\n\
 {user_needy.first_name} {user_needy.last_name} - {status}\n\
 {left_sum}/{right_sum}\n\
 Помогают: {users_count}"
@@ -155,7 +155,7 @@ def obligation_recieved_notice(event_id):
         users_count = len(set(ring.help_array))
 
     # confirmation_of_an_obligation(event.from_id, user.first_name, event.current_payments, event.currency)
-    bot_text = f"{user.first_name} подтвердил, что ваше {HANDSHAKE} на сумму {event.current_payments} {event.currency} исполнено.\n\n\
+    bot_text = f"{user.first_name} {user.last_name} подтвердил, что ваше {HANDSHAKE} на сумму {event.current_payments} {event.currency} исполнено.\n\n\
 {user.first_name} {user.last_name} - {status}\n\
 {left_sum}/{right_sum}"
     bot.send_message(event.from_id, bot_text)
@@ -211,7 +211,7 @@ def obligation_money_requested_notice(event_id):
 
 def reminder(event_id, direction=None):
     event = read_event(event_id)
-    user = read_exodus_user(telegram_id=event.from_id)
+    # user = read_exodus_user(telegram_id=event.from_id)
 
     message = "Для вас есть уведомление:"
     keyboard = types.InlineKeyboardMarkup()
