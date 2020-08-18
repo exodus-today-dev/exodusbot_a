@@ -1492,23 +1492,26 @@ def cancel_intention_check(message):
         update_intention(intention_id, status=0)
         update_event_status_code(intention.event_id, CLOSED)
         bot.send_message(message.chat.id, bot_text)
+
+        user_from = read_exodus_user(message.chat.id)
+
+        text_for_needy = 'Участник {} {} отменил своё {} в Вашу пользу на сумму {} {}'.format(
+                    user_from.first_name, user_from.last_name, HEART_RED, intention.payment, intention.currency)
+        bot.send_message(intention.to_id, text_for_needy)
+
         # рассылка уведомлений
-        list_needy_id = set(read_rings_help(intention.to_id).help_array)
-        telegram_name = read_exodus_user(message.chat.id).first_name
+        list_needy_id = get_my_socium(message.chat.id)
 
-        list_send_notify = read_rings_help_in_help_array(message.chat.id)
-
-        for row in list_send_notify:
-            list_needy_id.add(row.needy_id)
-
-        list_needy_id.discard(message.chat.id)
+        list_needy_id.discard(intention.to_id)
         # удаление из круга
         delete_from_help_array(intention.to_id, message.chat.id)
 
+        text_for_all = 'Участник {} {} отменил своё {} {} {} на сумму {} {}'.format(
+                    user_from.first_name, user_from.last_name, HEART_RED, user_to.first_name, user_to.last_name, intention.payment, intention.currency)
+
         for row in list_needy_id:
             try:
-                bot.send_message(row, 'Участник {} отменил своё {} {} {} на сумму {} {}'.format(
-                    telegram_name, user_to.first_name, HEART_RED, user_to.last_name, intention.payment, intention.currency))
+                bot.send_message(row, text_for_all)
             except:
                 continue
 
