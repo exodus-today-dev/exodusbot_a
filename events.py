@@ -141,7 +141,6 @@ def obligation_sended_notice(event_id):
 def obligation_recieved_notice(event_id):
     event = read_event(event_id)
     user = read_exodus_user(telegram_id=event.to_id)
-    print(user.first_name)
     status = get_status(user.status)
 
     ring = read_rings_help(user.telegram_id)
@@ -156,7 +155,7 @@ def obligation_recieved_notice(event_id):
         users_count = len(set(ring.help_array))
 
     # confirmation_of_an_obligation(event.from_id, user.first_name, event.current_payments, event.currency)
-    bot_text = f"{user.first_name} подтвердил, что ваше обязательство на сумму {event.current_payments} {event.currency} исполнено.\n\n\
+    bot_text = f"{user.first_name} подтвердил, что ваше {HANDSHAKE} на сумму {event.current_payments} {event.currency} исполнено.\n\n\
 {user.first_name} {user.last_name} - {status}\n\
 {left_sum}/{right_sum}"
     bot.send_message(event.from_id, bot_text)
@@ -172,10 +171,10 @@ def reminder_for_6_10(event_id):
 
     message = 'Требуется ваше действие!' \
               '{first_name} исполнил ' \
-              'обязательство на сумму {sum} {currency}.' \
+              '{HANDSHAKE} на сумму {sum} {currency}.' \
               'Это произошло болеее 5 дней назад, но вы так и не подтвердили получение средств.\n\n' \
               'Пожалуйста, проверьте Ваши реквизиты и ' \
-              'подтвердите получение:'.format(first_name=first_name,
+              'подтвердите получение:'.format(first_name=first_name, HANDSHAKE=HANDSHAKE,
                                               sum=event.current_payments, currency=event.currency)
 
     keyboard = types.InlineKeyboardMarkup()
