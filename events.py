@@ -57,10 +57,14 @@ def notice_of_intent(event_id):
     if ring is None:
         users_count = 0
     else:
-        users_count = len(set(ring.help_array))
+        try:
+            users_count = len(set(ring.help_array_orange))
+        except:
+            users_count = 0
+
 
     bot_text = f"{intent.create_date.strftime('%d %B %Y')}\n\
-{user.first_name} {user.last_name} {status_from} {RIGHT_ARROW} {HEART_RED} {intent.payment}\n\
+{user.first_name} {user.last_name} {status_from}  {RIGHT_ARROW}  {HEART_RED} {intent.payment}\n\
 Вы - {status}\n\
 {left_sum}/{right_sum}\n\
 Помогают: {users_count}"
@@ -74,12 +78,11 @@ def notice_of_intent(event_id):
     list_needy_id.discard(event.from_id)
 
     bot_text_for_all = f"{intent.create_date.strftime('%d %B %Y')}\n\
-{user.first_name} {user.last_name} {status_from} {RIGHT_ARROW} {HEART_RED} {user_needy.first_name} {user_needy.last_name} на сумму: {intent.payment}\n\n\
+{user.first_name} {user.last_name} {status_from}  {RIGHT_ARROW}  {HEART_RED} {user_needy.first_name} {user_needy.last_name} на сумму: {intent.payment}\n\n\
 {user_needy.first_name} {user_needy.last_name} - {status}\n\
 {left_sum}/{right_sum}\n\
 Помогают: {users_count}"
 
-    print(list_needy_id)
     for id in list_needy_id:
         bot.send_message(id, bot_text_for_all)
 
@@ -141,22 +144,15 @@ def obligation_sended_notice(event_id):
 def obligation_recieved_notice(event_id):
     event = read_event(event_id)
     user = read_exodus_user(telegram_id=event.to_id)
-    print(user.first_name)
     status = get_status(user.status)
 
-    ring = read_rings_help(user.telegram_id)
     already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
     already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
     left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
     right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
 
-    if ring is None:
-        users_count = 0
-    else:
-        users_count = len(set(ring.help_array))
-
     # confirmation_of_an_obligation(event.from_id, user.first_name, event.current_payments, event.currency)
-    bot_text = f"{user.first_name} подтвердил, что ваше обязательство на сумму {event.current_payments} {event.currency} исполнено.\n\n\
+    bot_text = f"{user.first_name} {user.last_name} подтвердил, что ваше {HANDSHAKE} на сумму {event.current_payments} {event.currency} исполнено.\n\n\
 {user.first_name} {user.last_name} - {status}\n\
 {left_sum}/{right_sum}"
     bot.send_message(event.from_id, bot_text)
@@ -172,10 +168,10 @@ def reminder_for_6_10(event_id):
 
     message = 'Требуется ваше действие!' \
               '{first_name} исполнил ' \
-              'обязательство на сумму {sum} {currency}.' \
+              '{HANDSHAKE} на сумму {sum} {currency}.' \
               'Это произошло болеее 5 дней назад, но вы так и не подтвердили получение средств.\n\n' \
               'Пожалуйста, проверьте Ваши реквизиты и ' \
-              'подтвердите получение:'.format(first_name=first_name,
+              'подтвердите получение:'.format(first_name=first_name, HANDSHAKE=HANDSHAKE,
                                               sum=event.current_payments, currency=event.currency)
 
     keyboard = types.InlineKeyboardMarkup()
@@ -212,7 +208,7 @@ def obligation_money_requested_notice(event_id):
 
 def reminder(event_id, direction=None):
     event = read_event(event_id)
-    user = read_exodus_user(telegram_id=event.from_id)
+    # user = read_exodus_user(telegram_id=event.from_id)
 
     message = "Для вас есть уведомление:"
     keyboard = types.InlineKeyboardMarkup()
@@ -239,6 +235,7 @@ def check_border_first_date():
         if intention.status == 1:
             update_intention(intention.intention_id, status=0)
             update_event_status_code(intention.event_id, CLOSED)
+            delete_from_help_array_all(intention.to_id, intention.from_id)
         elif intention.status == 11:
             update_event_status_code(intention.event_id, LAST_REMIND)
             create_event(from_id=intention.from_id,

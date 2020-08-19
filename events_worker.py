@@ -33,12 +33,7 @@ def read():
     all = session.query(Events).filter_by(sent=False)
     current_date = date.today()
 
-    # if (datetime.now() + timedelta(days=3)).day == 1:
-    #     check_border_before_3_days()
-    # elif datetime.now().day == 1:
-    #     check_border_first_date()
-
-    if (datetime.now() + timedelta(days=3)).day == 8:
+    if (datetime.now() + timedelta(days=3)).day == 1:
         check_border_before_3_days()
     elif datetime.now().day == 1:
         check_border_first_date()
@@ -89,9 +84,9 @@ def read():
             reminder(event.event_id, direction='in')  # 6.8
 
         # 6.10
-        if event.type == 'obligation_sended' and (current_date - timedelta(days=5)) == event.reminder_date or (
+        if event.type == 'obligation_sended' and (current_date - timedelta(days=3)) == event.reminder_date or (
                 current_date - timedelta(
-            days=5)) > event.reminder_date and event.event_id not in list_event_id_for_6_10:
+            days=3)) > event.reminder_date and event.event_id not in list_event_id_for_6_10:
             list_event_id_for_6_10.append(event.event_id)
             reminder_for_6_10(event.event_id)
 

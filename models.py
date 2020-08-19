@@ -5,7 +5,6 @@ from sqlalchemy import create_engine, Column, Integer, String, Float, Date, Bool
     ForeignKey, update
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
-from sqlalchemy.testing import in_
 
 import config
 from status_codes import *
@@ -15,9 +14,10 @@ base = declarative_base()
 
 Session = sessionmaker(db)
 session = Session()
-
 base.metadata.create_all(db)
 
+
+# region Модели бд ORM
 
 # добавил внешнюю связь для двух таблиц events и intention, в надежде, что это поможет при обновлении статуса с 12 на 13
 class Events(base):
@@ -93,8 +93,9 @@ class Rings_Help(base):
 
     rings_id = Column(Integer, primary_key=True)
     needy_id = Column(Integer, unique=True)
-    help_array = Column(ARRAY(Integer))
+    help_array_orange = Column(ARRAY(Integer))
     help_array_red = Column(ARRAY(Integer))
+    help_array_all = Column(ARRAY(Integer))
 
 
 class Temp_Intention(base):
@@ -106,10 +107,14 @@ class Temp_Intention(base):
     intention_array = Column(ARRAY(Integer))
 
 
+# endregion
+
 Session = sessionmaker(db)
 session = Session()
 base.metadata.create_all(db)
 
+
+# region temp_intention
 
 def create_temp_intention(to_id, status, intention_array):
     temp = Temp_Intention(to_id=to_id, status=status, intention_array=intention_array)
@@ -131,6 +136,9 @@ def read_all_temp_intention(to_id):
     return session.query(Temp_Intention).filter_by(to_id=to_id).all()
 
 
+# endregion
+
+# region exodus_user
 # Create
 def create_exodus_user(telegram_id, first_name, last_name, username, ref='', link='', min_payments=0,
                        current_payments=0, max_payments=0, currency='USD', status='', days=0, start_date=date.today()):
@@ -221,6 +229,10 @@ def delete_exodus_user(telegram_id):
     session.commit()
 
 
+# endregion
+
+# region events
+
 def create_event(from_id, first_name, last_name, status, type, min_payments, current_payments,
                  max_payments, currency, users, to_id, reminder_date, sent=False, status_code=None, intention=None):
     event = Events(from_id=from_id,
@@ -309,8 +321,12 @@ def delete_event_new_status(to_id):
     session.commit()
 
 
-def create_rings_help(needy_id, help_array=None, help_array_red=None):
-    ring = Rings_Help(needy_id=needy_id, help_array=help_array, help_array_red=help_array_red)
+# endregion
+
+# region rings_help
+
+def create_rings_help(needy_id, help_array_orange=[], help_array_red=[], help_array_all=[]):
+    ring = Rings_Help(needy_id=needy_id, help_array_orange=help_array_orange, help_array_red=help_array_red, help_array_all=help_array_all)
     # try:
     #     session.add(ring)
     #     session.commit()
@@ -326,21 +342,22 @@ def read_rings_help(needy_id):
     return ring
 
 
-def read_rings_help_in_help_array(telegram_id):
-    list_send_notify = session.query(Rings_Help).filter(Rings_Help.help_array.any(telegram_id)).all()
+def read_rings_help_in_help_array_all(telegram_id):
+    list_send_notify = session.query(Rings_Help).filter(Rings_Help.help_array_all.any(telegram_id)).all()
     return list_send_notify
 
 
-def update_rings_help(needy_id, help_array):
+def update_orange_rings_help(needy_id, help_array_orange):
     #    ring = session.query(Rings_Help).filter_by(needy_id=needy_id).first()      # так почему-то не работатет
     #    ring.help_array = help_array
     #    session.commit()
     with db.connect() as conn:
-        u = text('UPDATE rings_help SET help_array = :q WHERE needy_id = :id')  # так работает
-        conn.execute(u, q=help_array, id=needy_id)
+        u = text('UPDATE rings_help SET help_array_orange = :q WHERE needy_id = :id')  # так работает
+        conn.execute(u, q=help_array_orange, id=needy_id)
 
 
 def update_rings_help_array_red(needy_id, help_array_red):
+    print(needy_id, ' ',help_array_red)
     #    ring = session.query(Rings_Help).filter_by(needy_id=needy_id).first()      # так почему-то не работатет
     #    ring.help_array = help_array
     #    session.commit()
@@ -349,17 +366,47 @@ def update_rings_help_array_red(needy_id, help_array_red):
         conn.execute(u, q=help_array_red, id=needy_id)
 
 
-def delete_from_help_array(needy_id, delete_id):
+def update_rings_help_array_all(needy_id, help_array_all):
+    print(needy_id, ' ',help_array_all)
+    #    ring = session.query(Rings_Help).filter_by(needy_id=needy_id).first()      # так почему-то не работатет
+    #    ring.help_array = help_array
+    #    session.commit()
+    with db.connect() as conn:
+        u = text('UPDATE rings_help SET help_array_all = :q WHERE needy_id = :id')  # так работает
+        conn.execute(u, q=help_array_all, id=needy_id)
+
+
+def delete_from_orange_help_array(needy_id, delete_id):
     """
     :param needy_id: в пользу кого была помощь
     :param delete_id: кто перестал помогать и вышел из круга
     :return:
     """
-
-    rings_help = set(read_rings_help(needy_id).help_array)
+    try:
+        rings_help = set(read_rings_help(needy_id).help_array_orange)
+    except:
+        rings_help = set()
     rings_help.discard(delete_id)
-    update_rings_help(needy_id, list(rings_help))
+    update_orange_rings_help(needy_id, list(rings_help))
 
+
+def delete_from_help_array_all(needy_id, delete_id):
+    """
+    :param needy_id: в пользу кого была помощь
+    :param delete_id: кто перестал помогать и вышел из круга
+    :return:
+    """
+    try:
+        rings_help = set(read_rings_help(needy_id).help_array_all)
+    except:
+        rings_help = set()
+    rings_help.discard(delete_id)
+    update_rings_help_array_all(needy_id, list(rings_help))
+
+
+# endregion
+
+# region intention
 
 def create_intention(from_id, to_id, payment, currency, status=None, event_id=None):
     intention = Intention(from_id=from_id, to_id=to_id, payment=payment, currency=currency, status=status,
@@ -476,33 +523,9 @@ def delete_intention(to_id, status):
         session.rollback()
 
 
-def freez_events(to_id):
-    session.query(Events).filter_by(to_id=to_id, status_code=NEW_ORANGE_STATUS).update(
-        {'status_code': NEW_ORANGE_STATUS_F})
-    session.query(Events).filter_by(to_id=to_id, status_code=NEW_RED_STATUS).update(
-        {'status_code': NEW_RED_STATUS_F})
-    session.query(Events).filter_by(to_id=to_id, status_code=APPROVE_ORANGE_STATUS).update(
-        {'status_code': APPROVE_ORANGE_STATUS_F})
-    session.query(Events).filter_by(to_id=to_id, status_code=APPROVE_RED_STATUS).update(
-        {'status_code': APPROVE_RED_STATUS_F})
+# endregion
 
-    session.commit()
-
-
-def unfreez_events(to_id):
-    session.query(Events).filter_by(to_id=to_id, status_code=NEW_ORANGE_STATUS_F).update(
-        {'status_code': NEW_ORANGE_STATUS})
-    session.query(Events).filter_by(to_id=to_id, status_code=NEW_RED_STATUS_F).update(
-        {'status_code': NEW_RED_STATUS})
-    session.query(Events).filter_by(to_id=to_id, status_code=APPROVE_ORANGE_STATUS_F).update(
-        {'status_code': APPROVE_ORANGE_STATUS})
-    session.query(Events).filter_by(to_id=to_id, status_code=APPROVE_RED_STATUS_F).update(
-        {'status_code': APPROVE_RED_STATUS})
-
-    session.commit()
-
-
-# -----------------------requisites-------------------
+# region requisites
 # Create
 def create_requisites_user(telegram_id, name='', value='', is_default=False):
     requisites = Requisites(telegram_id=telegram_id,
@@ -584,37 +607,57 @@ def delete_requisites_user(requisites_id):
     session.commit()
 
 
+# endregion
+
+
 # создаем список с моей сетью
 def get_my_socium(telegram_id):
     # создаем список с теми, кто помогает мне
     try:
-        list_needy_id = set(read_rings_help(telegram_id).help_array)
+        list_needy_id = set(read_rings_help(telegram_id).help_array_all)
     except:
         list_needy_id = set()
-
-    list_send_notify = read_rings_help_in_help_array(telegram_id)
-
+    list_send_notify = read_rings_help_in_help_array_all(telegram_id)
     # добавляем в список тех, кому помогаю я
     for row in list_send_notify:
         list_needy_id.add(row.needy_id)
 
     # добавляем в список людей, которые вместе со мной помогат кому то
     for row in list_send_notify:
-        for id in row.help_array:
+        for id in row.help_array_all:
             list_needy_id.add(id)
-            # люди, которым помогает кто-то из тех, с кем мы вместе помогаемкому то
-            list_other_needy = read_rings_help_in_help_array(id)
+            # люди, которым помогает кто-то из тех, с кем мы вместе помогаем кому то
+            list_other_needy = read_rings_help_in_help_array_all(id)
             for id_other in list_other_needy:
                 list_needy_id.add(id_other.needy_id)
 
-    # добавляем в список еще помогающих от красного
-    # try:
-    #     list_red_needy = set(read_rings_help(telegram_id).help_array_red)
-    #     for i in list_red_needy:
-    #         list_needy_id.add(i)
-    # except:
-    #     list_red_needy = set()
-
     # удаляем себя из списка
     list_needy_id.discard(telegram_id)
+
     return list_needy_id
+
+
+def freez_events(to_id):
+    session.query(Events).filter_by(to_id=to_id, status_code=NEW_ORANGE_STATUS).update(
+        {'status_code': NEW_ORANGE_STATUS_F})
+    session.query(Events).filter_by(to_id=to_id, status_code=NEW_RED_STATUS).update(
+        {'status_code': NEW_RED_STATUS_F})
+    session.query(Events).filter_by(to_id=to_id, status_code=APPROVE_ORANGE_STATUS).update(
+        {'status_code': APPROVE_ORANGE_STATUS_F})
+    session.query(Events).filter_by(to_id=to_id, status_code=APPROVE_RED_STATUS).update(
+        {'status_code': APPROVE_RED_STATUS_F})
+
+    session.commit()
+
+
+def unfreez_events(to_id):
+    session.query(Events).filter_by(to_id=to_id, status_code=NEW_ORANGE_STATUS_F).update(
+        {'status_code': NEW_ORANGE_STATUS})
+    session.query(Events).filter_by(to_id=to_id, status_code=NEW_RED_STATUS_F).update(
+        {'status_code': NEW_RED_STATUS})
+    session.query(Events).filter_by(to_id=to_id, status_code=APPROVE_ORANGE_STATUS_F).update(
+        {'status_code': APPROVE_ORANGE_STATUS})
+    session.query(Events).filter_by(to_id=to_id, status_code=APPROVE_RED_STATUS_F).update(
+        {'status_code': APPROVE_RED_STATUS})
+
+    session.commit()

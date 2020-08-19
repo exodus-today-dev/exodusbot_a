@@ -6,7 +6,10 @@ HEART_RED = '\U00002764'
 HANDSHAKE = '\U0001F91D'
 HELP = '\U0001F64F'
 
-RIGHT_ARROW = '\U000027A1'
+RIGHT_ARROW = '->'
+PLUS = '\U00002795'
+MINUS = '\U00002796'
+
 
 def get_status(text):
     if text == "green":
