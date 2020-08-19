@@ -523,15 +523,15 @@ def transactions_menu(message):
     bot_text = f"Статус: {status}\n\
 \n\
 {HEART_RED}: \n\
-{PLUS}: {me_intent} {user.currency}\n\
-{MINUS}: {my_intent} {user.currency}\n\
+В мою пользу: {me_intent} {user.currency}\n\
+В пользу других: {my_intent} {user.currency}\n\
 \n\
 {HANDSHAKE}: \n\
-{PLUS}: {me_obligation} {user.currency}\n\
-{MINUS}: {my_obligation} {user.currency}\n"
+В мою пользу: {me_obligation} {user.currency}\n\
+В пользу других: {my_obligation} {user.currency}\n"
     markup = types.ReplyKeyboardMarkup()
-    btn1 = types.KeyboardButton(text=f'{MINUS}')
-    btn2 = types.KeyboardButton(text=f'{PLUS}')
+    btn1 = types.KeyboardButton(text='В пользу других')
+    btn2 = types.KeyboardButton(text='В мою пользу')
     #    btn3 = types.KeyboardButton(text='За всё время')
     btn4 = types.KeyboardButton(text='Не исполненные')
     btn5 = types.KeyboardButton(text='Главное меню')
@@ -546,10 +546,10 @@ def transactions_menu(message):
 def transactions_check(message):
     text = message.text
     bot.delete_message(message.chat.id, message.message_id)
-    if text == MINUS:
+    if text == 'В пользу других':
         for_other_wizard(message)
         return
-    elif text == PLUS:
+    elif text == 'В мою пользу':
         for_my_wizard(message)
         return
     # elif text == 'За всё время':
@@ -1496,6 +1496,7 @@ def cancel_intention_check(message):
 
         # удаление из оранжевого статуса и всего круга
         delete_from_orange_help_array(intention.to_id, message.chat.id)
+        print(intention.to_id, message.chat.id)
         delete_from_help_array_all(intention.to_id, message.chat.id)
 
         text_for_all = '{} {} отменил своё {} {} {} на сумму {} {}'.format(
@@ -3075,7 +3076,7 @@ def green_red_check(message):
     if text == GREEN_BALL:
         green_edit_wizard(message)
     elif text == RED_BALL:
-        check_red_edit_wizard(message)
+        red_edit_wizard(message)
     elif text == 'Назад':
         orange_status_wizard(message)
     elif "/start" in text:
@@ -3204,7 +3205,7 @@ def check_orange_red(message):
         bot.send_message(message.chat.id, f"Вы меняете статус на {ORANGE_BALL}:")
         orange_edit_wizard(message)
     elif text == RED_BALL:
-        check_red_edit_wizard(message)
+        red_edit_wizard(message)
     elif text == 'Главное меню':
         global_menu(message)
     elif "/start" in text:
@@ -3276,34 +3277,6 @@ def red_status_wizard_check(message):
 
 
 # ------------------ RED WIZARD 2.2 ---------------
-def check_red_edit_wizard(message):
-    markup = types.ReplyKeyboardMarkup()
-    btn1 = types.KeyboardButton(text='Да, изменить')
-    btn2 = types.KeyboardButton(text='Нет, вернуться назад')
-    markup.row(btn1)
-    markup.row(btn2)
-    msg = bot.send_message(message.chat.id, f'Вы собираетесь сменить статус на {RED_BALL}\n\
-Пожалуйста подтвердите смену статуса', reply_markup=markup)
-    bot.register_next_step_handler(msg, check_answer_red_wizard)
-
-def check_answer_red_wizard(message):
-    bot.delete_message(message.chat.id, message.message_id)
-    text = message.text
-    user = read_exodus_user(message.chat.id)
-    if text == 'Да, изменить':
-        red_edit_wizard(message)
-    elif text == 'Нет, вернуться назад':
-        if user.status == 'orange':
-            green_red_wizard(message)
-        elif user.status == 'green':
-            select_orange_red(message)
-
-    elif text == 'Главное меню':
-        global_menu(message)
-    elif "/start" in text:
-        welcome_base(message)
-
-
 def red_edit_wizard(message):
     """2.2"""
     user = read_exodus_user(message.chat.id)
@@ -3312,7 +3285,10 @@ def red_edit_wizard(message):
 
     if read_rings_help(user.telegram_id) is None:
         create_rings_help(user.telegram_id, [])
-    markup = types.ReplyKeyboardRemove(selective=False)
+    # markup = types.ReplyKeyboardRemove(selective=False)
+    btn1 = types.KeyboardButton(text='Отмена')
+    markup = types.ReplyKeyboardMarkup()
+    markup.row(btn1)
 
     msg = bot.send_message(message.chat.id, 'Введите сумму в {}, которая Вам необходима:'.format(user.currency),
                            reply_markup=markup)
@@ -3325,14 +3301,17 @@ def red_edit_wizard_step1(message):
     chat_id = message.chat.id
 
     text = message.text
+    if 'Отмена' in text:
+        select_orange_red(message)
+        return
     if not is_digit(text):
         msg = bot.send_message(chat_id,
                                'Сумма должна быть только в виде цифр. Введите сумму в {}, которая Вам необходима:'.format(
                                    user.currency))
         bot.register_next_step_handler(msg, red_edit_wizard_step1)
         return
-    user_dict[chat_id].max_payments = float(text)
-    msg = bot.send_message(chat_id, 'Введите кол-во дней, в течении которых вам необходимо собрать эту сумму:')
+    user_dict[message.chat.id].max_payments = float(text)
+    msg = bot.send_message(message.chat.id, 'Введите кол-во дней, в течении которых вам необходимо собрать эту сумму:')
     bot.register_next_step_handler(msg, red_edit_wizard_step3)
 
 
@@ -3555,37 +3534,14 @@ def orange_edit_wizard(message):
 Все пользователи, которые связаны с вами внутри Эксодус бота, получат уведомление.', reply_markup=markup)
         bot.register_next_step_handler(msg, orange_step_final, link)
     else:
-        check_orange_green_edit_wizard(message)
-
-
-def check_orange_green_edit_wizard(message):
-    markup = types.ReplyKeyboardMarkup()
-    btn1 = types.KeyboardButton(text='Да, изменить')
-    btn2 = types.KeyboardButton(text='Нет, вернуться назад')
-    markup.row(btn1)
-    markup.row(btn2)
-    msg = bot.send_message(message.chat.id, f'Вы собираетесь сменить статус на {ORANGE_BALL}\n\
-Пожалуйста подтвердите смену статуса', reply_markup=markup)
-    bot.register_next_step_handler(msg, check_answer_orange_green_wizard)
-
-
-def check_answer_orange_green_wizard(message):
-    bot.delete_message(message.chat.id, message.message_id)
-    text = message.text
-    user = read_exodus_user(message.chat.id)
-    if text == 'Да, изменить':
-        markup = types.ReplyKeyboardRemove(selective=False)
+        #markup = types.ReplyKeyboardRemove(selective=False)
+        markup = types.ReplyKeyboardMarkup()
+        btn1 = types.KeyboardButton(text='Отмена')
+        markup.row(btn1)
         msg = bot.send_message(message.chat.id,
                                'Какая сумма вам необходима на базовые нужды в {}?'.format(user.currency),
                                reply_markup=markup)
         bot.register_next_step_handler(msg, orange_step_need_payments)
-    elif text == 'Нет, вернуться назад':
-        select_orange_red(message)
-
-    elif text == 'Главное меню':
-        global_menu(message)
-    elif "/start" in text:
-        welcome_base(message)
 
 
 def orange_step_need_payments(message):
@@ -3593,19 +3549,24 @@ def orange_step_need_payments(message):
     chat_id = message.chat.id
 
     text = message.text
-    if not is_digit(text):
+    if 'Отмена' in text:
+        # markup = types.ReplyKeyboardRemove(selective=False)
+
+        select_orange_red(message)
+        return
+    elif not is_digit(text):
         msg = bot.send_message(chat_id,
                                'Сумма должна быть только в виде цифр. Введите сумму в {}, которую вы бы хотели получать в течении месяца:'.format(
                                    user.currency))
         bot.register_next_step_handler(msg, orange_step_need_payments)
         return
-    update_exodus_user(chat_id, max_payments=float(text))
+    update_exodus_user(message.chat.id, max_payments=float(text))
 
     markup = types.ReplyKeyboardMarkup()
     btn1 = types.KeyboardButton(text='Пропустить')
     markup.row(btn1)
 
-    msg = bot.send_message(chat_id, 'Введите ссылку на чат:', reply_markup=markup)
+    msg = bot.send_message(message.chat.id, 'Введите ссылку на чат:', reply_markup=markup)
     bot.register_next_step_handler(msg, orange_step_link)
 
 
@@ -3703,6 +3664,7 @@ def orange_step_final(message, link):
 
         # создаем список с моей сетью
         list_needy_id = get_my_socium(message.chat.id)
+        print(list_needy_id)
 
         if count_unfreez_intentions == 0:
             for users in list_needy_id:
