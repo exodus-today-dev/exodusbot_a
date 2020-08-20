@@ -357,7 +357,6 @@ def update_orange_rings_help(needy_id, help_array_orange):
 
 
 def update_rings_help_array_red(needy_id, help_array_red):
-    print(needy_id, ' ',help_array_red)
     #    ring = session.query(Rings_Help).filter_by(needy_id=needy_id).first()      # так почему-то не работатет
     #    ring.help_array = help_array
     #    session.commit()
@@ -367,7 +366,6 @@ def update_rings_help_array_red(needy_id, help_array_red):
 
 
 def update_rings_help_array_all(needy_id, help_array_all):
-    print(needy_id, ' ',help_array_all)
     #    ring = session.query(Rings_Help).filter_by(needy_id=needy_id).first()      # так почему-то не работатет
     #    ring.help_array = help_array
     #    session.commit()

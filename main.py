@@ -90,6 +90,17 @@ def global_menu(message, dont_show_status=False):
         create_exodus_user(message.from_user.id, message.from_user.first_name, message.from_user.last_name,
                            message.from_user.username)
     user = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
+    link = create_link(user.telegram_id, user.telegram_id)
+
+    text_req = '\nРеквизиты:'
+    requisites = read_requisites_user(message.chat.id)
+    if requisites == []:
+        text_req += '\nВы не указали реквизиты'
+    else:
+        n = 0
+        for requisite in requisites:
+            n += 1
+            text_req += f'\n{n}. {requisite.name} - {requisite.value}'
 
     if user is None:
         welcome(message)
@@ -101,16 +112,32 @@ def global_menu(message, dont_show_status=False):
             already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
             left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
             right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
-            status = f'{ORANGE_BALL}\n{left_sum}/{right_sum}'
+            status = f'{ORANGE_BALL}\n{left_sum}/{right_sum}\n'
+            status += text_req
+            status += "\n\nСсылка на обсуждение \U0001F4E2"
+            if user.link == '' or user.link == None:
+                status += "\n"  # ссылка на обсуждение
+            else:
+                status += f"\n{user.link}"  # ссылка на обсуждение # ссылка на обсуждение
+            status += f"\n\nСсылка для помощи \U0001F4E9\n{link}"
+
         elif 'red' in user.status:
             already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
             already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
             left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
             right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
-            status = f'{RED_BALL}\n{left_sum}/{right_sum}'
+            status = f'{RED_BALL}\n{left_sum}/{right_sum}\n'
+            status += text_req
+            status += "\n\nСсылка на обсуждение \U0001F4E2"
+            if user.link == '' or user.link == None:
+                status += "\n"  # ссылка на обсуждение
+            else:
+                status += f"\n{user.link}"  # ссылка на обсуждение # ссылка на обсуждение
+            status += f"\n\nСсылка для помощи \U0001F4E9\n{link}"
         else:
             orange_green_wizard(message)
             dont_show_status = True
+
     markup = types.ReplyKeyboardMarkup()
     btn2 = types.KeyboardButton(text='\U0001f4ca Кошелек')
     btn3 = types.KeyboardButton(text='\U0001f527 Настройки')
@@ -183,7 +210,7 @@ def configuration_menu(message):
 Реквизиты:'
     requisites = read_requisites_user(message.chat.id)
     if requisites == []:
-        bot_text = bot_text + '\nВы не указали реквезиты'
+        bot_text = bot_text + '\nВы не указали реквизиты'
     else:
         n = 0
         for requisite in requisites:
@@ -1943,17 +1970,23 @@ def for_me_obligation_check(message, obligation_id):
     # bot.delete_message(message.chat.id, message.message_id)
     if text == 'Запрос на исполнение':
         obligation_to_execution(message, obligation_id)
+        return
     elif text == 'Хранить':
         keep_obligation(message, obligation_id)
+        return
     elif text == 'Напомнить позже':
         remind_later(message, event_status=None, reminder_type='reminder_in', intention_id=obligation_id, to_menu=True)
+        return
     elif text == 'Главное меню':
         global_menu(message, True)
+        return
     elif "/start" in text:
         welcome_base(message)
+        return
     else:
         msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
         bot.register_next_step_handler(msg, for_me_obligation_check, obligation_id)
+        return
     return
 
 
@@ -1969,7 +2002,7 @@ def obligation_to_execution(message, obligation_id):
 
     payment = intention.payment
     currency = intention.currency
-    intentions = read_intention(to_id=obligation_id)
+    # intentions = read_intention(to_id=obligation_id)
     # users_count = len(intentions.all())
     ring = read_rings_help(user.telegram_id)
     if ring is None:
@@ -2452,18 +2485,16 @@ def members_menu_profile_link(message, member_id):
     else:
         bot_text = 'СТАТУС НЕ УКАЗАН. ОШИБКА'
 
-    bot.send_message(user_id, bot_text)  # общий текст
-
-    bot.send_message(user_id, "Ссылка на обсуждение \U0001F4E2")  # ссылка на обсуждение
+    bot_text += "\nСсылка на обсуждение \U0001F4E2"
     if user.link == '' or user.link == None:
-        bot.send_message(user_id, "-")  # ссылка на обсуждение
+        bot_text += "\n"  # ссылка на обсуждение
     else:
-        bot.send_message(user_id, user.link)  # ссылка на обсуждение
-
+        bot_text += f"\n{user.link}"  # ссылка на обсуждение # ссылка на обсуждение
     if user.status != 'green':
         link = create_link(user.telegram_id, user.telegram_id)
-        bot.send_message(user_id, "Ссылка для помощи \U0001F4E9")  # отправка сообщений с ссылкой-приглашением
-        bot.send_message(user_id, link)  # отправка сообщений с ссылкой-приглашением
+        bot_text += f"\n\nСсылка для помощи \U0001F4E9\n{link}"
+
+    bot.send_message(user_id, bot_text)  # общий текст
 
     global_menu(message, True)
 
@@ -3011,6 +3042,7 @@ def orange_status_wizard(message):
     left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
     right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
     ring = read_rings_help(user.telegram_id)
+    link = create_link(user.telegram_id, user.telegram_id)
     if ring is None:
         all_users = 0
     else:
@@ -3018,20 +3050,13 @@ def orange_status_wizard(message):
             all_users = len(set(ring.help_array_orange))
         except:
             all_users = 0
-    bot_text = 'Ваш статус: {}\n\
-{}/{} {}\n\
-Ссылка на обсуждение: {}\n\
-\n\
-Период: Ежемесячно\n\
-\n\
-Уже помогают: {}'.format(ORANGE_BALL,
-                         left_sum,
-                         right_sum,
-                         user.currency,
-                         user.link,
-                         all_users)
-    bot.send_message(message.chat.id, bot_text)
-    link = create_link(user.telegram_id, user.telegram_id)
+    bot_text = f'Ваш статус: {ORANGE_BALL}\n\
+{left_sum}/{right_sum} {user.currency}\n\
+Уже помогают: {all_users}\n\
+Период: Ежемесячно\n\n\
+Ссылка на обсуждение \U0001F4E2 \n{user.link}\
+\n\nСсылка для помощи \U0001F4E9\n{link}'
+
     markup = types.ReplyKeyboardMarkup()
     btn1 = types.KeyboardButton(text='Редактировать')
     btn2 = types.KeyboardButton(text='Изменить статус')
@@ -3039,8 +3064,7 @@ def orange_status_wizard(message):
     markup.row(btn1)
     markup.row(btn2)
     markup.row(btn3)
-    link = create_link(user.telegram_id, user.telegram_id)
-    msg = bot.send_message(message.chat.id, link, reply_markup=markup)
+    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
     bot.register_next_step_handler(msg, orange_menu_check)
 
 
