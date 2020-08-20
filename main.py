@@ -602,10 +602,13 @@ def members_menu(message, meta_txt=None):
 
     user = read_exodus_user(message.chat.id)
     markup = types.ReplyKeyboardMarkup()
-    ref = ''
-    if user.ref != '':
+
+    ref = user.ref
+    if ref != '':
         referal = read_exodus_user(user.ref)
         ref = '{} {}'.format(referal.first_name, referal.last_name)
+    else:
+        ref = ''
 
     transactions_in_count = read_intention_for_user(to_id=message.chat.id, statuses=(1, 11, 12)).count()
     transactions_out_count = read_intention_for_user(from_id=message.chat.id, statuses=(1, 11, 12)).count()
@@ -637,7 +640,7 @@ def members_menu(message, meta_txt=None):
     # transactions_in_count = count_in_transactions(user_id)
     # transactions_out_count = count_out_transactions(user_id)
 
-    bot_text = 'Я в сети Эксодус с {data}\n ' \
+    bot_text = 'Я в сети Эксодус с {data}\n' \
                'Меня пригласил: {ref}\n' \
                '\n' \
                '{PLUS} ({tr_in}):\n' \
@@ -903,11 +906,12 @@ def generate_user_info_text(user, self_id):
     """ 5.2 """
 
     ref = user.ref
-    if type(ref) is int:
+    if ref != '':
         referal = read_exodus_user(user.ref)
         ref = '{} {}'.format(referal.first_name, referal.last_name)
     else:
         ref = ''
+
     data = user.create_date
     first_name = user.first_name
     last_name = user.last_name
