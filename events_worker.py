@@ -33,12 +33,7 @@ def read():
     all = session.query(Events).filter_by(sent=False)
     current_date = date.today()
 
-    # if (datetime.now() + timedelta(days=3)).day == 1:
-    #     check_border_before_3_days()
-    # elif datetime.now().day == 1:
-    #     check_border_first_date()
-
-    if (datetime.now() + timedelta(days=3)).day == 8:
+    if (datetime.now() + timedelta(days=3)).day == 1:
         check_border_before_3_days()
     elif datetime.now().day == 1:
         check_border_first_date()

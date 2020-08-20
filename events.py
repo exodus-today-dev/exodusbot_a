@@ -57,7 +57,11 @@ def notice_of_intent(event_id):
     if ring is None:
         users_count = 0
     else:
-        users_count = len(set(ring.help_array))
+        try:
+            users_count = len(set(ring.help_array_orange))
+        except:
+            users_count = 0
+
 
     bot_text = f"{intent.create_date.strftime('%d %B %Y')}\n\
 {user.first_name} {user.last_name} {status_from}  {RIGHT_ARROW}  {HEART_RED} {intent.payment}\n\
@@ -143,16 +147,10 @@ def obligation_recieved_notice(event_id):
     user = read_exodus_user(telegram_id=event.to_id)
     status = get_status(user.status)
 
-    ring = read_rings_help(user.telegram_id)
     already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
     already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
     left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
     right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
-
-    if ring is None:
-        users_count = 0
-    else:
-        users_count = len(set(ring.help_array))
 
     # confirmation_of_an_obligation(event.from_id, user.first_name, event.current_payments, event.currency)
     bot_text = f"{user.first_name} {user.last_name} подтвердил, что ваше {HANDSHAKE} на сумму {event.current_payments} {event.currency} исполнено.\n\n\
@@ -238,6 +236,7 @@ def check_border_first_date():
         if intention.status == 1:
             update_intention(intention.intention_id, status=0)
             update_event_status_code(intention.event_id, CLOSED)
+            delete_from_help_array_all(intention.to_id, intention.from_id)
         elif intention.status == 11:
             update_event_status_code(intention.event_id, LAST_REMIND)
             create_event(from_id=intention.from_id,
