@@ -11,6 +11,7 @@ PLUS = '\U00002795'
 MINUS = '\U00002796'
 
 
+
 def get_status(text):
     if text == "green":
         status = GREEN_BALL
