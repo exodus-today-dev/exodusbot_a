@@ -530,8 +530,8 @@ def transactions_menu(message):
 {PLUS}: {me_obligation} {user.currency}\n\
 {MINUS}: {my_obligation} {user.currency}\n"
     markup = types.ReplyKeyboardMarkup()
-    btn1 = types.KeyboardButton(text=f'{MINUS}')
-    btn2 = types.KeyboardButton(text=f'{PLUS}')
+    btn1 = types.KeyboardButton(text=f'{PLUS}')
+    btn2 = types.KeyboardButton(text=f'{MINUS}')
     #    btn3 = types.KeyboardButton(text='За всё время')
     btn4 = types.KeyboardButton(text='Не исполненные')
     btn5 = types.KeyboardButton(text='Главное меню')
@@ -585,8 +585,8 @@ def members_menu(message, meta_txt=None):
     requisites_count = get_requisites_count(message.chat.id)
 
     btn1 = types.KeyboardButton(text='Мой профиль')
-    btn2 = types.KeyboardButton(text='В мою пользу ({})'.format(transactions_in_count))
-    btn3 = types.KeyboardButton(text='В пользу других ({})'.format(transactions_out_count))
+    btn2 = types.KeyboardButton(text='{} ({})'.format(PLUS, transactions_in_count))
+    btn3 = types.KeyboardButton(text='{} ({})'.format(MINUS, transactions_out_count))
     btn4 = types.KeyboardButton(text='Запросы помощи({})'.format(requisites_count))
     btn5 = types.KeyboardButton(text='Главное меню')
     btn6 = types.KeyboardButton(text='Моя сеть')
@@ -613,12 +613,12 @@ def members_menu(message, meta_txt=None):
     bot_text = 'Я в сети Эксодус с {data}\n ' \
                'Меня пригласил: {ref}\n' \
                '\n' \
-               'В мою пользу ({tr_in}):\n' \
+               '{PLUS} ({tr_in}):\n' \
                '  {HEART_RED}: {int_in} {currency}\n' \
                '  {HANDSHAKE}: {obl_in} {currency}\n' \
                '  Исполнено: {exe_in} {currency}\n' \
                '\n' \
-               'В пользу других ({tr_out}):\n' \
+               '{MINUS} ({tr_out}):\n' \
                '  {HEART_RED}: {int_out} {currency}\n' \
                '  {HANDSHAKE}: {obl_out} {currency}\n' \
                '  Исполнено: {exe_out} {currency}'.format(
@@ -627,7 +627,8 @@ def members_menu(message, meta_txt=None):
         obl_in=obligations_in_sum, exe_in=executed_in_sum,
         int_out=intentions_out_sum, obl_out=obligations_out_sum,
         exe_out=executed_out_sum, tr_in=transactions_in_count,
-        tr_out=transactions_out_count, HEART_RED=HEART_RED, HANDSHAKE=HANDSHAKE)
+        tr_out=transactions_out_count, HEART_RED=HEART_RED, HANDSHAKE=HANDSHAKE,
+        PLUS=PLUS, MINUS=MINUS)
 
     if meta_txt is None:
         msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
@@ -850,12 +851,12 @@ def generate_user_info_preview(user_id):
                         '\n' \
                         'Статус: {status}\n' \
                         '\n' \
-                        'В его пользу ({tr_in}):\n' \
+                        '{PLUS}({tr_in}):\n' \
                         '  {HEART_RED}: {int_in} {currency}\n' \
                         '  {HANDSHAKE}: {obl_in} {currency}\n' \
                         '  Исполнено: {exe_in} {currency}\n' \
                         '\n' \
-                        'В пользу других ({tr_out}):\n' \
+                        '{MINUS} ({tr_out}):\n' \
                         '  {HEART_RED}: {int_out} {currency}\n' \
                         '  {HANDSHAKE}: {obl_out} {currency}\n' \
                         '  Исполнено: {exe_out} {currency}'.format(
@@ -865,7 +866,8 @@ def generate_user_info_preview(user_id):
         obl_in=obligations_in_sum, exe_in=executed_in_sum,
         int_out=intentions_out_sum, obl_out=obligations_out_sum,
         exe_out=executed_out_sum, tr_in=transactions_in_count,
-        tr_out=transactions_out_count, HEART_RED=HEART_RED, HANDSHAKE=HANDSHAKE)
+        tr_out=transactions_out_count, HEART_RED=HEART_RED, HANDSHAKE=HANDSHAKE,
+        PLUS=PLUS, MINUS=MINUS)
 
     return user_info_preview
 
@@ -910,12 +912,12 @@ def generate_user_info_text(user, self_id):
         user_info_text += status_info_text + '\n'
 
     if in_my_circle_alpha(user.telegram_id, self_id):
-        user_info_text += 'В его пользу ({tr_in}):\n' \
+        user_info_text += '{PLUS} ({tr_in}):\n' \
                           '  {HEART_RED}: {int_in} {currency}\n' \
                           '  {HANDSHAKE}: {obl_in} {currency}\n' \
                           '  Исполнено: {exe_in} {currency}\n' \
                           '\n' \
-                          'В пользу других ({tr_out}):\n' \
+                          '{MINUS} ({tr_out}):\n' \
                           '  {HEART_RED}: {int_out} {currency}\n' \
                           '  {HANDSHAKE}: {obl_out} {currency}\n' \
                           '  Исполнено: {exe_out} {currency}'.format(
@@ -924,7 +926,7 @@ def generate_user_info_text(user, self_id):
             obl_in=obligations_in_sum, exe_in=executed_in_sum,
             int_out=intentions_out_sum, obl_out=obligations_out_sum,
             exe_out=executed_out_sum, tr_in=transactions_in_count,
-            tr_out=transactions_out_count)
+            tr_out=transactions_out_count, PLUS=PLUS, MINUS=MINUS)
     else:
         user_info_text += f'Информация о {HEART_RED} и {HANDSHAKE} доступна ' \
                           'только для участников в моей сети.'
@@ -1149,18 +1151,18 @@ def members_check(message):
     if text == 'Мой профиль':
         members_menu_profile_link(message, message.chat.id)
         return
-    elif text == 'В мою пользу (0)':
+    elif text == f'{PLUS} (0)':
         msg = bot.send_message(message.chat.id, f'В Вашу пользу нет записей')
         bot.register_next_step_handler(msg, members_check)
         return
-    elif text[0:12] == 'В мою пользу':
+    elif f'{PLUS}' in text:
         members_list_in_network_menu(message, message.chat.id, 'in')
         return
-    elif text == 'В пользу других (0)':
+    elif text == f'{MINUS} (0)':
         msg = bot.send_message(message.chat.id, f'В пользу других нет записей')
         bot.register_next_step_handler(msg, members_check)
         return
-    elif text[0:15] == 'В пользу других':
+    elif f'{MINUS}' in text:
         members_list_in_network_menu(message, message.chat.id, 'out')
         return
     elif 'Запросы помощи' in text:
@@ -1788,7 +1790,7 @@ def for_my_check(message):
 
 def for_my_wizard_intention(message):
     intentions = read_intention(to_id=message.chat.id, status=1)
-    bot_text = f"{HEART_RED} в мою пользу:\n"
+    bot_text = f"{HEART_RED} {PLUS}:\n"
     for intent in intentions:
         user = read_exodus_user(telegram_id=intent.from_id)
         text = f"{intent.intention_id}. {user.first_name} {user.last_name} {intent.payment} {intent.currency}\n"
@@ -1862,7 +1864,7 @@ def intention_for_me_check(message):
 def for_my_wizard_obligation(message):
     intentions = read_intention(to_id=message.chat.id, status=11)
     n = 0
-    bot_text = f"{HANDSHAKE} в мою пользу:\n"
+    bot_text = f"{HANDSHAKE} {PLUS}:\n"
     for intent in intentions:
         n = n + 1
         user = read_exodus_user(telegram_id=intent.from_id)
@@ -2084,8 +2086,8 @@ def not_executed_wizard(message):
         for_other_intent = intentions.count()
     bot_text = f'Не исполненными считаются те {HANDSHAKE}, которые не подтвердил получатель.'
     markup = types.ReplyKeyboardMarkup()
-    btn1 = types.KeyboardButton(text=f"В мою пользу ({for_me_intent})")
-    btn2 = types.KeyboardButton(text=f"В пользу других ({for_other_intent})")
+    btn1 = types.KeyboardButton(text=f"{PLUS} ({for_me_intent})")
+    btn2 = types.KeyboardButton(text=f"{MINUS} ({for_other_intent})")
     btn3 = types.KeyboardButton(text='Назад')
     markup.row(btn1, btn2)
     markup.row(btn3)
@@ -2097,9 +2099,9 @@ def not_executed_wizard(message):
 def not_executed_check(message):
     text = message.text
     bot.delete_message(message.chat.id, message.message_id)
-    if text[0:12] == 'В мою пользу':
+    if f"{PLUS}" in text:
         not_executed_wizard_to_me(message)
-    elif text[0:15] == 'В пользу других':
+    elif f"{MINUS}" in text:
         not_executed_wizard_for_all(message)
     elif text == 'Назад':
         bot.clear_step_handler(message)
