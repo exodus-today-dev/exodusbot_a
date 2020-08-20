@@ -83,6 +83,7 @@ def notice_of_intent(event_id):
 {left_sum}/{right_sum}\n\
 Помогают: {users_count}"
 
+    print(list_needy_id)
     for id in list_needy_id:
         bot.send_message(id, bot_text_for_all)
 
