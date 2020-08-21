@@ -1204,21 +1204,24 @@ def expand_my_socium(message):
                 if user.status == "orange":
                     list_expand_socium.append(id_other)
 
-    string_name = ''
-    for i, id_help in enumerate(list_expand_socium):
-        user = read_exodus_user(id_help)
-        already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
-        already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
-        left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
-        right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
+    list_expand_socium = set(list_expand_socium)
+    list_expand_socium.discard(message.chat.id)
 
-        string_name = string_name + '\n{}. {} {} {}  {}/{}'.format(i + 1, user.first_name, user.last_name,
-                                                                   get_status(user.status), left_sum, right_sum)
-
-    if len(string_name) == 0:
+    if len(list_expand_socium) == 0:
         members_menu(message, meta_txt="Нет новых участников")
         return
     else:
+        string_name = ''
+        for i, id_help in enumerate(list_expand_socium):
+            user = read_exodus_user(id_help)
+            already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
+            already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
+            left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
+            right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
+
+            string_name = string_name + '\n{}. {} {} {}  {}/{}'.format(i + 1, user.first_name, user.last_name,
+                                                                       get_status(user.status), left_sum, right_sum)
+
         bot_text = 'Расширение сети:{}'.format(string_name) + '\n\n' \
                                                           'Введите номер Участника, чтобы ' \
                                                           'посмотреть подробную информацию:'
@@ -1226,12 +1229,13 @@ def expand_my_socium(message):
         btn1 = types.KeyboardButton(text='Назад')
         markup.row(btn1)
         msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
-        bot.register_next_step_handler(msg, check_expand_my_socium)
+        bot.register_next_step_handler(msg, check_expand_my_socium, list_expand_socium)
 
 
-def check_expand_my_socium(message):
+def check_expand_my_socium(message, list_expand_socium):
     text = message.text
     bot.delete_message(message.chat.id, message.message_id)
+
     if 'Назад' in text:
         members_menu(message)
         return
@@ -1241,16 +1245,73 @@ def check_expand_my_socium(message):
     else:
         try:
             # bookmark #debug.bookmark #dev.bookmark
-
-            members_list = list(get_my_socium(message.chat.id))
+            members_list = list(list_expand_socium)
             selected_id = int(text) - 1
+
             user = read_exodus_user(members_list[selected_id])
-            # user_info_text = generate_user_info_text(user, message.chat.id)
-            # bot.send_message(message.chat.id, user_info_text)
-            members_menu_profile_link(message, members_list[selected_id])
+            print(user)
+            already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
+            already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
+            left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
+            right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
+            # bot.delete_message(user_id, message.message_id)
+
+            if user.status == 'green':
+                bot_text = '\U0001F464 Имя участника: {} {}\nСтатус: {}'.format(user.first_name, user.last_name, GREEN_BALL)
+
+            elif user.status == 'orange':
+                ring = read_rings_help(user.telegram_id)
+                if ring is None:
+                    all_users = 0
+                else:
+                    try:
+                        all_users = len(set(ring.help_array_orange))
+                    except:
+                        all_users = 0
+                bot_text = '\U0001F464 Имя участника: {} {}\nСтатус: {}\n\U0001F4B0 {}/{} {}\nУже помогают: {}\n'.format(user.first_name,
+                                                user.last_name,
+                                                ORANGE_BALL,
+                                                left_sum,
+                                                right_sum,
+                                                user.currency,
+                                                all_users)
+
+            elif 'red' in user.status:
+                ring = read_rings_help(user.telegram_id)
+                if ring is None:
+                    all_users = 0
+                elif ring.help_array_red is None:
+                    all_users = 0
+                else:
+                    all_users = len(set(ring.help_array_red))
+                d0 = user.start_date
+                d1 = date.today()
+                delta = d1 - d0
+                bot_text = '\U0001F464 Имя участника: {} {}\nСтатус: {}\n\U0001F4B0 {}/{} {}\nУже помогают: {}'.format(user.first_name,
+                                                          user.last_name,
+                                                          RED_BALL,
+                                                          left_sum,
+                                                          right_sum,
+                                                          user.currency,
+                                                          all_users)  # ------------ TODO
+
+            else:
+                bot_text = 'СТАТУС НЕ УКАЗАН. ОШИБКА'
+
+            bot_text += "\nСсылка на обсуждение \U0001F4E2"
+            if user.link == '' or user.link == None:
+                bot_text += "\n"  # ссылка на обсуждение
+            else:
+                bot_text += f"\n{user.link}"  # ссылка на обсуждение # ссылка на обсуждение
+            if user.status != 'green':
+                link = create_link(user.telegram_id, user.telegram_id)
+                bot_text += f"\n\nСсылка для помощи \U0001F4E9\n{link}"
+
+            #bot.send_message(user_id, bot_text)  # общий текст
+            members_menu(message, meta_txt=bot_text)
         except:
-            msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
-            bot.register_next_step_handler(msg, check_my_socium)
+            #msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
+            members_menu(message, meta_txt="Пошло что-то не так. Попробуйте снова")
         return
 
 
@@ -2548,11 +2609,13 @@ def executed_was_sent(message):
 def members_menu_profile_link(message, member_id):
     user_id = message.chat.id
     user = read_exodus_user(member_id)
+    print(user)
     already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
     already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
     left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
     right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
-    bot.delete_message(user_id, message.message_id)
+    #bot.delete_message(user_id, message.message_id)
+
     if user.status == 'green':
         bot_text = '\U0001F464 Имя участника: {} {}\n\
 Статус: {}'.format(user.first_name, user.last_name, GREEN_BALL)
