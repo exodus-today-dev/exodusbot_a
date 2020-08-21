@@ -197,7 +197,7 @@ def obligation_money_requested_notice(event_id):
     # 6.3
     event = read_event(event_id)
     # user = read_exodus_user(event.intention.to_id)
-    message = "Для вас есть уведомление:"
+    message = f"Запрос на исполнение {HANDSHAKE}"
     keyboard = types.InlineKeyboardMarkup()
     row = [types.InlineKeyboardButton('Подробнее',
                                       callback_data='obligation_money_requested-{}'.format(event_id))]
@@ -210,7 +210,8 @@ def reminder(event_id, direction=None):
     event = read_event(event_id)
     # user = read_exodus_user(telegram_id=event.from_id)
 
-    message = "Для вас есть уведомление:"
+    # message = "Для вас есть уведомление:"
+    message = f"+ 1 {HANDSHAKE}"
     keyboard = types.InlineKeyboardMarkup()
     row = []
     row.append(types.InlineKeyboardButton('Прочитать',

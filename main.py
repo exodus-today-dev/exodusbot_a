@@ -628,7 +628,8 @@ def members_menu(message, meta_txt=None):
     btn4 = types.KeyboardButton(text='Запросы помощи({})'.format(requisites_count))
     btn5 = types.KeyboardButton(text='Главное меню')
     btn6 = types.KeyboardButton(text='Моя сеть')
-    markup.row(btn1, btn6)
+    btn7 = types.KeyboardButton(text='Расширить сеть')
+    markup.row(btn1, btn6, btn7)
     markup.row(btn2, btn3)
     # markup.row(btn3)
     markup.row(btn4)  # ________________ TODO
@@ -1110,6 +1111,32 @@ def show_other_socium(message, user_id):
     bot.register_next_step_handler(msg, check_other_socium, user_id)
 
 
+def check_other_socium(message, member_id):
+    text = message.text
+    bot.delete_message(message.chat.id, message.message_id)
+
+    if 'Назад' in text:
+        selected_member_action_menu(message, member_id)
+        return
+    elif "/start" in text:
+        welcome_base(message)
+        return
+    else:
+        try:
+            # bookmark #debug.bookmark #dev.bookmark
+
+            members_list = list(get_my_socium(member_id))
+            selected_id = int(text) - 1
+            user = read_exodus_user(members_list[selected_id])
+            user_info_text = generate_user_info_text(user, message.chat.id)
+            msg = bot.send_message(message.chat.id, user_info_text)
+            selected_member_action_menu(message, members_list[selected_id])
+        except:
+            msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
+            bot.register_next_step_handler(msg,
+                                           check_other_socium, member_id)
+        return
+
 def show_my_socium(message):
     list_my_socium = get_my_socium(message.chat.id)
 
@@ -1136,7 +1163,7 @@ def show_my_socium(message):
 
 def check_my_socium(message):
     text = message.text
-    #    bot.delete_message(message.chat.id, message.message_id)
+    bot.delete_message(message.chat.id, message.message_id)
     if 'Назад' in text:
         members_menu(message)
         return
@@ -1159,10 +1186,54 @@ def check_my_socium(message):
         return
 
 
-def check_other_socium(message, member_id):
+def expand_my_socium(message):
+    list_my_socium = get_my_socium(message.chat.id)
+
+    list_expand_socium = []
+
+    # пробегаем мою сеть
+    for id_my in list_my_socium:
+        # для каждого из моей сети строим его сеть
+        other_socium = get_my_socium(id_my)
+        # пробегаем его сеть
+        for id_other in other_socium:
+            # если очередного юзера нет в моей сети
+            if id_other not in list_my_socium:
+                user = read_exodus_user(id_other)
+                # если этому юзеру нужна помощь(оранжевый), то дабвляем в расширенный список сети
+                if user.status == "orange":
+                    list_expand_socium.append(id_other)
+
+    string_name = ''
+    for i, id_help in enumerate(list_expand_socium):
+        user = read_exodus_user(id_help)
+        already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
+        already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
+        left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
+        right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
+
+        string_name = string_name + '\n{}. {} {} {}  {}/{}'.format(i + 1, user.first_name, user.last_name,
+                                                                   get_status(user.status), left_sum, right_sum)
+
+    if len(string_name) == 0:
+        members_menu(message, meta_txt="Нет новых участников")
+        return
+    else:
+        bot_text = 'Расширение сети:{}'.format(string_name) + '\n\n' \
+                                                          'Введите номер Участника, чтобы ' \
+                                                          'посмотреть подробную информацию:'
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        btn1 = types.KeyboardButton(text='Назад')
+        markup.row(btn1)
+        msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
+        bot.register_next_step_handler(msg, check_expand_my_socium)
+
+
+def check_expand_my_socium(message):
     text = message.text
+    bot.delete_message(message.chat.id, message.message_id)
     if 'Назад' in text:
-        selected_member_action_menu(message, member_id)
+        members_menu(message)
         return
     elif "/start" in text:
         welcome_base(message)
@@ -1171,22 +1242,22 @@ def check_other_socium(message, member_id):
         try:
             # bookmark #debug.bookmark #dev.bookmark
 
-            members_list = list(get_my_socium(member_id))
+            members_list = list(get_my_socium(message.chat.id))
             selected_id = int(text) - 1
             user = read_exodus_user(members_list[selected_id])
-            user_info_text = generate_user_info_text(user, message.chat.id)
-            msg = bot.send_message(message.chat.id, user_info_text)
-            selected_member_action_menu(message, members_list[selected_id])
+            # user_info_text = generate_user_info_text(user, message.chat.id)
+            # bot.send_message(message.chat.id, user_info_text)
+            members_menu_profile_link(message, members_list[selected_id])
         except:
             msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
-            bot.register_next_step_handler(msg,
-                                           check_other_socium, member_id)
+            bot.register_next_step_handler(msg, check_my_socium)
         return
+
 
 
 def members_check(message):
     text = message.text
-    #    bot.delete_message(message.chat.id, message.message_id)
+    bot.delete_message(message.chat.id, message.message_id)
     if text == 'Мой профиль':
         members_menu_profile_link(message, message.chat.id)
         return
@@ -1213,6 +1284,10 @@ def members_check(message):
 
     elif 'Моя сеть' in text:
         show_my_socium(message)
+        return
+
+    elif 'Расширить сеть' in text:
+        expand_my_socium(message)
         return
 
     elif "/start" in text:
@@ -1400,6 +1475,7 @@ def intention_for_needy_check(message, intention_id=None):
 
 
 def intention_to_obligation(message):
+    print('intention_to_obligation')
     intention_id = transaction[message.chat.id]
     intention = read_intention_by_id(intention_id)
     user_to = read_exodus_user(telegram_id=intention.to_id)
@@ -1737,6 +1813,7 @@ def obligation_sent_confirm_check(message):
     bot.delete_message(message.chat.id, message.message_id)
     if text == 'Да':
         obligation_sent_confirm_yes(message)
+        return
     elif text == 'Нет':
         obligation_for_needy(message, reminder_call=False, intention_id=None)
         return
@@ -2034,7 +2111,7 @@ def obligation_to_execution(message, obligation_id):
     intention = read_intention_by_id(intention_id=obligation_id)
 
     user = read_exodus_user(telegram_id=intention.from_id)
-    update_intention(intention_id=obligation_id, status=15)
+    # update_intention(intention_id=obligation_id, status=15)
     bot_text = f'Участнику {user.first_name} {user.last_name} отправлено ваше решение исполнить ' \
                f'{HANDSHAKE} на сумму {intention.payment} {intention.currency}.'
 
@@ -4118,7 +4195,7 @@ def process_callback(call):
             # 6.8
             for_me_obligation(call.message, reminder_call=True,
                               intention_id=event.to_id)
-            pass
+
         elif event.type == 'reminder_out':
             if event.status == 'intention':
                 # 6.7
