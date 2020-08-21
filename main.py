@@ -89,11 +89,12 @@ def global_menu(message, dont_show_status=False):
     if user is None:
         create_exodus_user(message.from_user.id, message.from_user.first_name, message.from_user.last_name,
                            message.from_user.username)
-    user = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
+    user = read_exodus_user(message.chat.id)
     link = create_link(user.telegram_id, user.telegram_id)
 
     text_req = '\nРеквизиты:'
     requisites = read_requisites_user(message.chat.id)
+
     if requisites == []:
         text_req += '\nВы не указали реквизиты'
     else:
@@ -102,17 +103,19 @@ def global_menu(message, dont_show_status=False):
             n += 1
             text_req += f'\n{n}. {requisite.name} - {requisite.value}'
 
+    list_my_socium = get_my_socium(message.chat.id)
+
     if user is None:
         welcome(message)
     else:
         if user.status == "green":
-            status = GREEN_BALL
+            status = GREEN_BALL + f"\n\nВ моей сети: {len(list_my_socium)}"
         elif user.status == "orange":
             already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
             already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
             left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
             right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
-            status = f'{ORANGE_BALL}\n{left_sum}/{right_sum}\n'
+            status = f'{ORANGE_BALL}\n{left_sum}/{right_sum}\n' + f"\nВ моей сети: {len(list_my_socium)}\n"
             status += text_req
             status += "\n\nСсылка на обсуждение \U0001F4E2"
             if user.link == '' or user.link == None:
@@ -126,7 +129,7 @@ def global_menu(message, dont_show_status=False):
             already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
             left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
             right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
-            status = f'{RED_BALL}\n{left_sum}/{right_sum}\n'
+            status = f'{RED_BALL}\n{left_sum}/{right_sum}\n' + f"\nВ моей сети: {len(list_my_socium)}\n"
             status += text_req
             status += "\n\nСсылка на обсуждение \U0001F4E2"
             if user.link == '' or user.link == None:
@@ -267,7 +270,7 @@ def configuration_check(message):
 
 
 def edit_link_menu(message):
-    markup = types.ReplyKeyboardMarkup()
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text='Назад')
     markup.row(btn1)
 
@@ -284,6 +287,9 @@ def edit_link_menu(message):
 
 def edit_link_check(message):
     link = message.text
+    if link =='Назад':
+        configuration_menu(message)
+        return
     bot_text = 'Ваша новая ссылка на чат\n{}'.format(link)
     update_exodus_user(message.chat.id, link=link)
     bot.send_message(message.chat.id, bot_text)
@@ -968,7 +974,7 @@ def members_list_in_network_menu(message, member_id, direction):
     """ 5.2 """
     print_members_list_in_network(message, member_id, direction)
 
-    markup = types.ReplyKeyboardMarkup()
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 
     # btn1 = types.KeyboardButton(text='Показать еще 10')
     btn2 = types.KeyboardButton(text='Назад')
@@ -1095,7 +1101,7 @@ def show_other_socium(message, user_id):
     bot_text = 'В сети участника:{}'.format(string_name) + '\n\n' \
                                                            'Введите номер Участника, чтобы ' \
                                                            'посмотреть подробную информацию:'
-    markup = types.ReplyKeyboardMarkup()
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text='Назад')
     markup.row(btn1)
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
@@ -1119,7 +1125,7 @@ def show_my_socium(message):
     bot_text = 'В моей сети:{}'.format(string_name) + '\n\n' \
                                                       'Введите номер Участника, чтобы ' \
                                                       'посмотреть подробную информацию:'
-    markup = types.ReplyKeyboardMarkup()
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text='Назад')
     markup.row(btn1)
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
@@ -2800,7 +2806,7 @@ def show_all_members(message, user_to):
 
     bot_text = bot_text + '\n\
 В моей сети:{}'.format(string_name)
-    markup = types.ReplyKeyboardMarkup()
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text='Назад')
     markup.row(btn1)
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
@@ -3032,6 +3038,117 @@ def red_invitation_wizard_check(message, event_id=None):  # ------------------ T
 Ваш статус: {status} \n\
 {left_sum}/{right_sum} {user.currency}"
     bot.send_message(user.telegram_id, text_for_u)
+
+    link = user.link
+    user_id = user.telegram_id
+
+    # автоматический возврат к текущему статусу
+    if right_sum == 0:
+        if 'orange' in user.status:
+            if read_rings_help(user.telegram_id) is None:
+                create_rings_help(user.telegram_id, [])
+
+            # удаляем статусы для запроса помощи
+            delete_event_new_status(user_id)
+
+            if 'red' in user.status and user.min_payments != 0:
+                count_unfreez_intentions = unfreeze_intentions(user)
+            else:
+                # list_statuses = [1, 11, 12, 13, 15]
+                # # удаляем все активные записи для красного
+                # for status in list_statuses:
+                #     delete_intention(to_id=message.chat.id, status=status)
+
+                count_unfreez_intentions = 0
+
+            update_exodus_user(user_id, status='orange', link=link)
+
+            # создаем список с моей сетью
+            list_needy_id = get_my_socium(user_id)
+
+            if count_unfreez_intentions == 0:
+                for users in list_needy_id:
+                    # TODO           рассылка кругу лиц из таблицы rings
+                    if users != user_id:
+                        t_user = read_exodus_user(users)
+                        create_event(from_id=users,
+                                     first_name=t_user.first_name,
+                                     last_name=t_user.last_name,
+                                     status='orange',
+                                     type='orange',
+                                     min_payments=None,
+                                     current_payments=user.current_payments,
+                                     max_payments=user.max_payments,
+                                     currency=user.currency,
+                                     users=len(list_needy_id),
+                                     to_id=user_id,
+                                     sent=False,
+                                     reminder_date=date.today(),
+                                     status_code=NEW_ORANGE_STATUS)  # someday: intention_id
+
+            for row in list_needy_id:
+                try:
+                    bot.send_message(row, '{} {} вернулся к {}'.format(user.first_name, user.last_name, ORANGE_BALL))
+                except:
+                    continue
+
+            already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
+            already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
+            left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
+            right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
+
+            # сообщение Вам, что вы вернулись автоматически
+            text = f"Вы вернулись к {ORANGE_BALL}\n{left_sum}/{right_sum} {user.currency}"
+            bot.send_message(user_id, text)
+
+            global_menu(message)
+            return
+
+        else:
+            # создаем список с теми, у кого мы в списке help_array
+            try:
+                list_needy_id = set(read_rings_help(user_id).help_array_all)
+            except:
+                list_needy_id = []
+
+            list_send_notify = read_rings_help_in_help_array_all(user_id)
+
+            for row in list_send_notify:
+                list_needy_id.add(row.needy_id)
+
+            for row in list_needy_id:
+                try:
+                    bot.send_message(row, '{} {} вернулся к {}'.format(user.first_name, user.last_name, GREEN_BALL))
+                    # закрываем намерения и event
+                    intention = read_intention(from_id=row, to_id=user_id).all()
+                    for id in intention:
+                        update_intention(id.intention_id, status=0)
+                        update_event_status_code(id.event_id, CLOSED)
+                except:
+                    continue
+
+            # удаляем статусы для запроса помощи
+            delete_event_new_status(user_id)
+
+            if 'red' in user.status:
+                # удаляем данные из буфферной таблицы
+                delete_temp_intention(user_id)
+
+                # очищаем массив помощников для красного
+                update_rings_help_array_red(user_id, [])
+
+            else:
+                # очищаем массив помощников для оранжевого
+                update_orange_rings_help(user_id, [])
+
+            update_exodus_user(telegram_id=user_id, status='green', min_payments=0, max_payments=0)
+
+            # сообщение Вам, что вы вернулись автоматически
+            text = f"Вы вернулись к {GREEN_BALL}"
+            bot.send_message(user_id, text)
+
+            global_menu(message)
+            return
 
     global_menu(message, True)
 
@@ -3393,7 +3510,7 @@ def red_edit_wizard_step3(message):
         return
     user_dict[message.chat.id].days = days
 
-    markup = types.ReplyKeyboardMarkup()
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text='Пропустить')
     markup.row(btn1)
 
@@ -3631,7 +3748,7 @@ def orange_step_need_payments(message):
         return
     update_exodus_user(chat_id, max_payments=float(text))
 
-    markup = types.ReplyKeyboardMarkup()
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text='Пропустить')
     markup.row(btn1)
 
@@ -3762,10 +3879,10 @@ def orange_step_final(message, link):
                 continue
 
         global_menu(message)
-        requisites = read_requisites_user(message.chat.id)
-        if not requisites:
-            add_requisite_name(message)
-        # return
+        # requisites = read_requisites_user(message.chat.id)
+        # if not requisites:
+        #     add_requisite_name(message)
+        return
     elif "/start" in text:
         welcome_base(message)
         return
