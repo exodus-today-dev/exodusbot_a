@@ -193,7 +193,7 @@ def status_check(message):
 
 def configuration_menu(message):
     """2.3-3"""
-    user = read_exodus_user(message.chat.id)
+    # user = read_exodus_user(message.chat.id)
     markup = types.ReplyKeyboardMarkup()
 
     btn1 = types.KeyboardButton(text='Статус')
@@ -206,19 +206,21 @@ def configuration_menu(message):
     markup.row(btn3)
     markup.row(btn4)
 
-    bot_text = f'Настройки:\n\
-\n\
-Валюта: {user.currency}\n\
-\n\
-Реквизиты:'
-    requisites = read_requisites_user(message.chat.id)
-    if requisites == []:
-        bot_text = bot_text + '\nВы не указали реквизиты'
-    else:
-        n = 0
-        for requisite in requisites:
-            n += 1
-            bot_text += f'\n{n}. {requisite.name} - {requisite.value}'
+#     bot_text = f'Настройки:\n\
+# \n\
+# Валюта: {user.currency}\n\
+# \n\
+# Реквизиты:'
+#     requisites = read_requisites_user(message.chat.id)
+#     if requisites == []:
+#         bot_text = bot_text + '\nВы не указали реквизиты'
+#     else:
+#         n = 0
+#         for requisite in requisites:
+#             n += 1
+#             bot_text += f'\n{n}. {requisite.name} - {requisite.value}'
+
+    bot_text = 'Настройки:'
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
     bot.register_next_step_handler(msg, configuration_check)
 
@@ -1402,20 +1404,46 @@ def intention_to_obligation(message):
     intention = read_intention_by_id(intention_id)
     user_to = read_exodus_user(telegram_id=intention.to_id)
     user_from = read_exodus_user(telegram_id=message.chat.id)
+
+    update_intention(intention_id, status=11)
+    update_event_status_code(intention.event_id, NEW_OBLIGATION)
+
+    # отправка сообщения
+    already_payments_oblig = get_intention_sum(user_to.telegram_id, statuses=(11, 12, 13))
+    already_payments_intent = get_intention_sum(user_to.telegram_id, statuses=(1,))
+    left_sum = max(already_payments_intent, already_payments_oblig - user_to.max_payments)
+    right_sum = user_to.max_payments - already_payments_oblig if user_to.max_payments - already_payments_oblig > 0 else 0
+    status_to = get_status(user_to.status)
+    ring = read_rings_help(user_to.telegram_id)
+
+    if ring is None:
+        users_count = 0
+    else:
+        try:
+            users_count = len(set(ring.help_array_orange))
+        except:
+            users_count = 0
+
     #     bot_text = f"Вы перевели в {HANDSHAKE} свое {HEART_RED} помогать участнику {user_to.first_name} {user_to.last_name} на сумму: {intention.payment} {intention.currency}\n\
     # Когда участник {user_to.first_name} {user_to.last_name} решит что делать с Вашим {HANDSHAKE}, вы получите уведомление."
 
     bot_text = f"Вы {HEART_RED}  {RIGHT_ARROW}  {HANDSHAKE} {intention.payment}  {RIGHT_ARROW}  {user_to.first_name} {user_to.last_name}\n\
+{user_to.first_name} {user_to.last_name} {status_to}\n\
+{left_sum}/{right_sum}\n\
+Помогают: {users_count}\n\n\
 Ждите уведомления."
-    update_intention(intention_id, status=11)
-    update_event_status_code(intention.event_id, NEW_OBLIGATION)
-    # отправка сообщения
+
     bot.send_message(message.chat.id, bot_text)
 
     # рассылка уведомлений моему кругу о том, что я начал кому то помогать, кроме того, кто запросил
     list_needy_id = get_my_socium(intention.to_id)
     list_needy_id.discard(message.chat.id)
-    bot_text_for_all = f"{user_from.first_name} {user_from.last_name} перевел свое {HEART_RED} в {HANDSHAKE} участнику {user_to.first_name} {user_to.last_name} на сумму: {intention.payment} {intention.currency}"
+
+    bot_text_for_all = f"{user_from.first_name} {user_from.last_name} перевел свое {HEART_RED} в {HANDSHAKE} участнику {user_to.first_name} {user_to.last_name} на сумму: {intention.payment} {intention.currency}\n\
+{user_to.first_name} {user_to.last_name} {status_to}\n\
+{left_sum}/{right_sum}\n\
+Помогают: {users_count}"
+
     for id in list_needy_id:
         bot.send_message(id, bot_text_for_all)
 
@@ -1435,7 +1463,7 @@ def remind_later(message, event_status=None, reminder_type=None, intention_id=No
     else:
         reminder_date = date.today() + timedelta(days=1)
     # reminder_date = date.today()
-    user = read_exodus_user(message.chat.id)
+    # user = read_exodus_user(message.chat.id)
 
     # reminder_type = 'reminder_in'  # 6.8
     # reminder_type = 'reminder_out'  # 6.3, 6.7
