@@ -1204,11 +1204,13 @@ def expand_my_socium(message):
                 if user.status == "orange":
                     list_expand_socium.append(id_other)
 
+    list_expand_socium = set(list_expand_socium)
+    list_expand_socium.discard(message.chat.id)
+
     if len(list_expand_socium) == 0:
         members_menu(message, meta_txt="Нет новых участников")
         return
     else:
-        list_expand_socium = set(list_expand_socium)
         string_name = ''
         for i, id_help in enumerate(list_expand_socium):
             user = read_exodus_user(id_help)
