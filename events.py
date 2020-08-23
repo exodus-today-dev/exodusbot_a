@@ -6,13 +6,35 @@ bot = telebot.TeleBot(config.API_TOKEN)
 
 from models import *
 from symbols import *
+from status_codes import *
+
+
+def create_future_intention(event):
+    update_event(event.event_id, True)
+    create_event(from_id=event.from_id,
+                 first_name=None,  # TODO not needed
+                 last_name=None,  # TODO not needed
+                 status='orange',
+                 type='notice',
+                 min_payments=None,
+                 current_payments=None,
+                 max_payments=None,
+                 currency=None,
+                 users=0,
+                 to_id=event.to_id,
+                 sent=True,
+                 reminder_date=date.today(),
+                 status_code=APPROVE_ORANGE_STATUS,
+                 intention=Intention(from_id=event.from_id, to_id=event.to_id,
+                                     payment=event.current_payments, currency='USD', status=1,
+                                     create_date=datetime.now()))
 
 
 def invitation_help_orange(event_id):
     event = read_event(event_id)
     user = read_exodus_user(event.to_id)
     bot_text = f"Уведомление о запросе на ежемесячную помощь для {user.first_name} {user.last_name}"
-    #print('Отправлено-orange-{}-{}-{}'.format(event_id, event.from_id, event.to_id))
+    # print('Отправлено-orange-{}-{}-{}'.format(event_id, event.from_id, event.to_id))
     keyboard = types.InlineKeyboardMarkup()
     row = []
     row.append(types.InlineKeyboardButton('Подробнее', callback_data='orange_invitation-{}-{}'.format(
@@ -26,7 +48,7 @@ def invitation_help_red(event_id):
     event = read_event(event_id)
     user = read_exodus_user(event.to_id)
     bot_text = f"Запрос на экстренную помощь для {user.first_name} {user.last_name}"
-    #print('Отправлено-red-{}-{}-{}'.format(event_id, event.from_id, event.to_id))
+    # print('Отправлено-red-{}-{}-{}'.format(event_id, event.from_id, event.to_id))
     keyboard = types.InlineKeyboardMarkup()
     row = []
     row.append(types.InlineKeyboardButton('Подробнее', callback_data='red_invitation-{}-{}'.format(
@@ -44,7 +66,7 @@ def notice_of_intent(event_id):
     user_needy = read_exodus_user(telegram_id=event.to_id)
     intent = read_intention(event.to_id, event.to_id, 1)[
         -1]  # берем последний элемент из списка, чтобы обеспечить корреткность событий
-    #print('Отправлено-{}'.format(event_id))
+    # print('Отправлено-{}'.format(event_id))
 
     status = get_status(user_needy.status)
     status_from = get_status(user.status)
@@ -61,7 +83,6 @@ def notice_of_intent(event_id):
             users_count = len(set(ring.help_array_orange))
         except:
             users_count = 0
-
 
     bot_text = f"{intent.create_date.strftime('%d %B %Y')}\n\
 {user.first_name} {user.last_name} {status_from}  {RIGHT_ARROW}  {HEART_RED} {intent.payment}\n\

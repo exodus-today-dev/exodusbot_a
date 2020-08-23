@@ -7,13 +7,10 @@ import traceback
 import telebot
 import time
 import config
-from models import Events, Exodus_Users, session, update_event, update_event_status_code, CLOSED, Intention
+from models import Events, Exodus_Users, session, update_event
 from events import invitation_help_orange, invitation_help_red, notice_of_intent, obligation_sended_notice, \
     obligation_recieved_notice, obligation_money_requested_notice, reminder, reminder_for_6_10, \
-    check_border_before_3_days, check_border_first_date
-
-from telebot import types
-from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+    check_border_before_3_days, check_border_first_date, create_future_intention
 
 bot = telebot.TeleBot(config.API_TOKEN)
 
@@ -33,13 +30,18 @@ def read():
     # all_users = session.query(Exodus_Users).count()
     all = session.query(Events).filter_by(sent=False)
     current_date = date.today()
+    day_now = datetime.now().day
 
     if (datetime.now() + timedelta(days=3)).day == 1:
         check_border_before_3_days()
-    elif datetime.now().day == 1:
+    elif day_now == 1:
         check_border_first_date()
 
     for event in all:
+        # проверяем событие из будущего, чтобы 1 числа создать intetion со статусом 1
+        if event.type == 'future_event' and day_now == 1:
+            create_future_intention(event)
+
         if event.type == 'orange':
             # print('Отправлен orange {}'.format(event.event_id))
             update_event(event.event_id, True)
@@ -95,10 +97,10 @@ def read():
 while True:
     try:
         read()
-    #except Exception as error:
+    # except Exception as error:
     except:
         print(traceback.format_exc())
-        #print(error)
+        # print(error)
     time.sleep(1)
 
 # bot.polling()

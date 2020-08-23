@@ -248,7 +248,7 @@ def create_event(from_id, first_name, last_name, status, type, min_payments, cur
                    to_id=to_id,
                    reminder_date=reminder_date,
                    # intention_id = intention_id,
-                   sent=False,
+                   sent=sent,
                    status_code=status_code,
                    intention=intention)
 
@@ -318,6 +318,11 @@ def delete_event_new_status(to_id):
     session.query(Events).filter(Events.to_id == to_id,
                                  or_(Events.status_code == NEW_ORANGE_STATUS,
                                      Events.status_code == NEW_RED_STATUS)).delete()
+    session.commit()
+
+
+def delete_event_future():
+    session.query(Events).filter(Events.status_code == FUTURE_EVENT).delete()
     session.commit()
 
 
@@ -563,7 +568,7 @@ def get_help_requisites(telegram_id):
 
     result = {}
     for u, e in user_names:
-        result[u.first_name] = {'from_id': e.to_id, 'status_code': e.status_code, 'event_id': e.event_id}
+        result[u.telegram_id] = {'from_id': e.to_id, 'status_code': e.status_code, 'event_id': e.event_id}
 
     return result
 
