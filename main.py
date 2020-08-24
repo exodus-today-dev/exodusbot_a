@@ -3642,7 +3642,7 @@ def check_orange_red(message):
     bot.delete_message(message.chat.id, message.message_id)
     text = message.text
     if text == ORANGE_BALL:
-        bot.send_message(message.chat.id, f"Вы меняете статус на {ORANGE_BALL}:")
+        # bot.send_message(message.chat.id, f"Вы меняете статус на {ORANGE_BALL}:")
         orange_edit_wizard(message)
     elif text == RED_BALL:
         check_red_edit_wizard(message)
