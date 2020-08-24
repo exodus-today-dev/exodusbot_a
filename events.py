@@ -68,8 +68,13 @@ def notice_of_intent(event_id):
         -1]  # берем последний элемент из списка, чтобы обеспечить корреткность событий
     # print('Отправлено-{}'.format(event_id))
 
-    status = get_status(user_needy.status)
-    status_from = get_status(user.status)
+    try:
+        status = get_status(user_needy.status)
+        status_from = get_status(user.status)
+    except:
+        status = ''
+        status_from = ''
+
     ring = read_rings_help(user_needy.telegram_id)
     already_payments_oblig = get_intention_sum(user_needy.telegram_id, statuses=(11, 12, 13))
     already_payments_intent = get_intention_sum(user_needy.telegram_id, statuses=(1,))
