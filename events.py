@@ -253,7 +253,7 @@ def reminder(event_id, direction=None):
 def check_border_first_date():
     """Проверяет, что уведомление попало на первый день месяца,
     что влечет за собой удаление намерения/обязательства и исключение из круга"""
-    intentions = session.query(Intention).filter(Intention.status.in_((1, 11, 12))).all()
+    intentions = session.query(Intention).filter(Intention.status.in_((1, 11, 12, 13))).all()
 
     for intention in intentions:
         event = read_event(intention.event_id)
@@ -279,10 +279,16 @@ def check_border_first_date():
                          reminder_date=datetime.now(),
                          sent=False,
                          status_code=REMIND_LATER)
+        elif intention.status == 12:
+            update_intention(intention.intention_id, status=0)
+            update_event_status_code(intention.event_id, CLOSED)
+
+        elif intention.status == 13:
+            update_intention(intention.intention_id, status=0)
 
 
 def check_border_before_3_days():
-    # уведомдения за 3 дня до 1го числа
+    # уведомления за 3 дня до 1го числа
     intentions = session.query(Intention).filter(Intention.status.in_((1, 11))).all()
 
     for intention in intentions:
