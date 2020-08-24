@@ -3997,7 +3997,7 @@ def orange_edit_wizard(message):
             btn3 = types.KeyboardButton(text='Сохранить')
             markup.row(btn1, btn2)
             markup.row(btn3)
-        msg = bot.send_message(message.chat.id, 'Вы хотите изменить свой статус и опубликовать эти данные?\n\
+        msg = bot.send_message(message.chat.id, f'Опубликовать эти данные?\n\
 Все пользователи, которые связаны с вами внутри Эксодус бота, получат уведомление.', reply_markup=markup)
         bot.register_next_step_handler(msg, orange_step_final, link)
     else:
@@ -4083,7 +4083,7 @@ def orange_step_link(message):
         btn3 = types.KeyboardButton(text='Сохранить')
         markup.row(btn1, btn2)
         markup.row(btn3)
-    msg = bot.send_message(message.chat.id, 'Вы хотите изменить свой статус и опубликовать эти данные?\n\
+    msg = bot.send_message(message.chat.id, f'Опубликовать эти данные?\n\
 Все пользователи, которые связаны с вами внутри Эксодус бота, получат уведомление.', reply_markup=markup)
     bot.register_next_step_handler(msg, orange_step_final, link)
 
