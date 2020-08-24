@@ -43,15 +43,15 @@ def read():
             create_future_intention(event)
 
         if event.type == 'orange':
-            # print('Отправлен orange {}'.format(event.event_id))
+            #print('Отправлен orange {}'.format(event.event_id))
             update_event(event.event_id, True)
             invitation_help_orange(event.event_id)
         if event.type == 'red':
-            # print('Отправлен red {}'.format(event.event_id))
+            #print('Отправлен red {}'.format(event.event_id))
             update_event(event.event_id, True)
             invitation_help_red(event.event_id)
-        if event.type == 'notice':
-            # print('Отправлен notice {}'.format(event.event_id))
+        if event.type == 'notice' and event.status == 'orange':
+            #print('Отправлен notice {}'.format(event.event_id))
             update_event(event.event_id, True)
             notice_of_intent(event.event_id)
         # 6.4

@@ -64,7 +64,7 @@ def notice_of_intent(event_id):
     event = read_event(event_id)
     user = read_exodus_user(telegram_id=event.from_id)
     user_needy = read_exodus_user(telegram_id=event.to_id)
-    intent = read_intention(event.to_id, event.to_id, 1)[
+    intent = read_intention(event.from_id, event.to_id, 1)[
         -1]  # берем последний элемент из списка, чтобы обеспечить корреткность событий
     # print('Отправлено-{}'.format(event_id))
 
