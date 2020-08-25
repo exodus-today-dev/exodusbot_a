@@ -36,4 +36,6 @@ def get_status(text):
         status = ORANGE_BALL
     elif 'red' in text:
         status = RED_BALL
+    else:
+        status = ""
     return status
