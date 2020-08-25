@@ -87,8 +87,8 @@ def global_menu(message, dont_show_status=False):
     bot.clear_step_handler(message)
     user = read_exodus_user(message.chat.id)
     if user is None:
-        create_exodus_user(message.from_user.id, message.from_user.first_name, message.from_user.last_name,
-                           message.from_user.username)
+        create_exodus_user(message.chat.id, message.chat.first_name, message.chat.last_name,
+                           message.chat.username)
     user = read_exodus_user(message.chat.id)
     link = create_link(user.telegram_id, user.telegram_id)
 
@@ -1266,7 +1266,6 @@ def check_expand_my_socium(message, list_expand_socium):
             selected_id = int(text) - 1
 
             user = read_exodus_user(members_list[selected_id])
-            print(user)
             already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
             already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
             left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
@@ -1586,7 +1585,6 @@ def intention_for_needy_check(message, intention_id=None):
 
 
 def intention_to_obligation(message):
-    print('intention_to_obligation')
     intention_id = transaction[message.chat.id]
     intention = read_intention_by_id(intention_id)
     user_to = read_exodus_user(telegram_id=intention.to_id)
@@ -2531,7 +2529,6 @@ def executed_not_confirm_me_check(message):
 def executed_confirm(message):
     intention_id = transaction[message.chat.id]
     intention = read_intention_by_id(intention_id=intention_id)
-    print(intention.from_id)
     user = read_exodus_user(telegram_id=intention.from_id)
     requisites = read_requisites_user(message.chat.id)
     if requisites == []:
@@ -2724,7 +2721,6 @@ def executed_was_sent(message):
 def members_menu_profile_link(message, member_id):
     user_id = message.chat.id
     user = read_exodus_user(member_id)
-    print(user)
     already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
     already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
     left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
@@ -2868,8 +2864,8 @@ def start_without_invitation(message, ref=""):
 
     exists = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
     if not exists:
-        create_exodus_user(message.from_user.id, message.from_user.first_name, message.from_user.last_name,
-                           message.from_user.username, ref=ref)
+        create_exodus_user(message.chat.id, message.chat.first_name, message.chat.last_name,
+                           message.chat.username, ref=ref)
         exists = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
     if exists.status == '':
         orange_green_wizard(message)
@@ -2968,8 +2964,8 @@ def orange_invitation_check(message, event_id=None, ref=None):
     elif text == 'Да'.format(0):
         exists = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
         if not exists:
-            create_exodus_user(message.from_user.id, message.from_user.first_name, message.from_user.last_name,
-                               message.from_user.username, ref=ref)
+            create_exodus_user(message.chat.id, message.chat.first_name, message.chat.last_name,
+                               message.chat.username, ref=ref)
         orange_invitation_wizard(message, user_to, event_id)
 
     elif 'Главное меню' in text:
@@ -3203,8 +3199,8 @@ def red_invitation_check(message, event_id=None, ref=None):
     elif text == 'Да'.format(0):
         exists = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
         if not exists:
-            create_exodus_user(message.from_user.id, message.from_user.first_name, message.from_user.last_name,
-                               message.from_user.username, ref=ref)
+            create_exodus_user(message.chat.id, message.chat.first_name, message.chat.last_name,
+                               message.chat.username, ref=ref)
         red_invitation_wizard(message, user_to, event_id)
 
     elif 'Главное меню' in text:
@@ -4325,6 +4321,7 @@ def orange_invitation(call):
 
 @bot.callback_query_handler(func=lambda call: call.data[0:15] == 'red_invitation-')
 def red_invitation(call):
+    #print("call",call.message)
     global_menu(call.message)
     bot.delete_message(call.message.chat.id, call.message.message_id)
     user_id = call.data.split('-')[1]
