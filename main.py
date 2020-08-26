@@ -1113,8 +1113,7 @@ def show_other_socium(message, user_id):
         left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
         right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
 
-        string_name = string_name + '\n{}. {} {} {}  {}/{}'.format(i + 1, user.first_name, user.last_name,
-                                                                   get_status(user.status), left_sum, right_sum)
+        string_name = string_name + f'\n{i + 1}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {get_status(user.status)} {left_sum}/{right_sum}'
 
     bot_text = 'В сети участника:{}'.format(string_name) + '\n\n' \
                                                            'Введите номер Участника, чтобы ' \
@@ -1122,7 +1121,7 @@ def show_other_socium(message, user_id):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text='Назад')
     markup.row(btn1)
-    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
+    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup, parse_mode="html", disable_web_page_preview=True)
     bot.register_next_step_handler(msg, check_other_socium, user_id)
 
 
@@ -1165,8 +1164,7 @@ def show_my_socium(message):
         left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
         right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
 
-        string_name = string_name + '\n{}. {} {} {}  {}/{}'.format(i + 1, user.first_name, user.last_name,
-                                                                   get_status(user.status), left_sum, right_sum)
+        string_name = string_name + f'\n{i + 1}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {get_status(user.status)} {left_sum}/{right_sum}'
 
     bot_text = 'В моей сети:{}'.format(string_name) + '\n\n' \
                                                       'Введите номер Участника, чтобы ' \
@@ -1174,7 +1172,7 @@ def show_my_socium(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text='Назад')
     markup.row(btn1)
-    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
+    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup, parse_mode="html", disable_web_page_preview=True)
     bot.register_next_step_handler(msg, check_my_socium)
 
 
