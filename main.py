@@ -2911,7 +2911,9 @@ def welcome_base(message):
     """1.0"""
     bot.clear_step_handler(message)
     referral = ref_info(message.text)
-    bot.send_message(message.chat.id, "Добро пожаловать в бот Exodus.")
+    bot.send_message(message.chat.id, f"Добро пожаловать в бот Exodus.\n\n\
+Зелёный статус {GREEN_BALL} - сообщает о том, что вы готовы помогать участникам сети.\n\
+Оранжевый статус {ORANGE_BALL} - сообщает участникам сети, что вам необходима ежемесячная денежная поддержка.")
     if referral[0] != '':
         user_from = read_exodus_user(referral[0])
         user_to = read_exodus_user(referral[1])
