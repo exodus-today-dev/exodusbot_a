@@ -190,6 +190,9 @@ def instruction_menu(message, text=START_TEXT):
 
     bot_text = text
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
+    # with open('./static_files/test_03d.mp4',"rb") as misc:
+    #     f=misc.read()
+    # bot.send_video(message.chat.id, f)
     bot.register_next_step_handler(msg, check_instruction_menu)
 
 
