@@ -79,7 +79,7 @@ def get_left_days():
 
 
 # -------------- G L O B A L   M E N U ---------
-def global_menu(message, dont_show_status=False):
+def global_menu(message, dont_show_status=True):
     """2.0"""
     bot.clear_step_handler(message)
     user = read_exodus_user(message.chat.id)
@@ -1612,7 +1612,7 @@ def intention_for_needy_check(message, intention_id=None):
         cancel_intention(message)
         return
     elif 'Главное меню' in text:
-        global_menu(message, True)
+        global_menu(message)
 
     elif "/start" in text:
         welcome_base(message)
@@ -1730,7 +1730,7 @@ def remind_later(message, event_status=None, reminder_type=None, intention_id=No
     #          "исполнить обязательства на сумму {sum} {currency}.". \
     #          format(first_name=None, last_name=None, sum=None, currency=None)
     if to_menu:
-        global_menu(message, True)
+        global_menu(message)
     return
 
 
@@ -2039,7 +2039,7 @@ def obligation_sent_confirm_yes(message):
     #
     # executed_not_confirm_check(message)
 
-    global_menu(message, True)
+    global_menu(message)
     return
 
 
@@ -2308,7 +2308,7 @@ def for_me_obligation_check(message, obligation_id):
         remind_later(message, event_status=None, reminder_type='reminder_in', intention_id=obligation_id, to_menu=True)
         return
     elif text == 'Главное меню':
-        global_menu(message, True)
+        global_menu(message)
         return
     elif "/start" in text:
         welcome_base(message)
@@ -2363,7 +2363,7 @@ def obligation_to_execution(message, obligation_id):
 
     bot.send_message(message.chat.id, bot_text)
 
-    global_menu(message, True)
+    global_menu(message)
 
     return
 
@@ -2825,7 +2825,7 @@ def members_menu_profile_link(message, member_id):
 
     bot.send_message(user_id, bot_text)  # общий текст
 
-    global_menu(message, True)
+    global_menu(message)
 
 
 def config_wizzard_currency(message):
@@ -3011,7 +3011,7 @@ def orange_invitation_check(message, event_id=None, ref=None):
         orange_invitation_wizard(message, user_to, event_id)
 
     elif 'Главное меню' in text:
-        global_menu(message, True)
+        global_menu(message)
 
     elif "/start" in text:
         welcome_base(message)
@@ -3084,7 +3084,7 @@ def orange_invitation_wizard_check(message, event_id=None):  # -----------------
         create_intention(message.chat.id, user.telegram_id, invitation_sum, user.currency, status=1, event_id=event_id)
 
     bot.send_message(message.chat.id, bot_text)
-    global_menu(message, True)
+    global_menu(message)
 
 
 # ------------------------------------------------------
@@ -3246,7 +3246,7 @@ def red_invitation_check(message, event_id=None, ref=None):
         red_invitation_wizard(message, user_to, event_id)
 
     elif 'Главное меню' in text:
-        global_menu(message, True)
+        global_menu(message)
 
     elif "/start" in text:
         welcome_base(message)
@@ -3477,7 +3477,7 @@ def red_invitation_wizard_check(message, event_id=None):  # ------------------ T
             global_menu(message)
             return
 
-    global_menu(message, True)
+    global_menu(message)
 
 
 # ---------------------------------------------------------
@@ -3993,7 +3993,7 @@ def orange_green_wizard_step1(message):
                          f'Ваш статус: {GREEN_BALL}\nСписок участников с которыми Вы связаны, можно посмотреть в разделе главного меню "Участники"',
                          reply_markup=markup)
         update_exodus_user(telegram_id=message.chat.id, status='green', min_payments=0, max_payments=0)
-        # global_menu(message, True)
+        # global_menu(message)
         requisites = read_requisites_user(message.chat.id)
         if not requisites:
             add_requisite_name(message)
