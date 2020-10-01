@@ -16,9 +16,6 @@ from symbols import *
 
 bot = telebot.TeleBot(config.API_TOKEN)
 
-# bot.remove_webhook()
-
-
 # --------------------------------- DB ------------------------------
 
 
