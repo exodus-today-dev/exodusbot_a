@@ -10,10 +10,14 @@ HANDSHAKE = '\U0001F91D'
 HELP = '\U0001F64F'
 
 RIGHT_ARROW = '->'
+LEFT_ARROW = '<-'
 # PLUS = '\U00002795'
 # MINUS = '\U00002796'
 PLUS = '╋'
 MINUS = '━'
+
+PEOPLES = '\U0001F465'
+
 
 START_TEXT = "Бот Эксодус - \n\
 организация децентрализованной сетевой взаимопомощи.\n\n\
