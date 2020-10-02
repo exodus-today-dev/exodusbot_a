@@ -253,11 +253,13 @@ def configuration_menu(message):
     btn3 = types.KeyboardButton(text='Реквизиты')
     btn2 = types.KeyboardButton(text='Изменить ссылку на чат')
     btn4 = types.KeyboardButton(text='Главное меню')
+    btn5 = types.KeyboardButton(text='Выйти из бота и удалить учетную запись')
+
 
     markup.row(btn1, btn2)
     # markup.row(btn2)
     markup.row(btn3, btn4)
-    # markup.row(btn4)
+    markup.row(btn5)
 
     #     bot_text = f'Настройки:\n\
     # \n\
@@ -302,6 +304,15 @@ def configuration_check(message):
     elif text == 'Главное меню':
         global_menu(message)
         return
+    elif "Выйти" in text:
+        #quit_user_from_exodus(message.chat.id)
+        markup = types.ReplyKeyboardMarkup()
+        btn1 = types.KeyboardButton(text='Да, удалить профиль')
+        btn2 = types.KeyboardButton(text='Нет, я остаюсь')
+        markup.row(btn1, btn2)
+        msg = bot.send_message(message.chat.id, 'Вы собираетесь выйти из бота и удалить свой профиль?', reply_markup=markup)  # TODO
+        bot.register_next_step_handler(msg, check_quit_bot)
+        return
     elif text == 'Валюта':
         user = read_exodus_user(message.chat.id)
         markup = types.ReplyKeyboardMarkup()
@@ -323,6 +334,34 @@ def configuration_check(message):
         welcome_base(message)
         return
 
+
+def check_quit_bot(message):
+    text = message.text
+    bot.delete_message(message.chat.id, message.message_id)
+    my_socium = get_my_socium(message.chat.id)
+    if "Да" in text:
+        user = read_exodus_user(message.chat.id)
+        first_name = user.first_name
+        last_name = user.last_name
+        quit_user_from_exodus(message.chat.id)
+        bot.send_message(message.chat.id, 'Вы удалили свой профиль.')
+        for id in my_socium:
+            bot.send_message(id, '{} {} удалил свой профиль.'.format(first_name, last_name))
+        global_menu(message)
+        return
+    elif "Нет" in text:
+        bot.send_message(message.chat.id, 'Спасибо, что остаетесь с нами!')
+        configuration_menu(message)
+        return
+    elif text == 'Главное меню':
+        global_menu(message)
+        return
+    elif "/start" in text:
+        welcome_base(message)
+        return
+    else:
+        msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
+        bot.register_next_step_handler(msg, configuration_menu)
 
 def edit_link_menu(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)

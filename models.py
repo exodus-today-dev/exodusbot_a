@@ -114,6 +114,16 @@ session = Session()
 base.metadata.create_all(db)
 
 
+def quit_user_from_exodus(telegram_id):
+    delete_exodus_user(telegram_id)
+    delete_event_for_quit(telegram_id)
+    delete_intention_for_quit(telegram_id)
+    delete_requisites_for_quit(telegram_id)
+    delete_rings_help_for_quit(telegram_id)
+    delete_temp_intention(telegram_id)
+
+
+
 # region temp_intention
 
 def create_temp_intention(to_id, status, intention_array):
@@ -216,14 +226,11 @@ def update_exodus_user(telegram_id, first_name=None, last_name=None, username=No
 # Delete
 def delete_exodus_user(telegram_id):
     exodus_user = session.query(Exodus_Users).filter_by(telegram_id=telegram_id).first()
-    # try:
-    #     session.delete(exodus_user)
-    #     session.commit()
-    # except:
-    #     session.rollback()
-    #     raise
-    session.delete(exodus_user)
-    session.commit()
+    print(exodus_user)
+    if exodus_user != None:
+        session.delete(exodus_user)
+        session.commit()
+
 
 
 # endregion
@@ -323,6 +330,20 @@ def delete_event_future():
     session.commit()
 
 
+def delete_event_for_quit(telegram_id):
+    event_to_id = session.query(Events).filter_by(to_id=telegram_id).all()
+    if event_to_id != []:
+        for event in event_to_id:
+            session.delete(event)
+        session.commit()
+
+    event_from_id = session.query(Events).filter_by(from_id=telegram_id).all()
+    if event_to_id != []:
+        for event in event_from_id:
+            session.delete(event)
+        session.commit()
+
+
 # endregion
 
 # region rings_help
@@ -374,6 +395,19 @@ def update_rings_help_array_all(needy_id, help_array_all):
     with db.connect() as conn:
         u = text('UPDATE rings_help SET help_array_all = :q WHERE needy_id = :id')  # так работает
         conn.execute(u, q=help_array_all, id=needy_id)
+
+
+def delete_rings_help_for_quit(telegram_id):
+    array = read_rings_help_in_help_array_all(telegram_id)
+    if array != []:
+        for help in array:
+            session.delete(help)
+        session.commit()
+
+    needy_id = read_rings_help(telegram_id)
+    if needy_id != None:
+        session.delete(needy_id)
+        session.commit()
 
 
 def delete_from_orange_help_array(needy_id, delete_id):
@@ -523,6 +557,23 @@ def delete_intention(to_id, status):
         session.rollback()
 
 
+def delete_intention_for_quit(telegram_id):
+    try:
+        intention_to_id = session.query(Intention).filter_by(to_id=telegram_id).all()
+        for intention in intention_to_id:
+            session.delete(intention)
+        session.commit()
+    except:
+        session.rollback()
+
+    try:
+        intention_from_id = session.query(Intention).filter_by(from_id=telegram_id).all()
+        for intention in intention_from_id:
+            session.delete(intention)
+        session.commit()
+    except:
+        session.rollback()
+
 # endregion
 
 # region requisites
@@ -595,6 +646,19 @@ def update_requisites_user(requisites_id, name='', value='', is_default=False):
 # Delete
 def delete_requisites_user(requisites_id):
     requisites_user = session.query(Requisites).filter_by(requisites_id=requisites_id).first()
+
+    # try:
+    #     session.delete(requisites_user)
+    #     session.commit()
+    # except:
+    #     session.rollback()
+    #     raise
+
+    session.delete(requisites_user)
+    session.commit()
+
+def delete_requisites_for_quit(telegram_id):
+    requisites_user = session.query(Requisites).filter_by(telegram_id=telegram_id).first()
 
     # try:
     #     session.delete(requisites_user)
