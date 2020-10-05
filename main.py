@@ -181,9 +181,8 @@ def instruction_menu(message, text=START_TEXT):
     btn5 = types.KeyboardButton(text='Глоссарий')
     btn6 = types.KeyboardButton(text='Главное меню')
 
-    markup.row(btn1, btn2)
-    markup.row(btn3, btn4)
-    markup.row(btn5, btn6)
+    markup.row(btn1, btn2, btn3)
+    markup.row(btn4, btn5, btn6)
 
     bot_text = text
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
