@@ -248,17 +248,20 @@ def configuration_menu(message):
     # user = read_exodus_user(message.chat.id)
     markup = types.ReplyKeyboardMarkup()
 
-    btn1 = types.KeyboardButton(text='Статус')
-    btn3 = types.KeyboardButton(text='Реквизиты')
-    btn2 = types.KeyboardButton(text='Изменить ссылку на чат')
+    user = read_exodus_user(telegram_id=message.chat.id)
+    status = get_status(user.status)
+
+    btn1 = types.KeyboardButton(text=f'{status} Статус')
+    btn3 = types.KeyboardButton(text=f'{CREDIT_CARD} Реквизиты')
+    btn2 = types.KeyboardButton(text=f'{SPEECH_BALOON} Изменить ссылку на чат')
     btn4 = types.KeyboardButton(text='Главное меню')
-    btn5 = types.KeyboardButton(text='Выйти из бота и удалить учетную запись')
+    btn5 = types.KeyboardButton(text=f'{FOOTPRINTS} Выйти из бота и удалить учетную запись')
 
 
-    markup.row(btn1, btn2)
+    markup.row(btn1, btn2, btn3)
     # markup.row(btn2)
-    markup.row(btn3, btn4)
-    markup.row(btn5)
+    markup.row(btn4, btn5)
+
 
     #     bot_text = f'Настройки:\n\
     # \n\
@@ -740,25 +743,27 @@ def members_menu(message, meta_txt=None):
     # transactions_in_count = count_in_transactions(user_id)
     # transactions_out_count = count_out_transactions(user_id)
 
-    bot_text = 'Я в сети Эксодус с {data}\n' \
-               'Меня пригласил: {ref}\n' \
-               '\n' \
-               '{PLUS} ({tr_in}):\n' \
-               '  {HEART_RED}: {int_in} {currency}\n' \
-               '  {HANDSHAKE}: {obl_in} {currency}\n' \
-               '  Исполнено: {exe_in} {currency}\n' \
-               '\n' \
-               '{MINUS} ({tr_out}):\n' \
-               '  {HEART_RED}: {int_out} {currency}\n' \
-               '  {HANDSHAKE}: {obl_out} {currency}\n' \
-               '  Исполнено: {exe_out} {currency}'.format(
-        data=user.create_date.strftime("%d %B %Y"),
-        ref=ref, currency=currency, int_in=intentions_in_sum,
-        obl_in=obligations_in_sum, exe_in=executed_in_sum,
-        int_out=intentions_out_sum, obl_out=obligations_out_sum,
-        exe_out=executed_out_sum, tr_in=transactions_in_count,
-        tr_out=transactions_out_count, HEART_RED=HEART_RED, HANDSHAKE=HANDSHAKE,
-        PLUS=PLUS, MINUS=MINUS)
+    # bot_text = 'Я в сети Эксодус с {data}\n' \
+    #            'Меня пригласил: {ref}\n' \
+    #            '\n' \
+    #            '{PLUS} ({tr_in}):\n' \
+    #            '  {HEART_RED}: {int_in} {currency}\n' \
+    #            '  {HANDSHAKE}: {obl_in} {currency}\n' \
+    #            '  Исполнено: {exe_in} {currency}\n' \
+    #            '\n' \
+    #            '{MINUS} ({tr_out}):\n' \
+    #            '  {HEART_RED}: {int_out} {currency}\n' \
+    #            '  {HANDSHAKE}: {obl_out} {currency}\n' \
+    #            '  Исполнено: {exe_out} {currency}'.format(
+    #     data=user.create_date.strftime("%d %B %Y"),
+    #     ref=ref, currency=currency, int_in=intentions_in_sum,
+    #     obl_in=obligations_in_sum, exe_in=executed_in_sum,
+    #     int_out=intentions_out_sum, obl_out=obligations_out_sum,
+    #     exe_out=executed_out_sum, tr_in=transactions_in_count,
+    #     tr_out=transactions_out_count, HEART_RED=HEART_RED, HANDSHAKE=HANDSHAKE,
+    #     PLUS=PLUS, MINUS=MINUS)
+
+    bot_text = "Участники:"
 
     if meta_txt is None:
         msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
