@@ -290,20 +290,20 @@ def configuration_check(message):
         pass
     text = message.text
 
-    if text == 'Статус':
+    if 'Статус' in text:
         status_menu(message)
         return
-    elif text == 'Реквизиты':
+    elif 'Реквизиты' in text:
         requisites_wizard(message)
         return
-    elif text == 'Изменить ссылку на чат':
+    elif 'Изменить ссылку' in text:
         edit_link_menu(message)
         return
     elif text == 'Настройки уведомлений':
         bot.send_message(message.chat.id, 'Настройки уведомлений')  # TODO
         global_menu(message)
         return
-    elif text == 'Главное меню':
+    elif 'Главное меню' in text:
         global_menu(message)
         return
     elif "Выйти" in text:
