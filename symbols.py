@@ -1,7 +1,7 @@
 #GREEN_BALL = '\U0001F7E2'
 GREEN_BALL = '\U00002705' # Heavy Check Mark
 #ORANGE_BALL = '\U0001F7E0'
-ORANGE_BALL = '\U00002734' # Orange Star
+ORANGE_BALL = '\U0001F506' # High Brightness
 #RED_BALL = '\U0001F534'
 RED_BALL = '\U0001F198' # sos
 
@@ -20,6 +20,8 @@ PEOPLES = '\U0001F465'
 CREDIT_CARD = '\U0001F4B3'
 FOOTPRINTS = '\U0001F463'
 SPEECH_BALOON = '\U0001F4AC'
+GLOBE = '\U0001F310' # Globe with Meridians
+SPEAK_HEAD = '\U0001F5E3' # Speaking Head In Silhouette
 
 
 START_TEXT = "Бот Эксодус - \n\
