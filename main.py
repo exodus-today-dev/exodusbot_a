@@ -151,8 +151,8 @@ def global_menu(message, dont_show_status=True):
     btn5 = types.KeyboardButton(text='\U00002753 FAQ')
     btn6 = types.KeyboardButton(text=f'{SPEECH_BALOON} HELP')
     btn7 = types.KeyboardButton(text=f'{GLOBE} Позвать')
-    btn8 = types.KeyboardButton(text='{} ({})'.format(PLUS, transactions_in_count))
-    btn9 = types.KeyboardButton(text='{} ({})'.format(MINUS, transactions_out_count))
+    btn8 = types.KeyboardButton(text='{} {} {} {}'.format(MAN, RIGHT_ARROW, transactions_in_count, PEOPLES))
+    btn9 = types.KeyboardButton(text='{} {} {} {}'.format(transactions_out_count, PEOPLES, RIGHT_ARROW, MAN))
     btn10 = types.KeyboardButton(text=f'{requisites_count} {SPEAK_HEAD} {HELP}')
     markup.row(btn5, btn9, btn3)
     markup.row(btn6, btn8, btn4)
@@ -180,16 +180,16 @@ def global_check(message):
         help_menu(message)
     elif 'Позвать' in text:
         call_people_menu(message)
-    elif text == f'{PLUS} (0)':
+    elif f'{MAN} {RIGHT_ARROW} 0' in text:
         bot.send_message(message.chat.id, f'В Вашу пользу нет записей')
         return
-    elif f'{PLUS}' in text:
+    elif f'{MAN} {RIGHT_ARROW}' in text:
         members_list_in_network_menu(message, message.chat.id, 'in')
         return
-    elif text == f'{MINUS} (0)':
+    elif f'0 {PEOPLES} {RIGHT_ARROW}' in text:
         bot.send_message(message.chat.id, f'В пользу других нет записей')
         return
-    elif f'{MINUS}' in text:
+    elif f'{PEOPLES} {RIGHT_ARROW}' in text:
         members_list_in_network_menu(message, message.chat.id, 'out')
         return
     elif f'0 {SPEAK_HEAD} {HELP}' in text:
