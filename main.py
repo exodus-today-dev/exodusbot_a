@@ -138,17 +138,29 @@ def global_menu(message, dont_show_status=True):
             orange_green_wizard(message)
             dont_show_status = True
 
-    markup = types.ReplyKeyboardMarkup()
+    status_button = get_status(user.status)
+
+    transactions_in_count = read_intention_for_user(to_id=message.chat.id, statuses=(1, 11, 12)).count()
+    transactions_out_count = read_intention_for_user(from_id=message.chat.id, statuses=(1, 11, 12)).count()
+    requisites_count = get_requisites_count(message.chat.id)
+
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn2 = types.KeyboardButton(text='\U0001f4ca Кошелек')
-    btn3 = types.KeyboardButton(text='\U0001f527 Настройки')
+    btn3 = types.KeyboardButton(text=f'{status_button} Профиль')
     btn4 = types.KeyboardButton(text='\U0001f465 Участники')
-    btn5 = types.KeyboardButton(text='\U00002753 Инструкция')
-    markup.row(btn2)
-    markup.row(btn3, btn4)
-    markup.row(btn5)
+    btn5 = types.KeyboardButton(text='\U00002753 FAQ')
+    btn6 = types.KeyboardButton(text=f'{SPEECH_BALOON} HELP')
+    btn7 = types.KeyboardButton(text=f'{GLOBE} Позвать')
+    btn8 = types.KeyboardButton(text='{} ({})'.format(PLUS, transactions_in_count))
+    btn9 = types.KeyboardButton(text='{} ({})'.format(MINUS, transactions_out_count))
+    btn10 = types.KeyboardButton(text=f'{requisites_count} {SPEAK_HEAD} {HELP}')
+    markup.row(btn5, btn9, btn3)
+    markup.row(btn6, btn8, btn4)
+    markup.row(btn7, btn10, btn2)
     if not dont_show_status:
         bot.send_message(message.chat.id, 'Ваш статус: {}'.format(status))
     bot.send_message(message.chat.id, 'Меню:', reply_markup=markup)
+
 
 
 def global_check(message):
@@ -158,21 +170,55 @@ def global_check(message):
     #     status_menu(message)
     if 'Кошелек' in text:
         transactions_menu(message)
-    elif 'Настройки' in text:
+    elif 'Профиль' in text:
         configuration_menu(message)
     elif 'Участники' in text:
         members_menu(message)
-    elif 'Инструкция' in text:
+    elif 'FAQ' in text:
         instruction_menu(message)
-
+    elif 'HELP' in text:
+        help_menu(message)
+    elif 'Позвать' in text:
+        call_people_menu(message)
+    elif text == f'{PLUS} (0)':
+        bot.send_message(message.chat.id, f'В Вашу пользу нет записей')
+        return
+    elif f'{PLUS}' in text:
+        members_list_in_network_menu(message, message.chat.id, 'in')
+        return
+    elif text == f'{MINUS} (0)':
+        bot.send_message(message.chat.id, f'В пользу других нет записей')
+        return
+    elif f'{MINUS}' in text:
+        members_list_in_network_menu(message, message.chat.id, 'out')
+        return
+    elif f'0 {SPEAK_HEAD} {HELP}' in text:
+        bot.send_message(message.chat.id, 'Никто помощь пока не запрашивал')
+        return
+    elif f'{SPEAK_HEAD} {HELP}' in text:
+        show_help_requisites(message)
+        return
 
 # -------------------------------------------------------------------
+
+def call_people_menu(message):
+    user = read_exodus_user(message.chat.id)
+    link = create_link(user.telegram_id, user.telegram_id)
+    bot_text = f"\n\nСсылка для помощи \U0001F4E9\n{link}"
+    bot.send_message(message.chat.id, bot_text)
+
+
+def help_menu(message):
+    help_text = "Узнать подробнее о системе Эксодус можно, присоединившись к нашему каналу https://t.me/Exodus_canal_1\n\n\
+Вы можете сообщить про неясности или ошибки, возникающие в ходе освоения и доработки бота: https://t.me/Exodus_canal_1/4"
+    bot.send_message(message.chat.id, help_text)
+
 
 def instruction_menu(message, text=START_TEXT):
     # text_instruction = TEXT_INSTRUCTIONS
     # bot.send_message(message.chat.id, text_instruction, parse_mode="Markdown")
     # bot_text = 'Настройки:'
-    markup = types.ReplyKeyboardMarkup()
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 
     btn1 = types.KeyboardButton(text='Цель')
     btn3 = types.KeyboardButton(text='Способ')
@@ -246,7 +292,7 @@ def status_check(message):
 def configuration_menu(message):
     """2.3-3"""
     # user = read_exodus_user(message.chat.id)
-    markup = types.ReplyKeyboardMarkup()
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 
     user = read_exodus_user(telegram_id=message.chat.id)
     status = get_status(user.status)
@@ -255,7 +301,7 @@ def configuration_menu(message):
     btn3 = types.KeyboardButton(text=f'{CREDIT_CARD} Реквизиты')
     btn2 = types.KeyboardButton(text=f'{SPEECH_BALOON} Изменить ссылку на чат')
     btn4 = types.KeyboardButton(text='Главное меню')
-    btn5 = types.KeyboardButton(text=f'{FOOTPRINTS} Выйти из бота и удалить учетную запись')
+    btn5 = types.KeyboardButton(text=f'{FOOTPRINTS} Выйти из бота')
 
 
     markup.row(btn1, btn2, btn3)
@@ -277,7 +323,7 @@ def configuration_menu(message):
     #             n += 1
     #             bot_text += f'\n{n}. {requisite.name} - {requisite.value}'
 
-    bot_text = 'Настройки:'
+    bot_text = 'Профиль:'
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
     bot.register_next_step_handler(msg, configuration_check)
 
@@ -717,17 +763,17 @@ def members_menu(message, meta_txt=None):
     requisites_count = get_requisites_count(message.chat.id)
 
     btn1 = types.KeyboardButton(text='Мой профиль')
-    btn2 = types.KeyboardButton(text='{} ({})'.format(PLUS, transactions_in_count))
-    btn3 = types.KeyboardButton(text='{} ({})'.format(MINUS, transactions_out_count))
-    btn4 = types.KeyboardButton(text='Запросы помощи({})'.format(requisites_count))
+    # btn2 = types.KeyboardButton(text='{} ({})'.format(PLUS, transactions_in_count))
+    # btn3 = types.KeyboardButton(text='{} ({})'.format(MINUS, transactions_out_count))
+    # btn4 = types.KeyboardButton(text='Запросы помощи({})'.format(requisites_count))
     btn5 = types.KeyboardButton(text='Главное меню')
     btn6 = types.KeyboardButton(text='Моя сеть')
     btn7 = types.KeyboardButton(text='Расширить сеть')
-    markup.row(btn1, btn6, btn7)
-    markup.row(btn2, btn3)
+    markup.row(btn1, btn6)
+    #markup.row(btn2, btn3)
     # markup.row(btn3)
-    markup.row(btn4)  # ________________ TODO
-    markup.row(btn5)
+    #markup.row(btn4)  # ________________ TODO
+    markup.row(btn5, btn7)
 
     currency = user.currency
 
@@ -1155,7 +1201,7 @@ def members_list_in_network_check(message, member_id, direction):
     #     return
 
     if text == 'Назад':
-        members_menu(message)
+        global_menu(message)
         return
 
     elif "/start" in text:
@@ -1395,23 +1441,23 @@ def members_check(message):
     if text == 'Мой профиль':
         members_menu_profile_link(message, message.chat.id)
         return
-    elif text == f'{PLUS} (0)':
-        msg = bot.send_message(message.chat.id, f'В Вашу пользу нет записей')
-        bot.register_next_step_handler(msg, members_check)
-        return
-    elif f'{PLUS}' in text:
-        members_list_in_network_menu(message, message.chat.id, 'in')
-        return
-    elif text == f'{MINUS} (0)':
-        msg = bot.send_message(message.chat.id, f'В пользу других нет записей')
-        bot.register_next_step_handler(msg, members_check)
-        return
-    elif f'{MINUS}' in text:
-        members_list_in_network_menu(message, message.chat.id, 'out')
-        return
-    elif 'Запросы помощи' in text:
-        show_help_requisites(message)
-        return
+    # elif text == f'{PLUS} (0)':
+    #     msg = bot.send_message(message.chat.id, f'В Вашу пользу нет записей')
+    #     bot.register_next_step_handler(msg, members_check)
+    #     return
+    # elif f'{PLUS}' in text:
+    #     members_list_in_network_menu(message, message.chat.id, 'in')
+    #     return
+    # elif text == f'{MINUS} (0)':
+    #     msg = bot.send_message(message.chat.id, f'В пользу других нет записей')
+    #     bot.register_next_step_handler(msg, members_check)
+    #     return
+    # elif f'{MINUS}' in text:
+    #     members_list_in_network_menu(message, message.chat.id, 'out')
+    #     return
+    # elif 'Запросы помощи' in text:
+    #     show_help_requisites(message)
+    #     return
     elif text == 'Главное меню':
         global_menu(message)
         return
@@ -4281,32 +4327,35 @@ def show_help_requisites(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     users_dict = get_help_requisites(message.chat.id)
     # print(message.chat.id)
-    if len(users_dict) == 0:
-        txt = 'Никто помощь пока не запрашивал'
-        members_menu(message, meta_txt=txt)
-    else:
-        # btns = [types.KeyboardButton(un) for un in users_dict.keys()]
-        # for btn in btns:
-        #     markup.row(btn)
-        i = 0
-        bot_text = 'Запросы помощи:\n'
-        for un in users_dict.keys():
-            i += 1
-            user = read_exodus_user(telegram_id=un)
-            status = get_status(user.status)
-            already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
-            already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
-            left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
-            right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
+    # if len(users_dict) == 0:
+    #     txt = 'Никто помощь пока не запрашивал'
+    #     #members_menu(message, meta_txt=txt)
+    #     bot.send_message(message.chat.id, txt)
+    #     global_menu(message)
+    #else:
 
-            bot_text += f"{i}. {user.first_name} {user.last_name} {status} {left_sum}/{right_sum}\n"
-        btn1 = types.KeyboardButton('Назад')
-        markup.row(btn1)
-        txt = '\nВведите номер Участника, чтобы посмотреть подробную информацию:'
-        bot_text += txt
-        msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
-        bot.register_next_step_handler(msg, restart_invitation)
-        return
+    # btns = [types.KeyboardButton(un) for un in users_dict.keys()]
+    # for btn in btns:
+    #     markup.row(btn)
+    i = 0
+    bot_text = 'Запросы помощи:\n'
+    for un in users_dict.keys():
+        i += 1
+        user = read_exodus_user(telegram_id=un)
+        status = get_status(user.status)
+        already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
+        already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
+        left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
+        right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
+
+        bot_text += f"{i}. {user.first_name} {user.last_name} {status} {left_sum}/{right_sum}\n"
+    btn1 = types.KeyboardButton('Назад')
+    markup.row(btn1)
+    txt = '\nВведите номер Участника, чтобы посмотреть подробную информацию:'
+    bot_text += txt
+    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
+    bot.register_next_step_handler(msg, restart_invitation)
+    return
 
 
 def restart_invitation(message):
@@ -4316,7 +4365,8 @@ def restart_invitation(message):
     bot.delete_message(message.chat.id, message.message_id)
 
     if 'Назад' in number:
-        members_menu(message)
+        #members_menu(message)
+        global_menu(message)
         return
 
     elif not number.isdigit():
