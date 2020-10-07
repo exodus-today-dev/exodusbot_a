@@ -1112,6 +1112,7 @@ def generate_user_info_text(user, self_id):
             int_out=intentions_out_sum, obl_out=obligations_out_sum,
             exe_out=executed_out_sum, tr_in=transactions_in_count,
             tr_out=transactions_out_count, PLUS=PLUS, MINUS=MINUS)
+
     else:
         user_info_text += f'Информация о {HEART_RED} и {HANDSHAKE} доступна ' \
                           'только для участников в моей сети.'
@@ -1139,26 +1140,24 @@ def members_list_in_network_menu(message, member_id, direction):
 
 def selected_member_action_menu(message, member_id):
     """ 5.2 """
-    markup = types.ReplyKeyboardMarkup()
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 
     transactions_in_count = count_in_transactions(member_id)
     transactions_out_count = count_out_transactions(member_id)
 
-    btn1 = types.KeyboardButton(text='Профиль участника')
-    btn2 = types.KeyboardButton(text='В пользу этого участника '
-                                     '({tr_in})'.format(
-        tr_in=transactions_in_count))
-    btn3 = types.KeyboardButton(text='Этот участник в пользу других '
-                                     '({tr_out})'.format(
-        tr_out=transactions_out_count))
+    user = read_exodus_user(member_id)
+    first_name = user.first_name
+
+    btn1 = types.KeyboardButton(text=f'{MAN} {first_name}')
+    btn2 = types.KeyboardButton(text=f'{transactions_in_count} {PEOPLES} {RIGHT_ARROW} {first_name}')
+    btn3 = types.KeyboardButton(text=f'{first_name} {RIGHT_ARROW} {transactions_out_count} {PEOPLES}')
     btn4 = types.KeyboardButton(text='Главное меню')
+    btn5 = types.KeyboardButton(text=f'Сеть {PEOPLES} {first_name}')
+    btn6 = types.KeyboardButton(text=f'Помочь {first_name}')
 
-    btn5 = types.KeyboardButton(text='Сеть участника')
 
-    markup.row(btn1, btn5)
-    markup.row(btn2)
-    markup.row(btn3)
-    markup.row(btn4)
+    markup.row(btn1, btn5, btn6)
+    markup.row(btn3, btn2, btn4)
 
     bot_text = '\nВыберите пункт меню'
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
@@ -1170,18 +1169,26 @@ def selected_member_action_menu(message, member_id):
 def selected_member_action_check(message, member_id):  # bookmark
     """ 5.2 """
     text = message.text
+    user = read_exodus_user(member_id)
+    first_name = user.first_name
 
-    if text == 'Профиль участника':
-        members_menu_profile_link(message, member_id)
-    elif text[:24] == 'В пользу этого участника':
+    if MAN in text:
+        members_menu_profile_link(message, member_id, "selected_member_action_check")
+        return
+    elif f'{PEOPLES} {RIGHT_ARROW}' in text:
         members_list_in_network_menu(message, member_id, 'in')
-    elif text[:29] == 'Этот участник в пользу других':
+        return
+    elif f'{first_name} {RIGHT_ARROW}' in text:
         members_list_in_network_menu(message, member_id, 'out')
     elif text == 'Главное меню':
         global_menu(message)
-
-    elif 'Сеть участника' in text:
+    elif 'Сеть' in text:
         show_other_socium(message, member_id)
+    elif 'Помочь' in text:
+        link = create_link(user.telegram_id, user.telegram_id)
+        bot_text = f"\n\nСсылка для помощи \U0001F4E9\n{link}"
+        bot.send_message(message.chat.id, bot_text)
+        selected_member_action_menu(message, member_id)
 
     elif "/start" in text:
         welcome_base(message)
@@ -2847,7 +2854,7 @@ def executed_was_sent(message):
     return
 
 
-def members_menu_profile_link(message, member_id):
+def members_menu_profile_link(message, member_id, name_return_func=""):
     user_id = message.chat.id
     user = read_exodus_user(member_id)
     already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
@@ -2913,8 +2920,10 @@ def members_menu_profile_link(message, member_id):
         bot_text += f"\n\nСсылка для помощи \U0001F4E9\n{link}"
 
     bot.send_message(user_id, bot_text)  # общий текст
-
-    global_menu(message)
+    if 'selected_member_action_check' in name_return_func:
+        selected_member_action_menu(message, member_id)
+    else:
+        global_menu(message)
 
 
 def config_wizzard_currency(message):
@@ -2960,9 +2969,9 @@ def welcome_base(message):
     """1.0"""
     bot.clear_step_handler(message)
     referral = ref_info(message.text)
-    bot.send_message(message.chat.id, f"Добро пожаловать в бот Exodus.\n\n\
-Зелёный статус {GREEN_BALL} - сообщает о том, что вы готовы помогать участникам сети.\n\
-Оранжевый статус {ORANGE_BALL} - сообщает участникам сети, что вам необходима ежемесячная денежная поддержка.")
+#     bot.send_message(message.chat.id, f"Добро пожаловать в бот Exodus.\n\n\
+# Зелёный статус {GREEN_BALL} - сообщает о том, что вы готовы помогать участникам сети.\n\
+# Оранжевый статус {ORANGE_BALL} - сообщает участникам сети, что вам необходима ежемесячная денежная поддержка.")
     if referral[0] != '':
         user_from = read_exodus_user(referral[0])
         user_to = read_exodus_user(referral[1])
