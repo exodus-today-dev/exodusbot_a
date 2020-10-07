@@ -323,8 +323,9 @@ def configuration_menu(message):
     #             n += 1
     #             bot_text += f'\n{n}. {requisite.name} - {requisite.value}'
 
-    bot_text = 'Профиль:'
-    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
+    #bot_text = 'Профиль:'
+    bot_text = generate_user_info_text(user)
+    msg = bot.send_message(message.chat.id, bot_text, parse_mode="html", reply_markup=markup)
     bot.register_next_step_handler(msg, configuration_check)
 
 
@@ -809,12 +810,10 @@ def members_menu(message, meta_txt=None):
     #     tr_out=transactions_out_count, HEART_RED=HEART_RED, HANDSHAKE=HANDSHAKE,
     #     PLUS=PLUS, MINUS=MINUS)
 
-    bot_text = generate_user_info_text(user)
-
-    #bot_text = "Участники:"
+    bot_text = "Участники:"
 
     if meta_txt is None:
-        msg = bot.send_message(message.chat.id, bot_text, parse_mode="html", reply_markup=markup)
+        msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
     else:
         msg = bot.send_message(message.chat.id, text=meta_txt, reply_markup=markup)
     bot.register_next_step_handler(msg, members_check)
