@@ -1160,7 +1160,7 @@ def generate_user_info_text(user, self_id=''):
     if user.link == '' or user.link == None:
         user_info_text = f'{first_name} {last_name} {status} / {SPEECH_BALOON} <a href="{link}">Позвать</a> / {CREDIT_CARD} {req_name} {req_value}\n'
     else:
-        user_info_text = f'{first_name} {last_name} {status} / {SPEECH_BALOON} <a href="{link}">Позвать</a> / {SPEECH_BALOON} <a href="{user.link}">Обсуждение</a> / {CREDIT_CARD} {req_name} {req_value}\n'
+        user_info_text = f'{first_name} {last_name} {status} / {SPEECH_BALOON} <a href="{link}">Позвать</a> / {SPEECH_BALOON} {user.link} / {CREDIT_CARD} {req_name} {req_value}\n'
 
     if user.status == 'green':
         user_info_text += f'{MAN} {RIGHT_ARROW} {transactions_out_count} {PEOPLES}: {intentions_out_sum} {HEART_RED} / {obligations_out_sum} {HANDSHAKE}'
