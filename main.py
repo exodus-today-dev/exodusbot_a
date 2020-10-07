@@ -809,10 +809,12 @@ def members_menu(message, meta_txt=None):
     #     tr_out=transactions_out_count, HEART_RED=HEART_RED, HANDSHAKE=HANDSHAKE,
     #     PLUS=PLUS, MINUS=MINUS)
 
-    bot_text = "Участники:"
+    bot_text = generate_user_info_text(user)
+
+    #bot_text = "Участники:"
 
     if meta_txt is None:
-        msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
+        msg = bot.send_message(message.chat.id, bot_text, parse_mode="html", reply_markup=markup)
     else:
         msg = bot.send_message(message.chat.id, text=meta_txt, reply_markup=markup)
     bot.register_next_step_handler(msg, members_check)
@@ -1056,8 +1058,67 @@ def generate_user_info_preview(user_id):
     return user_info_preview
 
 
-def generate_user_info_text(user, self_id):
+def generate_user_info_text(user, self_id=''):
     """ 5.2 """
+
+    # ref = user.ref
+    # if ref != '':
+    #     referal = read_exodus_user(user.ref)
+    #     ref = '{} {}'.format(referal.first_name, referal.last_name)
+    # else:
+    #     ref = ''
+    #
+    # data = user.create_date
+    # first_name = user.first_name
+    # last_name = user.last_name
+    # status = get_status(user.status)
+    # currency = user.currency
+    #
+    # intentions_out_sum = sum_out_intentions(user.telegram_id)
+    # intentions_in_sum = sum_in_intentions(user.telegram_id)
+    # obligations_in_sum = sum_in_obligations(user.telegram_id)
+    # executed_in_sum = sum_in_executed(user.telegram_id)
+    # obligations_out_sum = sum_out_obligations(user.telegram_id)
+    # executed_out_sum = sum_out_executed(user.telegram_id)
+    #
+    # transactions_in_count = count_in_transactions(user.telegram_id)
+    # transactions_out_count = count_out_transactions(user.telegram_id)
+    #
+    # user_info_text = 'В сети Эксодус с {data}\n' \
+    #                  'Пригласил: {ref}\n' \
+    #                  'Со мной в круге:\n' \
+    #                  '\n' \
+    #                  'Имя участника: {first_name} {last_name}\n' \
+    #                  'Статус: {status}\n' \
+    #                  '\n'.format(data=data.strftime("%d %B %Y"), ref=ref,
+    #                              first_name=first_name, last_name=last_name,
+    #                              status=status)
+    #
+    # if user.status != 'green':
+    #     status_info_text = generate_status_info_text(user)
+    #     user_info_text += status_info_text + '\n'
+    #
+    # if in_my_circle_alpha(user.telegram_id, self_id):
+    #     user_info_text += '{PLUS} ({tr_in}):\n' \
+    #                       '  {HEART_RED}: {int_in} {currency}\n' \
+    #                       '  {HANDSHAKE}: {obl_in} {currency}\n' \
+    #                       '  Исполнено: {exe_in} {currency}\n' \
+    #                       '\n' \
+    #                       '{MINUS} ({tr_out}):\n' \
+    #                       '  {HEART_RED}: {int_out} {currency}\n' \
+    #                       '  {HANDSHAKE}: {obl_out} {currency}\n' \
+    #                       '  Исполнено: {exe_out} {currency}'.format(
+    #         HEART_RED=HEART_RED, HANDSHAKE=HANDSHAKE,
+    #         currency=currency, int_in=intentions_in_sum,
+    #         obl_in=obligations_in_sum, exe_in=executed_in_sum,
+    #         int_out=intentions_out_sum, obl_out=obligations_out_sum,
+    #         exe_out=executed_out_sum, tr_in=transactions_in_count,
+    #         tr_out=transactions_out_count, PLUS=PLUS, MINUS=MINUS)
+    #
+    # else:
+    #     user_info_text += f'Информация о {HEART_RED} и {HANDSHAKE} доступна ' \
+    #                       'только для участников в моей сети.'
+
 
     ref = user.ref
     if ref != '':
@@ -1071,51 +1132,51 @@ def generate_user_info_text(user, self_id):
     last_name = user.last_name
     status = get_status(user.status)
     currency = user.currency
+    telegram_id = user.telegram_id
 
-    intentions_out_sum = sum_out_intentions(user.telegram_id)
-    intentions_in_sum = sum_in_intentions(user.telegram_id)
-    obligations_in_sum = sum_in_obligations(user.telegram_id)
-    executed_in_sum = sum_in_executed(user.telegram_id)
-    obligations_out_sum = sum_out_obligations(user.telegram_id)
-    executed_out_sum = sum_out_executed(user.telegram_id)
+    intentions_out_sum = sum_out_intentions(telegram_id)
+    intentions_in_sum = sum_in_intentions(telegram_id)
+    obligations_in_sum = sum_in_obligations(telegram_id)
+    executed_in_sum = sum_in_executed(telegram_id)
+    obligations_out_sum = sum_out_obligations(telegram_id)
+    executed_out_sum = sum_out_executed(telegram_id)
 
-    transactions_in_count = count_in_transactions(user.telegram_id)
-    transactions_out_count = count_out_transactions(user.telegram_id)
+    transactions_in_count = count_in_transactions(telegram_id)
+    transactions_out_count = count_out_transactions(telegram_id)
 
-    user_info_text = 'В сети Эксодус с {data}\n' \
-                     'Пригласил: {ref}\n' \
-                     'Со мной в круге:\n' \
-                     '\n' \
-                     'Имя участника: {first_name} {last_name}\n' \
-                     'Статус: {status}\n' \
-                     '\n'.format(data=data.strftime("%d %B %Y"), ref=ref,
-                                 first_name=first_name, last_name=last_name,
-                                 status=status)
-
-    if user.status != 'green':
-        status_info_text = generate_status_info_text(user)
-        user_info_text += status_info_text + '\n'
-
-    if in_my_circle_alpha(user.telegram_id, self_id):
-        user_info_text += '{PLUS} ({tr_in}):\n' \
-                          '  {HEART_RED}: {int_in} {currency}\n' \
-                          '  {HANDSHAKE}: {obl_in} {currency}\n' \
-                          '  Исполнено: {exe_in} {currency}\n' \
-                          '\n' \
-                          '{MINUS} ({tr_out}):\n' \
-                          '  {HEART_RED}: {int_out} {currency}\n' \
-                          '  {HANDSHAKE}: {obl_out} {currency}\n' \
-                          '  Исполнено: {exe_out} {currency}'.format(
-            HEART_RED=HEART_RED, HANDSHAKE=HANDSHAKE,
-            currency=currency, int_in=intentions_in_sum,
-            obl_in=obligations_in_sum, exe_in=executed_in_sum,
-            int_out=intentions_out_sum, obl_out=obligations_out_sum,
-            exe_out=executed_out_sum, tr_in=transactions_in_count,
-            tr_out=transactions_out_count, PLUS=PLUS, MINUS=MINUS)
-
+    link = create_link(telegram_id, telegram_id)
+    requisites = read_requisites_user(telegram_id)
+    if requisites == []:
+        req_name = 'не указан'
+        req_value = 'не указан'
     else:
-        user_info_text += f'Информация о {HEART_RED} и {HANDSHAKE} доступна ' \
-                          'только для участников в моей сети.'
+        req_name = requisites[0].name
+        req_value = requisites[0].value
+
+    already_payments_oblig = get_intention_sum(telegram_id, statuses=(11, 12, 13))
+    already_payments_intent = get_intention_sum(telegram_id, statuses=(1,))
+    left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
+    right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
+
+    if user.link == '' or user.link == None:
+        user_info_text = f'{first_name} {last_name} {status} / {SPEECH_BALOON} <a href="{link}">Позвать</a> / {CREDIT_CARD} {req_name} {req_value}\n'
+    else:
+        user_info_text = f'{first_name} {last_name} {status} / {SPEECH_BALOON} <a href="{link}">Позвать</a> / {SPEECH_BALOON} <a href="{user.link}">Обсуждение</a> / {CREDIT_CARD} {req_name} {req_value}\n'
+
+    if user.status == 'green':
+        user_info_text += f'{MAN} {RIGHT_ARROW} {transactions_out_count} {PEOPLES}: {intentions_out_sum} {HEART_RED} / {obligations_out_sum} {HANDSHAKE}'
+
+    elif user.status == 'orange':
+        user_info_text += f'{transactions_in_count} {PEOPLES} {RIGHT_ARROW} {MAN} ({left_sum} {HEART_RED} / {right_sum} {MONEY_BAG})\n'
+        user_info_text += f'{MAN} {RIGHT_ARROW} {transactions_out_count} {PEOPLES}: {intentions_out_sum} {HEART_RED} / {obligations_out_sum} {HANDSHAKE}'
+
+    elif 'red' in user.status:
+        d0 = user.start_date
+        d1 = date.today()
+        delta = d1 - d0
+        days_end = user.days - delta.days
+        user_info_text += f'{transactions_in_count} {PEOPLES} {RIGHT_ARROW} {MAN} ({right_sum} {MONEY_BAG} / {days_end} дней)\n'
+
     return user_info_text
 
 
@@ -1223,7 +1284,7 @@ def members_list_in_network_check(message, member_id, direction):
             selected_id = int(text)
             user = read_exodus_user(members_list[selected_id])
             user_info_text = generate_user_info_text(user, message.chat.id)
-            bot.send_message(message.chat.id, user_info_text)
+            bot.send_message(message.chat.id, user_info_text, parse_mode='html')
             selected_member_action_menu(message, members_list[selected_id])
 
         except:
@@ -1281,7 +1342,7 @@ def check_other_socium(message, member_id):
             selected_id = int(text) - 1
             user = read_exodus_user(members_list[selected_id])
             user_info_text = generate_user_info_text(user, message.chat.id)
-            bot.send_message(message.chat.id, user_info_text)
+            bot.send_message(message.chat.id, user_info_text, parse_mode="html")
             selected_member_action_menu(message, members_list[selected_id])
         except:
             msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
@@ -1331,7 +1392,7 @@ def check_my_socium(message):
             selected_id = int(text) - 1
             user = read_exodus_user(members_list[selected_id])
             user_info_text = generate_user_info_text(user, message.chat.id)
-            bot.send_message(message.chat.id, user_info_text)
+            bot.send_message(message.chat.id, user_info_text, parse_mode="html")
             selected_member_action_menu(message, members_list[selected_id])
         except:
             msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
@@ -1416,7 +1477,7 @@ def check_expand_my_socium(message, list_expand_socium):
                     all_users = len(set(ring.help_array_orange))
                 except:
                     all_users = 0
-            bot_text = '\U0001F464 Имя участника: {} {}\nСтатус: {}\n\U0001F4B0 {}/{} {}\nУже помогают: {}\n'.format(
+            bot_text = '{} Имя участника: {} {}\nСтатус: {}\n\U0001F4B0 {}/{} {}\nУже помогают: {}\n'.format(MAN,
                 user.first_name,
                 user.last_name,
                 ORANGE_BALL,
