@@ -1158,15 +1158,15 @@ def generate_user_info_text(user, self_id=''):
     right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
 
     if user.link == '' or user.link == None:
-        user_info_text = f'{first_name} {last_name} {status} / {SPEECH_BALOON} <a href="{link}">Позвать</a> / {CREDIT_CARD} {req_name} {req_value}\n'
+        user_info_text = f'{first_name} {last_name} {status} / {GLOBE} <a href="{link}">Позвать</a> / {CREDIT_CARD} {req_name} {req_value}\n'
     else:
-        user_info_text = f'{first_name} {last_name} {status} / {SPEECH_BALOON} <a href="{link}">Позвать</a> / {SPEECH_BALOON} {user.link} / {CREDIT_CARD} {req_name} {req_value}\n'
+        user_info_text = f'{first_name} {last_name} {status} / {GLOBE} <a href="{link}">Позвать</a> / {SPEECH_BALOON} {user.link} / {CREDIT_CARD} {req_name} {req_value}\n'
 
     if user.status == 'green':
         user_info_text += f'{MAN} {RIGHT_ARROW} {transactions_out_count} {PEOPLES}: {intentions_out_sum} {HEART_RED} / {obligations_out_sum} {HANDSHAKE}'
 
     elif user.status == 'orange':
-        user_info_text += f'{transactions_in_count} {PEOPLES} {RIGHT_ARROW} {MAN} ({left_sum} {HEART_RED} / {right_sum} {MONEY_BAG})\n'
+        user_info_text += f'{transactions_in_count} {PEOPLES} {RIGHT_ARROW} {MAN} ({left_sum} {HEART_RED} / {right_sum} {HELP})\n'
         user_info_text += f'{MAN} {RIGHT_ARROW} {transactions_out_count} {PEOPLES}: {intentions_out_sum} {HEART_RED} / {obligations_out_sum} {HANDSHAKE}'
 
     elif 'red' in user.status:
@@ -1174,7 +1174,7 @@ def generate_user_info_text(user, self_id=''):
         d1 = date.today()
         delta = d1 - d0
         days_end = user.days - delta.days
-        user_info_text += f'{transactions_in_count} {PEOPLES} {RIGHT_ARROW} {MAN} ({right_sum} {MONEY_BAG} / {days_end} дней)\n'
+        user_info_text += f'{transactions_in_count} {PEOPLES} {RIGHT_ARROW} {MAN} ({right_sum} {HELP} / {days_end} дней)\n'
 
     return user_info_text
 
@@ -1311,7 +1311,13 @@ def show_other_socium(message, user_id):
         left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
         right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
 
-        string_name = string_name + f'\n{i + 1}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {get_status(user.status)} {left_sum}/{right_sum}'
+        status = user.status
+        if status == 'green':
+            string_name = string_name + f'\n{i + 1}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {GREEN_BALL}'
+        elif status == "orange":
+            string_name = string_name + f'\n{i + 1}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} {left_sum} {HEART_RED}/{right_sum} {HELP}'
+        elif "red" in status:
+            string_name = string_name + f'\n{i + 1}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} {right_sum} {HELP}'
 
     bot_text = 'В сети участника:{}'.format(string_name) + '\n\n' \
                                                            'Введите номер Участника, чтобы ' \
@@ -1362,7 +1368,13 @@ def show_my_socium(message):
         left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
         right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
 
-        string_name = string_name + f'\n{i + 1}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {get_status(user.status)} {left_sum}/{right_sum}'
+        status = user.status
+        if status == 'green':
+            string_name = string_name + f'\n{i + 1}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {GREEN_BALL}'
+        elif status == "orange":
+            string_name = string_name + f'\n{i + 1}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} {left_sum} {HEART_RED}/{right_sum} {HELP}'
+        elif "red" in status:
+            string_name = string_name + f'\n{i + 1}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} {right_sum} {HELP}'
 
     bot_text = 'В моей сети:{}'.format(string_name) + '\n\n' \
                                                       'Введите номер Участника, чтобы ' \
@@ -4411,18 +4423,25 @@ def show_help_requisites(message):
     for un in users_dict.keys():
         i += 1
         user = read_exodus_user(telegram_id=un)
-        status = get_status(user.status)
         already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
         already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
         left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
         right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
 
-        bot_text += f"{i}. {user.first_name} {user.last_name} {status} {left_sum}/{right_sum}\n"
+        # bot_text += f"{i}. {user.first_name} {user.last_name} {status} {left_sum}/{right_sum}\n"
+        status = user.status
+        if status == 'green':
+            bot_text = bot_text + f'\n{i}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {GREEN_BALL}'
+        elif status == "orange":
+            bot_text = bot_text + f'\n{i}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} {left_sum} {HEART_RED}/{right_sum} {HELP}'
+        elif "red" in status:
+            bot_text = bot_text + f'\n{i}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} {right_sum} {HELP}'
+
     btn1 = types.KeyboardButton('Назад')
     markup.row(btn1)
-    txt = '\nВведите номер Участника, чтобы посмотреть подробную информацию:'
+    txt = '\n\nВведите номер Участника, чтобы посмотреть подробную информацию:'
     bot_text += txt
-    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
+    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup, parse_mode="html")
     bot.register_next_step_handler(msg, restart_invitation)
     return
 
