@@ -1158,9 +1158,9 @@ def generate_user_info_text(user, self_id=''):
     right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
 
     if user.link == '' or user.link == None:
-        user_info_text = f'{first_name} {last_name} {status} / {GLOBE} <a href="{link}">Позвать</a> / {CREDIT_CARD} {req_name} {req_value}\n'
+        user_info_text = f'{first_name} {last_name} {status} / {GLOBE} <a href="{link}">Позвать</a> / {CREDIT_CARD} {req_name} <a href="{req_value}">{req_value}</a>\n'
     else:
-        user_info_text = f'{first_name} {last_name} {status} / {GLOBE} <a href="{link}">Позвать</a> / {SPEECH_BALOON} {user.link} / {CREDIT_CARD} {req_name} {req_value}\n'
+        user_info_text = f'{first_name} {last_name} {status} / {GLOBE} <a href="{link}">Позвать</a> / {SPEECH_BALOON} {user.link} / {CREDIT_CARD} {req_name} <a href="{req_value}">{req_value}</a>\n'
 
     if user.status == 'green':
         user_info_text += f'{MAN} {RIGHT_ARROW} {transactions_out_count} {PEOPLES}: {intentions_out_sum} {HEART_RED} / {obligations_out_sum} {HANDSHAKE}'
@@ -3744,7 +3744,7 @@ def edit_orange_need_payments(message):
         return
 
     bot_text = f'{ORANGE_BALL} Проверьте введенные данные:\n\
-Ежемесячная необходимая сумма 💰= {new_sum} {user.currency}'
+Ежемесячная необходимая сумма {MONEY_BAG} = {new_sum} {user.currency}'
 
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text=f'Изменить данные {MONEY_BAG}')
@@ -3947,35 +3947,20 @@ def check_orange_red(message):
 
 def red_status_wizard(message):
     user = read_exodus_user(message.chat.id)
-    ring = read_rings_help(user.telegram_id)
-    if ring is None:
-        all_users = 0
-    else:
-        try:
-            all_users = len(set(ring.help_array_red))
-        except:
-            all_users = 0
+
     d0 = user.start_date
     d1 = date.today()
     delta = d1 - d0
     days_end = user.days - delta.days
-    already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
-    already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
-    left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
-    right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
-    bot_text = f'Ваш статус: {RED_BALL}\n\
-{left_sum}/{right_sum} {user.currency}\n\
-Ссылка на обсуждение:\n\
-{user.link}\n\
-\n\
-Осталось {days_end} дней из {user.days}\n\
-Уже помогают: {all_users}\n\
-\n\
-Если вы хотите пригласить кого-то помогать вам, перешлите ему эту ссылку:'
-    bot.send_message(message.chat.id, bot_text)
+
+    # already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
+    # already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
+    # left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
+    # right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
+
+    bot_text = f'{RED_BALL} {user.max_payments}, осталось {days_end} дней'
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text=f'Изменить данные {MONEY_BAG}')
-    # btn2 = types.KeyboardButton(text='Изменить статус')
     user_status = user.status
     if 'orange' in user_status:
         btn2 = types.KeyboardButton(text=f'Вернуться к {ORANGE_BALL}')  # orange
@@ -3984,8 +3969,7 @@ def red_status_wizard(message):
     btn3 = types.KeyboardButton(text='Назад')
     markup.row(btn1, btn2, btn3)
 
-    link = create_link(user.telegram_id, user.telegram_id)
-    msg = bot.send_message(message.chat.id, link, reply_markup=markup)
+    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
     bot.register_next_step_handler(msg, red_status_wizard_check)
 
 
@@ -3993,7 +3977,7 @@ def red_status_wizard_check(message):
     bot.delete_message(message.chat.id, message.message_id)
     text = message.text
     if 'Изменить данные' in text:
-        red_edit_wizard(message)
+        edit_red_data(message)
     elif 'Вернуться' in text:
         green_orange_check(message)
     elif text == 'Назад':
@@ -4003,6 +3987,101 @@ def red_status_wizard_check(message):
     else:
         msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
         bot.register_next_step_handler(msg, red_status_wizard_check)
+
+
+def edit_red_data(message):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    btn1 = types.KeyboardButton(text='Да')
+    btn2 = types.KeyboardButton(text='Нет')
+    markup.row(btn1, btn2)
+    msg = bot.send_message(message.chat.id, f'{RED_BALL} Вы собираетесь изменить данные {MONEY_BAG}\n\
+Пожалуйста подтвердите действие', reply_markup=markup)
+    bot.register_next_step_handler(msg, check_edit_red_data)
+
+
+def check_edit_red_data(message):
+    bot.delete_message(message.chat.id, message.message_id)
+    text = message.text
+    # user = read_exodus_user(message.chat.id)
+    if 'Да' in text:
+        markup = types.ReplyKeyboardRemove(selective=False)
+        msg = bot.send_message(message.chat.id,
+                               f'{RED_BALL} Введите цифрами сумму {MONEY_BAG}, которую вам необходимо набрать экстренно',
+                               reply_markup=markup)
+        bot.register_next_step_handler(msg, edit_red_need_payments)
+    elif 'Нет' in text:
+        red_status_wizard(message)
+
+    elif text == 'Главное меню':
+        global_menu(message)
+    elif "/start" in text:
+        welcome_base(message)
+
+
+def edit_red_need_payments(message):
+    user = read_exodus_user(message.chat.id)
+    chat_id = message.chat.id
+
+    new_sum = message.text
+    if not is_digit(new_sum):
+        msg = bot.send_message(chat_id,
+                               'Сумма должна быть только в виде цифр. Введите сумму в {}, которая Вам необходима:'.format(
+                                   user.currency))
+        bot.register_next_step_handler(msg, edit_red_need_payments)
+        return
+
+    msg = bot.send_message(chat_id, f'{RED_BALL} Введите цифрами число дней, за которые вам необходимо набрать эту сумму')
+    bot.register_next_step_handler(msg, edit_red_data_day, new_sum)
+
+
+def edit_red_data_day(message, new_sum):
+    # user = read_exodus_user(message.chat.id)
+    chat_id = message.chat.id
+    days = message.text
+    if not days.isdigit():
+        msg = bot.send_message(chat_id,
+                               'Кол-во дней должны быть в виде цифр. Введите кол-во дней, в течении которых вам необходимо собрать эту сумму:')
+        bot.register_next_step_handler(msg, edit_red_data_day, new_sum)
+        return
+
+    bot_text = f'{RED_BALL}Пожалуйста проверьте введенные данные:\n\
+Необходимая сумма: {new_sum} за {days}'
+
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    btn1 = types.KeyboardButton(text=f'Изменить данные {MONEY_BAG}')
+    btn2 = types.KeyboardButton(text='Отмена')
+    btn3 = types.KeyboardButton(text='Сохранить статус')
+    markup.row(btn1, btn2, btn3)
+
+    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
+    bot.register_next_step_handler(msg, edit_red_data_final, new_sum, days)
+
+
+def edit_red_data_final(message, new_sum, days):
+    bot.delete_message(message.chat.id, message.message_id)
+    text = message.text
+    if 'Изменить данные' in text:
+        edit_red_data(message)
+    elif text == 'Отмена':
+        bot.send_message(message.chat.id, 'Настройки не сохранены')
+        red_status_wizard(message)
+
+    elif text == 'Сохранить статус':
+        bot.send_message(message.chat.id, 'Настройки сохранены')
+
+        user = read_exodus_user(message.chat.id)
+        link = user.link
+
+        update_exodus_user(telegram_id=message.chat.id, link=link,
+                           start_date=date.today(),
+                           days=days, max_payments=new_sum)
+        red_status_wizard(message)
+    elif "/start" in text:
+        welcome_base(message)
+    else:
+        msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
+        bot.register_next_step_handler(msg, edit_red_data_final, new_sum, days)
+
 
 
 # ------------------ RED WIZARD 2.2 ---------------
