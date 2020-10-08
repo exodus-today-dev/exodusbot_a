@@ -3719,8 +3719,7 @@ def check_edit_orange_data(message):
     #user = read_exodus_user(message.chat.id)
     if 'Да' in text:
         markup = types.ReplyKeyboardRemove(selective=False)
-        msg = bot.send_message(message.chat.id,
-                               f'{ORANGE_BALL} 🔆Введите цифрами сумму {MONEY_BAG}💰, которая вам необходима на базовые нужды ежемесячно',
+        msg = bot.send_message(message.chat.id, f'🔆Введите цифрами сумму💰, которая вам необходима на базовые нужды ежемесячно',
                                reply_markup=markup)
         bot.register_next_step_handler(msg, edit_orange_need_payments)
     elif 'Нет' in text:
