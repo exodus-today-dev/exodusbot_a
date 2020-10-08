@@ -3655,33 +3655,34 @@ def red_invitation_wizard_check(message, event_id=None):  # ------------------ T
 
 def orange_status_wizard(message):
     user = read_exodus_user(message.chat.id)
-    already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
-    already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
-    left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
-    right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
-    ring = read_rings_help(user.telegram_id)
-    link = create_link(user.telegram_id, user.telegram_id)
-    if ring is None:
-        all_users = 0
-    else:
-        try:
-            all_users = len(set(ring.help_array_orange))
-        except:
-            all_users = 0
-    bot_text = f'Ваш статус: {ORANGE_BALL}\n\
-{left_sum}/{right_sum} {user.currency}\n\
-Уже помогают: {all_users}\n\
-Период: Ежемесячно\n\n\
-Ссылка на обсуждение \U0001F4E2 \n{user.link}\
-\n\nСсылка для помощи \U0001F4E9\n{link}'
+#     already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
+#     already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
+#     left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
+#     right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
+#     ring = read_rings_help(user.telegram_id)
+#     link = create_link(user.telegram_id, user.telegram_id)
+#     if ring is None:
+#         all_users = 0
+#     else:
+#         try:
+#             all_users = len(set(ring.help_array_orange))
+#         except:
+#             all_users = 0
+#     bot_text = f'Ваш статус: {ORANGE_BALL}\n\
+# {left_sum}/{right_sum} {user.currency}\n\
+# Уже помогают: {all_users}\n\
+# Период: Ежемесячно\n\n\
+# Ссылка на обсуждение \U0001F4E2 \n{user.link}\
+# \n\nСсылка для помощи \U0001F4E9\n{link}'
 
-    markup = types.ReplyKeyboardMarkup()
-    btn1 = types.KeyboardButton(text='Редактировать')
+    bot_text = f'{ORANGE_BALL} {MONEY_BAG} {user.max_payments}, ежемесячно'
+
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    btn1 = types.KeyboardButton(text=f'Изменить данные {MONEY_BAG}')
     btn2 = types.KeyboardButton(text='Изменить статус')
     btn3 = types.KeyboardButton(text='Назад')
-    markup.row(btn1)
-    markup.row(btn2)
-    markup.row(btn3)
+    markup.row(btn1, btn2, btn3)
+
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
     bot.register_next_step_handler(msg, orange_menu_check)
 
@@ -3689,8 +3690,8 @@ def orange_status_wizard(message):
 def orange_menu_check(message):
     bot.delete_message(message.chat.id, message.message_id)
     text = message.text
-    if text == 'Редактировать':
-        orange_edit_wizard(message)
+    if 'Изменить данные' in text:
+        edit_orange_data(message)
     elif text == 'Изменить статус':
         green_red_wizard(message)
     elif text == 'Назад':
@@ -3702,13 +3703,95 @@ def orange_menu_check(message):
         bot.register_next_step_handler(msg, orange_menu_check)
 
 
+def edit_orange_data(message):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    btn1 = types.KeyboardButton(text='Да')
+    btn2 = types.KeyboardButton(text='Нет')
+    markup.row(btn1, btn2)
+    msg = bot.send_message(message.chat.id, f'{ORANGE_BALL} Вы собираетесь изменить данные {MONEY_BAG}\n\
+Пожалуйста подтвердите действие', reply_markup=markup)
+    bot.register_next_step_handler(msg, check_edit_orange_data)
+
+
+def check_edit_orange_data(message):
+    bot.delete_message(message.chat.id, message.message_id)
+    text = message.text
+    #user = read_exodus_user(message.chat.id)
+    if 'Да' in text:
+        markup = types.ReplyKeyboardRemove(selective=False)
+        msg = bot.send_message(message.chat.id,
+                               f'{ORANGE_BALL} 🔆Введите цифрами сумму {MONEY_BAG}💰, которая вам необходима на базовые нужды ежемесячно',
+                               reply_markup=markup)
+        bot.register_next_step_handler(msg, edit_orange_need_payments)
+    elif 'Нет' in text:
+        orange_status_wizard(message)
+
+    elif text == 'Главное меню':
+        global_menu(message)
+    elif "/start" in text:
+        welcome_base(message)
+
+
+def edit_orange_need_payments(message):
+    user = read_exodus_user(message.chat.id)
+    chat_id = message.chat.id
+
+    new_sum = message.text
+    if not is_digit(new_sum):
+        msg = bot.send_message(chat_id,
+                               'Сумма должна быть только в виде цифр. Введите сумму в {}, которую вы бы хотели получать в течении месяца:'.format(
+                                   user.currency))
+        bot.register_next_step_handler(msg, edit_orange_need_payments)
+        return
+
+    bot_text = f'{ORANGE_BALL} Проверьте введенные данные:\n\
+Ежемесячная необходимая сумма 💰= {new_sum} {user.currency}'
+
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    btn1 = types.KeyboardButton(text=f'Изменить данные {MONEY_BAG}')
+    btn2 = types.KeyboardButton(text='Отмена')
+    btn3 = types.KeyboardButton(text='Сохранить')
+    markup.row(btn1, btn2, btn3)
+
+    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
+
+    bot.register_next_step_handler(msg, edit_orange_final, new_sum)
+
+
+def edit_orange_final(message, new_sum):
+    text = message.text
+    # bot.delete_message(message.chat.id, message.message_id)
+    if 'Изменить данные' in text:
+        bot.send_message(message.chat.id, 'Вы выбрали редактирование')
+        edit_orange_data(message)
+        return
+    if text == 'Отмена':
+        bot.send_message(message.chat.id, 'Настройки не сохранены')
+        orange_status_wizard(message)
+        return
+    if text == 'Сохранить':
+        bot.send_message(message.chat.id, 'Настройки сохранены')
+
+        user = read_exodus_user(message.chat.id)
+        link = user.link
+        update_exodus_user(message.chat.id, max_payments=float(new_sum), link=link)
+        orange_status_wizard(message)
+        return
+    elif "/start" in text:
+        welcome_base(message)
+        return
+    else:
+        msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
+        bot.register_next_step_handler(msg, edit_orange_final)
+        return
+
+
 def green_red_wizard(message):
-    markup = types.ReplyKeyboardMarkup()
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text=GREEN_BALL)
     btn2 = types.KeyboardButton(text=RED_BALL)
     btn3 = types.KeyboardButton(text='Назад')
-    markup.row(btn1, btn2)
-    markup.row(btn3)
+    markup.row(btn1, btn2, btn3)
     msg = bot.send_message(message.chat.id, 'Выберите новый статус', reply_markup=markup)
     bot.register_next_step_handler(msg, green_red_check)
 
@@ -3891,8 +3974,8 @@ def red_status_wizard(message):
 \n\
 Если вы хотите пригласить кого-то помогать вам, перешлите ему эту ссылку:'
     bot.send_message(message.chat.id, bot_text)
-    markup = types.ReplyKeyboardMarkup()
-    btn1 = types.KeyboardButton(text='Редактировать')
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    btn1 = types.KeyboardButton(text=f'Изменить данные {MONEY_BAG}')
     # btn2 = types.KeyboardButton(text='Изменить статус')
     user_status = user.status
     if 'orange' in user_status:
@@ -3900,9 +3983,8 @@ def red_status_wizard(message):
     if 'green' in user_status:
         btn2 = types.KeyboardButton(text=f'Вернуться к {GREEN_BALL}')  # green
     btn3 = types.KeyboardButton(text='Назад')
-    markup.row(btn1)
-    markup.row(btn2)
-    markup.row(btn3)
+    markup.row(btn1, btn2, btn3)
+
     link = create_link(user.telegram_id, user.telegram_id)
     msg = bot.send_message(message.chat.id, link, reply_markup=markup)
     bot.register_next_step_handler(msg, red_status_wizard_check)
@@ -3911,7 +3993,7 @@ def red_status_wizard(message):
 def red_status_wizard_check(message):
     bot.delete_message(message.chat.id, message.message_id)
     text = message.text
-    if text == 'Редактировать':
+    if 'Изменить данные' in text:
         red_edit_wizard(message)
     elif 'Вернуться' in text:
         green_orange_check(message)
