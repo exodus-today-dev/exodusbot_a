@@ -4045,7 +4045,7 @@ def edit_red_data_day(message, new_sum):
         return
 
     bot_text = f'{RED_BALL}Пожалуйста проверьте введенные данные:\n\
-Необходимая сумма: {new_sum} за {days}'
+Необходимая сумма: {new_sum} за {days} дней'
 
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text=f'Изменить данные {MONEY_BAG}')
