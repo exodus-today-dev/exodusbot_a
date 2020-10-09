@@ -24,6 +24,8 @@ FOOTPRINTS = '\U0001F463'
 SPEECH_BALOON = '\U0001F4AC'
 GLOBE = '\U0001F310' # Globe with Meridians
 SPEAK_HEAD = '\U0001F5E3' # Speaking Head In Silhouette
+SPIRAL_CALENDAR = '\U0001F5D3' # Spiral Calendar Pad
+QUESTION = '\U00002753' # Black Question Mark Ornament
 
 
 START_TEXT = "Бот Эксодус - \n\

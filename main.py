@@ -145,10 +145,10 @@ def global_menu(message, dont_show_status=True):
     requisites_count = get_requisites_count(message.chat.id)
 
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    btn2 = types.KeyboardButton(text='\U0001f4ca Кошелек')
+    btn2 = types.KeyboardButton(text=f'{SPIRAL_CALENDAR} Органайзер')
     btn3 = types.KeyboardButton(text=f'{status_button} Профиль')
-    btn4 = types.KeyboardButton(text='\U0001f465 Участники')
-    btn5 = types.KeyboardButton(text='\U00002753 FAQ')
+    btn4 = types.KeyboardButton(text=f'{PEOPLES} Участники')
+    btn5 = types.KeyboardButton(text=f'{QUESTION} FAQ')
     btn6 = types.KeyboardButton(text=f'{SPEECH_BALOON} HELP')
     btn7 = types.KeyboardButton(text=f'{GLOBE} Позвать')
     btn8 = types.KeyboardButton(text='{} {} {} {}'.format(MAN, RIGHT_ARROW, transactions_in_count, PEOPLES))
@@ -168,7 +168,7 @@ def global_check(message):
     text = message.text
     # if text == 'Мой статус':
     #     status_menu(message)
-    if 'Кошелек' in text:
+    if 'Органайзер' in text:
         transactions_menu(message)
     elif 'Профиль' in text:
         configuration_menu(message)
@@ -861,7 +861,7 @@ def print_members_list_in_network(message, member_id, direction):
             status = ''
 
         msg_text = msg_text + '{i}. {first_name} {last_name} {status}\n'.format(
-            i=i + 1, first_name=user.first_name,
+            i=user.exodus_id, first_name=user.first_name,
             last_name=user.last_name, status=status)
 
     # сообщение в телеграмме не может быть длиннее 4096 символов. 14 юзеров - это 400 символов.
@@ -1283,12 +1283,19 @@ def members_list_in_network_check(message, member_id, direction):
         try:
             # bookmark #debug.bookmark #dev.bookmark
 
-            members_list = get_members_list(member_id, direction)
+            # members_list = get_members_list(member_id, direction)
+            # selected_id = int(text)
+            # user = read_exodus_user(members_list[selected_id])
+            # user_info_text = generate_user_info_text(user, message.chat.id)
+            # bot.send_message(message.chat.id, user_info_text, parse_mode='html')
+            # selected_member_action_menu(message, members_list[selected_id])
+
             selected_id = int(text)
-            user = read_exodus_user(members_list[selected_id])
+            user = read_exodus_user_by_exodus_id(selected_id)
+            telegram_id = user.telegram_id
             user_info_text = generate_user_info_text(user, message.chat.id)
             bot.send_message(message.chat.id, user_info_text, parse_mode='html')
-            selected_member_action_menu(message, members_list[selected_id])
+            selected_member_action_menu(message, telegram_id)
 
         except:
             msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
@@ -1317,11 +1324,11 @@ def show_other_socium(message, user_id):
 
         status = user.status
         if status == 'green':
-            string_name = string_name + f'\n{i + 1}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {GREEN_BALL}'
+            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {GREEN_BALL}'
         elif status == "orange":
-            string_name = string_name + f'\n{i + 1}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} {left_sum} {HEART_RED}/{right_sum} {HELP}'
+            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} {left_sum} {HEART_RED}/{right_sum} {HELP}'
         elif "red" in status:
-            string_name = string_name + f'\n{i + 1}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} {right_sum} {HELP}'
+            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} {right_sum} {HELP}'
 
     bot_text = 'В сети участника:{}'.format(string_name) + '\n\n' \
                                                            'Введите номер Участника, чтобы ' \
@@ -1345,14 +1352,12 @@ def check_other_socium(message, member_id):
         return
     else:
         try:
-            # bookmark #debug.bookmark #dev.bookmark
-
-            members_list = list(get_my_socium(member_id))
-            selected_id = int(text) - 1
-            user = read_exodus_user(members_list[selected_id])
+            selected_id = int(text)
+            user = read_exodus_user_by_exodus_id(selected_id)
+            telegram_id = user.telegram_id
             user_info_text = generate_user_info_text(user, message.chat.id)
-            bot.send_message(message.chat.id, user_info_text, parse_mode="html")
-            selected_member_action_menu(message, members_list[selected_id])
+            bot.send_message(message.chat.id, user_info_text, parse_mode='html')
+            selected_member_action_menu(message, telegram_id)
         except:
             msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
             bot.register_next_step_handler(msg,
@@ -1374,11 +1379,11 @@ def show_my_socium(message):
 
         status = user.status
         if status == 'green':
-            string_name = string_name + f'\n{i + 1}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {GREEN_BALL}'
+            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {GREEN_BALL}'
         elif status == "orange":
-            string_name = string_name + f'\n{i + 1}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} {left_sum} {HEART_RED}/{right_sum} {HELP}'
+            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} {left_sum} {HEART_RED}/{right_sum} {HELP}'
         elif "red" in status:
-            string_name = string_name + f'\n{i + 1}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} {right_sum} {HELP}'
+            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} {right_sum} {HELP}'
 
     bot_text = 'В моей сети:{}'.format(string_name) + '\n\n' \
                                                       'Введите номер Участника, чтобы ' \
@@ -1403,12 +1408,12 @@ def check_my_socium(message):
         try:
             # bookmark #debug.bookmark #dev.bookmark
 
-            members_list = list(get_my_socium(message.chat.id))
-            selected_id = int(text) - 1
-            user = read_exodus_user(members_list[selected_id])
+            selected_id = int(text)
+            user = read_exodus_user_by_exodus_id(selected_id)
+            telegram_id = user.telegram_id
             user_info_text = generate_user_info_text(user, message.chat.id)
-            bot.send_message(message.chat.id, user_info_text, parse_mode="html")
-            selected_member_action_menu(message, members_list[selected_id])
+            bot.send_message(message.chat.id, user_info_text, parse_mode='html')
+            selected_member_action_menu(message, telegram_id)
         except:
             msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
             bot.register_next_step_handler(msg, check_my_socium)
@@ -1589,13 +1594,13 @@ def for_other_wizard(message):
         for intent in intentions:
             n = n + 1
             user_to = read_exodus_user(telegram_id=intent.to_id)
-            bot_text_int += '{n}. {first_name} {last_name} {status} {payment} {currency}\n'.format(
+            bot_text_int += '{n}. {first_name} {last_name} {status} {payment} {HEART_RED}\n'.format(
                 n=intent.intention_id,
                 first_name=user_to.first_name,
                 last_name=user_to.last_name,
                 status=get_status(user_to.status),
                 payment=intent.payment,
-                currency=intent.currency)
+                HEART_RED=HEART_RED)
 
     bot_text_obl = ''
     if obligations is None:
@@ -1604,18 +1609,16 @@ def for_other_wizard(message):
         for obl in obligations:
             n = n + 1
             user_to = read_exodus_user(telegram_id=obl.to_id)
-            bot_text_obl += '{n}. {first_name} {last_name} {status} {payment} {currency}\n'.format(n=obl.intention_id,
+            bot_text_obl += '{n}. {first_name} {last_name} {status} {payment} {HANDSHAKE}\n'.format(n=obl.intention_id,
                                                                                                    first_name=user_to.first_name,
                                                                                                    last_name=user_to.last_name,
                                                                                                    status=get_status(
                                                                                                        user_to.status),
                                                                                                    payment=obl.payment,
-                                                                                                   currency=obl.currency)
+                                                                                                   HANDSHAKE=HANDSHAKE)
 
     bot_text = f"Вами записано {intentions_count} {HEART_RED} и {obligations_count} {HANDSHAKE}:\n\
-{HEART_RED}:\n\
-{bot_text_int}\n\
-{HANDSHAKE}:\n\
+{bot_text_int}\n\n\
 {bot_text_obl}\n\n\
 Введите номер, чтобы посмотреть подробную информацию или изменить:"
 
@@ -2236,26 +2239,26 @@ def for_my_wizard(message):
     for obligation in obligations:
         members.append(obligation.from_id)
 
-    bot_text_int = f"{HEART_RED}:\n"
+    bot_text_int = ''
     if intentions is None:
-        bot_text_int = f"{HEART_RED}:\n"
+        bot_text_int = ''
     else:
         for intent in intentions:
             user = read_exodus_user(telegram_id=intent.from_id)
-            bot_text_int += f"{intent.intention_id}. {user.first_name} {user.last_name} {intent.payment} {intent.currency}\n"
+            bot_text_int += f"{intent.intention_id}. {user.first_name} {user.last_name} {intent.payment} {HEART_RED}\n"
 
     n = 0
-    bot_text_obl = f"{HANDSHAKE}:\n"
+    bot_text_obl = ''
     if obligations is None:
-        bot_text_obl += ''
+        bot_text_obl = ''
     else:
         for obl in obligations:
             n = n + 1
             user = read_exodus_user(telegram_id=obl.from_id)
-            bot_text_obl += f"{obl.intention_id}. {user.first_name} {user.last_name} {obl.payment} {obl.currency}\n"
+            bot_text_obl += f"{obl.intention_id}. {user.first_name} {user.last_name} {obl.payment} {HANDSHAKE}\n"
 
     bot_text = f"В Вашу пользу {intentions_count} {HEART_RED} и {obligations_count} {HANDSHAKE}:\n\
-{bot_text_int}\n\
+{bot_text_int}\n\n\
 {bot_text_obl}\n\n\
 Введите номер, чтобы посмотреть подробную информацию или изменить:"
 
@@ -2555,8 +2558,7 @@ def keep_obligation(message, obligation_id):
     bot_text = f'{HANDSHAKE} участника {user.first_name} {user.last_name} на ' \
                f'сумму  {intention.payment} {intention.currency} будет хранится у вас, ' \
                f'пока вы не примите решение.\n' \
-               f'Посмотреть все {HANDSHAKE} можно в разделе главного меню ' \
-               f'"Кошелек" > "{HANDSHAKE}"'
+               f'Посмотреть все {HANDSHAKE} можно в разделе главного меню "Органайзер"'
     bot.send_message(message.chat.id, bot_text)
     global_menu(message)
     return
@@ -3124,31 +3126,32 @@ def start_orange_invitation(message, user_to, event_id=None, ref=None):
         except:
             users_count = 0
 
-    status = ORANGE_BALL
-    bot_text = 'Участник {first_name} {last_name} {status}\n\
-Период: Ежемесячно\n\
-{current}/{all}\n\
-Обсуждение:\n\
-{link}\n\
-Уже помогают: {users_count}\n\
-\n\
-Вы можете помочь этому участнику?'.format(first_name=user.first_name,
-                                          last_name=user.last_name,
-                                          status=status,
-                                          current=left_sum,
-                                          all=right_sum,
-                                          link=link,
-                                          users_count=users_count)
+    bot_text = generate_user_info_text(user)
 
-    markup = types.ReplyKeyboardMarkup()
+#    status = ORANGE_BALL
+#     bot_text = 'Участник {first_name} {last_name} {status}\n\
+# Период: Ежемесячно\n\
+# {current}/{all}\n\
+# Обсуждение:\n\
+# {link}\n\
+# Уже помогают: {users_count}\n\
+# \n\
+# Вы можете помочь этому участнику?'.format(first_name=user.first_name,
+#                                           last_name=user.last_name,
+#                                           status=status,
+#                                           current=left_sum,
+#                                           all=right_sum,
+#                                           link=link,
+#                                           users_count=users_count)
+
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text='Показать участников ({})'.format(users_count))
     btn2 = types.KeyboardButton(text='Нет')
     btn3 = types.KeyboardButton(text='Да')
     btn4 = types.KeyboardButton(text='Главное меню')
-    markup.row(btn1)
     markup.row(btn2, btn3)
-    markup.row(btn4)
-    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
+    markup.row(btn1, btn4)
+    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup, parse_mode="html")
     temp_dict[
         message.chat.id] = user  # TODO ---------- убрать этот костыль, так как при большом кол-во пользователей будет съедать память
     temp_dict[
@@ -3366,24 +3369,25 @@ def start_red_invitation(message, user_to, event_id=None, ref=None):
     delta = d1 - d0
     days_end = user.days - delta.days
 
-    bot_text = f'Участник {user.first_name} {user.last_name} {status}\n\
-Осталось {days_end} дней из {user.days}\n\
-{left_sum}/{right_sum} {user.currency}\n\
-Обсуждение:\n\
-{user.link}\n\
-Уже помогают: {users_count}\n\
-\n\
-Вы можете помочь этому участнику?\n'
+    bot_text = generate_user_info_text(user)
 
-    markup = types.ReplyKeyboardMarkup()
+#     bot_text = f'Участник {user.first_name} {user.last_name} {status}\n\
+# Осталось {days_end} дней из {user.days}\n\
+# {left_sum}/{right_sum} {user.currency}\n\
+# Обсуждение:\n\
+# {user.link}\n\
+# Уже помогают: {users_count}\n\
+# \n\
+# Вы можете помочь этому участнику?\n'
+
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text='Показать участников ({})'.format(users_count))
     btn2 = types.KeyboardButton(text='Нет')
     btn3 = types.KeyboardButton(text='Да')
     btn4 = types.KeyboardButton(text='Главное меню')
-    markup.row(btn1)
     markup.row(btn2, btn3)
-    markup.row(btn4)
-    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
+    markup.row(btn1, btn4)
+    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup, parse_mode="html")
     temp_dict[
         message.chat.id] = user  # TODO ---------- убрать этот костыль, так как при большом кол-во пользователей будет съедать память
     temp_dict[
@@ -3834,7 +3838,7 @@ def green_edit_wizard(message):
 \n\
 Если ваш статус был {ORANGE_BALL} или {RED_BALL}, все {HEART_RED} участников в Вашу пользу будут автоматически удалены.\n\
 \n\
-Все {HANDSHAKE} участников в Вашу пользу останутся в силе. Посмотреть все {HANDSHAKE} можно в разделе главного меню "Кошелек" > "Все {HANDSHAKE}"',
+Все {HANDSHAKE} участников в Вашу пользу останутся в силе. Посмотреть все {HANDSHAKE} можно в разделе главного меню "Органайзер"',
                            reply_markup=markup)
     bot.register_next_step_handler(msg, green_edit_wizard_check)
 
@@ -4790,7 +4794,7 @@ def process_callback(call):
         user = read_exodus_user(telegram_id=event.to_id)
         first_name = user.first_name
         message = 'Участнику {first_name} выслано повторное уведомление исполнить {HANDSHAKE} на сумму {sum} {currency}.' \
-                  'Вы можете посмотреть все {HANDSHAKE} в разделе главного меню "Кошелек" > {HANDSHAKE}.'.format(
+                  'Вы можете посмотреть все {HANDSHAKE} в разделе главного меню "Органайзер"'.format(
             first_name=first_name, sum=event.current_payments, currency=event.currency, HANDSHAKE=HANDSHAKE)
 
         bot.send_message(event.from_id,

@@ -184,6 +184,10 @@ def read_exodus_user(telegram_id):
     return exodus_user
 
 
+def read_exodus_user_by_exodus_id(exodus_id):
+    exodus_user = session.query(Exodus_Users).filter_by(exodus_id=exodus_id).first()
+    return exodus_user
+
 # Update
 def update_exodus_user(telegram_id, first_name=None, last_name=None, username=None, ref=None, link=None,
                        min_payments=None, current_payments=None, max_payments=None, currency=None, status=None,
