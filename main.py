@@ -151,8 +151,8 @@ def global_menu(message, dont_show_status=True):
     btn5 = types.KeyboardButton(text=f'{QUESTION} FAQ')
     btn6 = types.KeyboardButton(text=f'{SPEECH_BALOON} HELP')
     btn7 = types.KeyboardButton(text=f'{GLOBE} Позвать')
-    btn8 = types.KeyboardButton(text='{} {} {} {}'.format(MAN, RIGHT_ARROW, transactions_in_count, PEOPLES))
-    btn9 = types.KeyboardButton(text='{} {} {} {}'.format(transactions_out_count, PEOPLES, RIGHT_ARROW, MAN))
+    btn8 = types.KeyboardButton(text='{} {} {} {}'.format(MAN, RIGHT_ARROW, transactions_out_count, PEOPLES))
+    btn9 = types.KeyboardButton(text='{} {} {} {}'.format(transactions_in_count, PEOPLES, RIGHT_ARROW, MAN))
     btn10 = types.KeyboardButton(text=f'{requisites_count} {SPEAK_HEAD} {HELP}')
     markup.row(btn5, btn9, btn3)
     markup.row(btn6, btn8, btn4)
@@ -181,16 +181,16 @@ def global_check(message):
     elif 'Позвать' in text:
         call_people_menu(message)
     elif f'{MAN} {RIGHT_ARROW} 0' in text:
-        bot.send_message(message.chat.id, f'В Вашу пользу нет записей')
-        return
-    elif f'{MAN} {RIGHT_ARROW}' in text:
-        members_list_in_network_menu(message, message.chat.id, 'in')
-        return
-    elif f'0 {PEOPLES} {RIGHT_ARROW}' in text:
         bot.send_message(message.chat.id, f'В пользу других нет записей')
         return
-    elif f'{PEOPLES} {RIGHT_ARROW}' in text:
+    elif f'{MAN} {RIGHT_ARROW}' in text:
         members_list_in_network_menu(message, message.chat.id, 'out')
+        return
+    elif f'0 {PEOPLES} {RIGHT_ARROW}' in text:
+        bot.send_message(message.chat.id, f'В Вашу пользу нет записей')
+        return
+    elif f'{PEOPLES} {RIGHT_ARROW}' in text:
+        members_list_in_network_menu(message, message.chat.id, 'in')
         return
     elif f'0 {SPEAK_HEAD} {HELP}' in text:
         bot.send_message(message.chat.id, 'Никто помощь пока не запрашивал')
@@ -306,7 +306,7 @@ def configuration_menu(message):
 
     markup.row(btn1, btn2, btn3)
     # markup.row(btn2)
-    markup.row(btn4, btn5)
+    markup.row(btn5, btn4)
 
 
     #     bot_text = f'Настройки:\n\
@@ -441,7 +441,7 @@ def edit_link_check(message):
 
 def requisites_wizard(message):
     requisites = read_requisites_user(message.chat.id)
-    markup = types.ReplyKeyboardMarkup()
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     tmp_list = []
     if requisites != []:
         for requisite in requisites:
@@ -596,7 +596,7 @@ def pre_save_requisite(message, requisite_name, edit_id=0):
     bot_text = f'Название: {requisite_name}\n\
 Значение: {requisite_value}\n\
 Данные введены верно?'
-    markup = types.ReplyKeyboardMarkup()
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text='Нет')
     btn2 = types.KeyboardButton(text='Да')
     btn3 = types.KeyboardButton(text='Да, сделать реквизитами по умолчанию')
@@ -841,7 +841,7 @@ def print_members_list_in_network(message, member_id, direction):
         intentions = read_intention_for_user(from_id=member_id, statuses=(1, 11, 12))
 
     msg_text = ''
-
+    print(intentions.all())
     for i, row in enumerate(intentions.all()):
         # warning
         #  no.pagination.by.10
@@ -856,13 +856,18 @@ def print_members_list_in_network(message, member_id, direction):
         elif direction == 'out':
             user = read_exodus_user(row.to_id)
         try:
-            status = get_status(user.status)  # TODO отваливается при пустом или не существующем пользователе
+            status_user = get_status(user.status)  # TODO отваливается при пустом или не существующем пользователе
         except:
-            status = ''
-
-        msg_text = msg_text + '{i}. {first_name} {last_name} {status}\n'.format(
-            i=user.exodus_id, first_name=user.first_name,
-            last_name=user.last_name, status=status)
+            status_user = ''
+        print(row.status)
+        if row.status == 1:
+            msg_text = msg_text + '{i}. {first_name} {last_name}{status} - {sum}{status_intention}\n'.format(
+                i=user.exodus_id, first_name=user.first_name,
+                last_name=user.last_name, status=status_user, sum=row.payment, status_intention=HEART_RED)
+        else:
+            msg_text = msg_text + '{i}. {first_name} {last_name}{status} - {sum}{status_intention}\n'.format(
+                i=user.exodus_id, first_name=user.first_name,
+                last_name=user.last_name, status=status_user, sum=row.payment, status_intention=HANDSHAKE)
 
     # сообщение в телеграмме не может быть длиннее 4096 символов. 14 юзеров - это 400 символов.
     # нужно привязать пагинацию
