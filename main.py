@@ -673,48 +673,58 @@ def transactions_menu(message):
 
     intention = read_intention(from_id=message.chat.id, status=1)
     my_intent = 0.0
+    my_intent_count = 0
     if intention is not None:
+        my_intent_count = intention.count()
         for pay in intention:
             my_intent = my_intent + pay.payment
 
     intention = read_intention(from_id=message.chat.id, status=11)
     my_obligation = 0.0
+    my_obligation_count = 0
     if intention is not None:
+        my_obligation_count = intention.count()
         for pay in intention:
             my_obligation = my_obligation + pay.payment
 
     intention = read_intention(to_id=message.chat.id, status=1)
     me_intent = 0.0
+    me_intent_count = 0
     if intention is not None:
+        me_intent_count = intention.count()
         for pay in intention:
             me_intent = me_intent + pay.payment
 
     intention = read_intention(to_id=message.chat.id, status=11)
     me_obligation = 0.0
+    me_obligation_count = 0
     if intention is not None:
+        me_obligation_count = intention.count()
         for pay in intention:
             me_obligation = me_obligation + pay.payment
 
-    status = get_status(user.status)  # TODO
-    bot_text = f"Статус: {status}\n\
-\n\
-{HEART_RED}: \n\
-{PLUS}: {me_intent} {user.currency}\n\
-{MINUS}: {my_intent} {user.currency}\n\
-\n\
-{HANDSHAKE}: \n\
-{PLUS}: {me_obligation} {user.currency}\n\
-{MINUS}: {my_obligation} {user.currency}\n"
-    markup = types.ReplyKeyboardMarkup()
-    btn1 = types.KeyboardButton(text=f'{PLUS}')
-    btn2 = types.KeyboardButton(text=f'{MINUS}')
+    status = get_status(user.status)
+    bot_text = f"Органайзер {status}"
+#     bot_text = f"Статус: {status}\n\
+# \n\
+# {HEART_RED}: \n\
+# {PLUS}: {me_intent} {user.currency}\n\
+# {MINUS}: {my_intent} {user.currency}\n\
+# \n\
+# {HANDSHAKE}: \n\
+# {PLUS}: {me_obligation} {user.currency}\n\
+# {MINUS}: {my_obligation} {user.currency}\n"
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    btn1 = types.KeyboardButton(text=f'{me_intent_count}{HEART_RED} / {me_obligation_count}{HANDSHAKE} {RIGHT_ARROW} {MAN}')
+    btn2 = types.KeyboardButton(text=f'{MAN} {RIGHT_ARROW} {my_intent_count}{HEART_RED} / {my_obligation_count}{HANDSHAKE}')
     #    btn3 = types.KeyboardButton(text='За всё время')
-    btn4 = types.KeyboardButton(text='Не исполненные')
-    btn5 = types.KeyboardButton(text='Главное меню')
-    markup.row(btn1, btn2)
-    #    markup.row(btn3,btn4)
-    markup.row(btn4)
-    markup.row(btn5)
+    # btn1 = types.KeyboardButton(text=f'{HEART_RED}{MAN}{RIGHT_ARROW}{my_intent_count}{PEOPLES}')
+    # btn2 = types.KeyboardButton(text=f'{HEART_RED}{me_intent_count}{PEOPLES}{RIGHT_ARROW}{MAN}')
+    # btn3 = types.KeyboardButton(text=f'{HANDSHAKE}{MAN}{RIGHT_ARROW}{my_obligation_count}{PEOPLES}')
+    # btn4 = types.KeyboardButton(text=f'{HANDSHAKE}{me_obligation_count}{PEOPLES}{RIGHT_ARROW}{MAN}')
+    # btn5 = types.KeyboardButton(text='Не исполненные')
+    btn6 = types.KeyboardButton(text='Главное меню')
+    markup.row(btn1, btn2, btn6)
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
     bot.register_next_step_handler(msg, transactions_check)
 
@@ -722,11 +732,11 @@ def transactions_menu(message):
 def transactions_check(message):
     text = message.text
     bot.delete_message(message.chat.id, message.message_id)
-    if text == MINUS:
-        for_other_wizard(message)
-        return
-    elif text == PLUS:
+    if f'{RIGHT_ARROW} {MAN}' in text:
         for_my_wizard(message)
+        return
+    elif f'{MAN} {RIGHT_ARROW}' in text:
+        for_other_wizard(message)
         return
     # elif text == 'За всё время':
     #     for_all_time_wizard(message)
@@ -749,8 +759,8 @@ def transactions_check(message):
 def members_menu(message, meta_txt=None):
     """2.5"""
 
-    user = read_exodus_user(message.chat.id)
-    markup = types.ReplyKeyboardMarkup()
+    user_id = message.chat.id
+    user = read_exodus_user(user_id)
 
     ref = user.ref
     if ref != '':
@@ -759,33 +769,27 @@ def members_menu(message, meta_txt=None):
     else:
         ref = ''
 
-    transactions_in_count = read_intention_for_user(to_id=message.chat.id, statuses=(1, 11, 12)).count()
-    transactions_out_count = read_intention_for_user(from_id=message.chat.id, statuses=(1, 11, 12)).count()
-    requisites_count = get_requisites_count(message.chat.id)
+    # transactions_in_count = read_intention_for_user(to_id=message.chat.id, statuses=(1, 11, 12)).count()
+    # transactions_out_count = read_intention_for_user(from_id=message.chat.id, statuses=(1, 11, 12)).count()
+    # requisites_count = get_requisites_count(message.chat.id)
 
-    btn1 = types.KeyboardButton(text='Мой профиль')
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    #btn1 = types.KeyboardButton(text='Мой профиль')
     # btn2 = types.KeyboardButton(text='{} ({})'.format(PLUS, transactions_in_count))
     # btn3 = types.KeyboardButton(text='{} ({})'.format(MINUS, transactions_out_count))
     # btn4 = types.KeyboardButton(text='Запросы помощи({})'.format(requisites_count))
     btn5 = types.KeyboardButton(text='Главное меню')
     btn6 = types.KeyboardButton(text='Моя сеть')
     btn7 = types.KeyboardButton(text='Расширить сеть')
-    markup.row(btn1, btn6)
-    #markup.row(btn2, btn3)
-    # markup.row(btn3)
-    #markup.row(btn4)  # ________________ TODO
-    markup.row(btn5, btn7)
+    markup.row(btn6, btn7, btn5)
 
-    currency = user.currency
-
-    user_id = message.chat.id
-
-    intentions_out_sum = sum_out_intentions(user_id)
-    intentions_in_sum = sum_in_intentions(user_id)
-    obligations_in_sum = sum_in_obligations(user_id)
-    executed_in_sum = sum_in_executed(user_id)
-    obligations_out_sum = sum_out_obligations(user_id)
-    executed_out_sum = sum_out_executed(user_id)
+    # currency = user.currency
+    # intentions_out_sum = sum_out_intentions(user_id)
+    # intentions_in_sum = sum_in_intentions(user_id)
+    # obligations_in_sum = sum_in_obligations(user_id)
+    # executed_in_sum = sum_in_executed(user_id)
+    # obligations_out_sum = sum_out_obligations(user_id)
+    # executed_out_sum = sum_out_executed(user_id)
 
     # transactions_in_count = count_in_transactions(user_id)
     # transactions_out_count = count_out_transactions(user_id)
@@ -1517,9 +1521,9 @@ def check_expand_my_socium(message, list_expand_socium):
 def members_check(message):
     text = message.text
     bot.delete_message(message.chat.id, message.message_id)
-    if text == 'Мой профиль':
-        members_menu_profile_link(message, message.chat.id)
-        return
+    # if text == 'Мой профиль':
+    #     members_menu_profile_link(message, message.chat.id)
+    #     return
     # elif text == f'{PLUS} (0)':
     #     msg = bot.send_message(message.chat.id, f'В Вашу пользу нет записей')
     #     bot.register_next_step_handler(msg, members_check)
@@ -1537,7 +1541,7 @@ def members_check(message):
     # elif 'Запросы помощи' in text:
     #     show_help_requisites(message)
     #     return
-    elif text == 'Главное меню':
+    if text == 'Главное меню':
         global_menu(message)
         return
 
@@ -1644,7 +1648,7 @@ def all_check_int_obl_minus(message):
         return
     transaction[message.chat.id] = number
     if intention.status == 1:
-        intention_for_needy(message, reminder_call=False, intention_id=None)
+        intention_for_needy(message, reminder_call=False, intention_id=None, show_back=True)
     elif intention.status == 11:
         obligation_for_needy(message, reminder_call=False, intention_id=None)
     return
@@ -1729,7 +1733,7 @@ def for_other_wizard_intention_check(message):
 
 
 # bookmark
-def intention_for_needy(message, reminder_call, intention_id):
+def intention_for_needy(message, reminder_call, intention_id, show_back=False):
     """6.7"""
 
     if reminder_call is True:
@@ -1750,15 +1754,18 @@ def intention_for_needy(message, reminder_call, intention_id):
                                       status=status,
                                       payment=intention.payment,
                                       currency=intention.currency)
-    markup = types.ReplyKeyboardMarkup()
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text=f'В {HANDSHAKE}')
-    btn2 = types.KeyboardButton(text='Редактировать')
+    btn2 = types.KeyboardButton(text='Изменить')
     btn3 = types.KeyboardButton(text='Напомнить позже')
     btn4 = types.KeyboardButton(text=f'Отменить {HEART_RED}')
     btn5 = types.KeyboardButton(text='Главное меню')
-    markup.row(btn1, btn2)
-    markup.row(btn3, btn4)
-    markup.row(btn5)
+    markup.row(btn1, btn2, btn4)
+    if show_back:
+        btn6 = types.KeyboardButton(text='Назад')
+        markup.row(btn3, btn5, btn6)
+    else:
+        markup.row(btn3, btn5)
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
     bot.register_next_step_handler(msg, intention_for_needy_check, intention_id)
     return
@@ -1770,18 +1777,23 @@ def intention_for_needy_check(message, intention_id=None):
     bot.delete_message(message.chat.id, message.message_id)
     if text == f'В {HANDSHAKE}':
         intention_to_obligation(message)
-    elif text == 'Редактировать':
+        return
+    elif text == 'Изменить':
         edit_intention(message)
         return
     elif text == 'Напомнить позже':
         remind_later(message, event_status='intention', reminder_type='reminder_out', intention_id=intention_id)
         global_menu(message)
+        return
     elif text == f'Отменить {HEART_RED}':
         cancel_intention(message)
         return
     elif 'Главное меню' in text:
         global_menu(message)
-
+        return
+    elif 'Назад' in text:
+        for_other_wizard(message)
+        return
     elif "/start" in text:
         welcome_base(message)
         return
