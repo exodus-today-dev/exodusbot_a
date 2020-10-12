@@ -218,7 +218,6 @@ def call_people_menu(message):
     markup.row(btn1)
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
 
-    string_name = ''
     for i, id_help in enumerate(list_my_socium):
         user = read_exodus_user(id_help)
         already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
@@ -231,13 +230,13 @@ def call_people_menu(message):
 
         status = user.status
         if status == "orange":
-            string_name = string_name + f'\n{i+1}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} {left_sum} {HEART_RED}/{right_sum} {HELP}'
+            string_name = f'\n{i+1}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} {left_sum} {HEART_RED}/{right_sum} {HELP}'
         elif "red" in status:
-            string_name = string_name + f'\n{i+1}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} {right_sum} {HELP}'
+            string_name = f'\n{i+1}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} {right_sum} {HELP}'
 
         keyboard_inline[i].add(btn_inline[i])
 
-        bot.send_message(message.chat.id, f'{string_name}', parse_mode="html", disable_web_page_preview=True, reply_markup=keyboard_inline[i])
+        bot.send_message(message.chat.id, string_name, parse_mode="html", disable_web_page_preview=True, reply_markup=keyboard_inline[i])
 
     bot.register_next_step_handler(msg, show_people_link)
 
