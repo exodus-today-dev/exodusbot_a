@@ -202,10 +202,60 @@ def global_check(message):
 # -------------------------------------------------------------------
 
 def call_people_menu(message):
-    user = read_exodus_user(message.chat.id)
-    link = create_link(user.telegram_id, user.telegram_id)
-    bot_text = f"\n\nСсылка для помощи \U0001F4E9\n{link}"
-    bot.send_message(message.chat.id, bot_text)
+    list_my_socium = list(get_my_socium(message.chat.id))
+    len_my_socium = len(list_my_socium)
+
+    keyboard_inline = []
+    btn_inline = []
+
+    for i in range(len_my_socium):
+        keyboard_inline.append(types.InlineKeyboardMarkup())
+        btn_inline.append(types.InlineKeyboardButton("Позвать", callback_data="show_people_link_"+str(list_my_socium[i])))
+
+    bot_text = 'Из моей сети нуждаются в помощи:'
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    btn1 = types.KeyboardButton(text='Назад')
+    markup.row(btn1)
+    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
+
+    string_name = ''
+    for i, id_help in enumerate(list_my_socium):
+        user = read_exodus_user(id_help)
+        already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
+        already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
+        left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
+        right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
+
+        keyboard_inline.append(types.InlineKeyboardMarkup())
+        btn_inline.append(types.InlineKeyboardButton("Позвать", callback_data="show_people_link_"+str(id_help)))
+
+        status = user.status
+        if status == "orange":
+            string_name = string_name + f'\n{i+1}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} {left_sum} {HEART_RED}/{right_sum} {HELP}'
+        elif "red" in status:
+            string_name = string_name + f'\n{i+1}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} {right_sum} {HELP}'
+
+        keyboard_inline[i].add(btn_inline[i])
+
+        bot.send_message(message.chat.id, f'{string_name}', parse_mode="html", disable_web_page_preview=True, reply_markup=keyboard_inline[i])
+
+    bot.register_next_step_handler(msg, show_people_link)
+
+
+def show_people_link(message):
+    text = message.text
+    bot.delete_message(message.chat.id, message.message_id)
+    if 'Назад' in text:
+        global_menu(message)
+        return
+    elif "/start" in text:
+        welcome_base(message)
+        return
+    else:
+        msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
+        bot.register_next_step_handler(msg, global_menu)
+        return
+    return
 
 
 def help_menu(message):
@@ -499,14 +549,13 @@ def select_requisite(message):
     requisite = read_requisites_name(message.chat.id, text)
     text_bot = f"Название: {requisite.name}\n\
 Значение: {requisite.value}"
-    markup = types.ReplyKeyboardMarkup()
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text='Редактировать данные')
     btn2 = types.KeyboardButton(text='Сделать реквизитами по умолчанию')
     btn3 = types.KeyboardButton(text='Удалить')
     btn4 = types.KeyboardButton(text='Назад')
     markup.row(btn1, btn2)
-    markup.row(btn3)
-    markup.row(btn4)
+    markup.row(btn3, btn4)
     msg = bot.send_message(message.chat.id, text_bot, reply_markup=markup)
     bot.register_next_step_handler(msg, select_requisite_check, requisite)
     return
@@ -1167,6 +1216,10 @@ def generate_user_info_text(user, self_id=''):
         user_info_text = f'{first_name} {last_name} {status} / {GLOBE} <a href="{link}">Позвать</a> / {SPEECH_BALOON} {user.link} / {CREDIT_CARD} {req_name} <a href="{req_value}">{req_value}</a>\n'
 
     if user.status == 'green':
+        if user.link == '' or user.link == None:
+            user_info_text = f'{first_name} {last_name} {status} / {CREDIT_CARD} {req_name} <a href="{req_value}">{req_value}</a>\n'
+        else:
+            user_info_text = f'{first_name} {last_name} {status} / {SPEECH_BALOON} {user.link} / {CREDIT_CARD} {req_name} <a href="{req_value}">{req_value}</a>\n'
         user_info_text += f'{MAN} {RIGHT_ARROW} {transactions_out_count} {PEOPLES}: {intentions_out_sum} {HEART_RED} / {obligations_out_sum} {HANDSHAKE}'
 
     elif user.status == 'orange':
@@ -3069,7 +3122,9 @@ def welcome_base(message):
                                                                 user_from.last_name,
                                                                 user_to.first_name,
                                                                 user_to.last_name)
-        bot.send_message(message.chat.id, bot_text)
+        bot_text += "\n"+generate_user_info_text(user_to)
+
+        bot.send_message(message.chat.id, bot_text, parse_mode="html")
 
         if user_to.status == 'orange':
             start_orange_invitation(message, user_to.telegram_id, ref=user_from.telegram_id)
@@ -3126,7 +3181,7 @@ def start_orange_invitation(message, user_to, event_id=None, ref=None):
         except:
             users_count = 0
 
-    bot_text = generate_user_info_text(user)
+    #bot_text = generate_user_info_text(user)
 
 #    status = ORANGE_BALL
 #     bot_text = 'Участник {first_name} {last_name} {status}\n\
@@ -3151,7 +3206,7 @@ def start_orange_invitation(message, user_to, event_id=None, ref=None):
     btn4 = types.KeyboardButton(text='Главное меню')
     markup.row(btn2, btn3)
     markup.row(btn1, btn4)
-    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup, parse_mode="html")
+    msg = bot.send_message(message.chat.id, "Вы можете помочь этому участнику?", reply_markup=markup, parse_mode="html")
     temp_dict[
         message.chat.id] = user  # TODO ---------- убрать этот костыль, так как при большом кол-во пользователей будет съедать память
     temp_dict[
@@ -3369,7 +3424,7 @@ def start_red_invitation(message, user_to, event_id=None, ref=None):
     delta = d1 - d0
     days_end = user.days - delta.days
 
-    bot_text = generate_user_info_text(user)
+    #bot_text = generate_user_info_text(user)
 
 #     bot_text = f'Участник {user.first_name} {user.last_name} {status}\n\
 # Осталось {days_end} дней из {user.days}\n\
@@ -3387,7 +3442,7 @@ def start_red_invitation(message, user_to, event_id=None, ref=None):
     btn4 = types.KeyboardButton(text='Главное меню')
     markup.row(btn2, btn3)
     markup.row(btn1, btn4)
-    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup, parse_mode="html")
+    msg = bot.send_message(message.chat.id, "Вы можете помочь этому участнику?", reply_markup=markup, parse_mode="html")
     temp_dict[
         message.chat.id] = user  # TODO ---------- убрать этот костыль, так как при большом кол-во пользователей будет съедать память
     temp_dict[
@@ -3828,11 +3883,10 @@ def green_red_check(message):
 
 
 def green_edit_wizard(message):
-    markup = types.ReplyKeyboardMarkup()
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text='Сохранить')
     btn2 = types.KeyboardButton(text='Отмена')
-    markup.row(btn1)
-    markup.row(btn2)
+    markup.row(btn1, btn2)
     msg = bot.send_message(message.chat.id, f'Вы собираетесь сменить статус на {GREEN_BALL}\n\
 Пожалуйста подтвердите смену статуса:\n\
 \n\
@@ -3907,11 +3961,10 @@ def green_edit_wizard_check(message):
 # ------------------------
 def green_status_wizard(message):
     """2.0.1"""
-    markup = types.ReplyKeyboardMarkup()
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text='Изменить статус')
     btn2 = types.KeyboardButton(text='Назад')
-    markup.row(btn1)
-    markup.row(btn2)
+    markup.row(btn1, btn2)
     msg = bot.send_message(message.chat.id,
                            f'Ваш статус: {GREEN_BALL}\nСписок участников с которыми Вы связаны, '
                            'можно посмотреть в разделе главного меню "Участники"',
@@ -3934,12 +3987,11 @@ def green_status_wizard_check(message):
 
 
 def select_orange_red(message):
-    markup = types.ReplyKeyboardMarkup()
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text=ORANGE_BALL)
     btn2 = types.KeyboardButton(text=RED_BALL)
-    btn3 = types.KeyboardButton(text='Главное меню')
-    markup.row(btn1, btn2)
-    markup.row(btn3)
+    btn3 = types.KeyboardButton(text='Назад')
+    markup.row(btn1, btn2, btn3)
     msg = bot.send_message(message.chat.id, "Выберите новый статус:", reply_markup=markup)
     bot.register_next_step_handler(msg, check_orange_red)
 
@@ -3952,8 +4004,8 @@ def check_orange_red(message):
         orange_edit_wizard(message)
     elif text == RED_BALL:
         check_red_edit_wizard(message)
-    elif text == 'Главное меню':
-        global_menu(message)
+    elif text == 'Назад':
+        configuration_menu(message)
     elif "/start" in text:
         welcome_base(message)
     else:
@@ -4102,11 +4154,10 @@ def edit_red_data_final(message, new_sum, days):
 
 # ------------------ RED WIZARD 2.2 ---------------
 def check_red_edit_wizard(message):
-    markup = types.ReplyKeyboardMarkup()
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text='Да, изменить')
     btn2 = types.KeyboardButton(text='Нет, вернуться назад')
-    markup.row(btn1)
-    markup.row(btn2)
+    markup.row(btn1, btn2)
     msg = bot.send_message(message.chat.id, f'Вы собираетесь сменить статус на {RED_BALL}\n\
 Пожалуйста подтвердите смену статуса', reply_markup=markup)
     bot.register_next_step_handler(msg, check_answer_red_wizard)
@@ -4211,12 +4262,11 @@ def red_edit_wizard_step35(message):
 Необходимая сумма: {user.max_payments} {user.currency}'
     bot.send_message(message.chat.id, bot_text)
 
-    markup = types.ReplyKeyboardMarkup()
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text='Редактировать')
     btn2 = types.KeyboardButton(text='Отмена')
     btn3 = types.KeyboardButton(text='Сохранить статус')
-    markup.row(btn1, btn2)
-    markup.row(btn3)
+    markup.row(btn1, btn3, btn2)
     bot_text = 'Вы хотите изменить свой статус и опубликовать эти данные?\n\
 \n\
 Все пользователи, которые связаны с вами внутри Эксодус бота, получат уведомление.'
@@ -4368,19 +4418,17 @@ def orange_edit_wizard(message):
 Статус: {}\n\
 Период: Ежемесячно\n\
 Необходимая сумма: {} {}'.format(ORANGE_BALL, payments, user.currency))
-        markup = types.ReplyKeyboardMarkup()
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         # user = read_exodus_user(message.chat.id)
         if user.status == '':
             btn1 = types.KeyboardButton(text='Редактировать')
             btn2 = types.KeyboardButton(text='Сохранить')
-            markup.row(btn1)
-            markup.row(btn2)
+            markup.row(btn1, btn2)
         else:
             btn1 = types.KeyboardButton(text='Редактировать')
             btn2 = types.KeyboardButton(text='Отмена')
             btn3 = types.KeyboardButton(text='Сохранить')
-            markup.row(btn1, btn2)
-            markup.row(btn3)
+            markup.row(btn1, btn3, btn2)
         msg = bot.send_message(message.chat.id, f'Опубликовать эти данные?\n\
 Все пользователи, которые связаны с вами внутри Эксодус бота, получат уведомление.', reply_markup=markup)
         bot.register_next_step_handler(msg, orange_step_final, link)
@@ -4389,11 +4437,10 @@ def orange_edit_wizard(message):
 
 
 def check_orange_green_edit_wizard(message):
-    markup = types.ReplyKeyboardMarkup()
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text='Да, изменить')
     btn2 = types.KeyboardButton(text='Нет, вернуться назад')
-    markup.row(btn1)
-    markup.row(btn2)
+    markup.row(btn1, btn2)
     msg = bot.send_message(message.chat.id, f'Вы собираетесь сменить статус на {ORANGE_BALL}\n\
 Пожалуйста подтвердите смену статуса', reply_markup=markup)
     bot.register_next_step_handler(msg, check_answer_orange_green_wizard)
@@ -4454,19 +4501,17 @@ def orange_step_link(message):
 Статус: {}\n\
 Период: Ежемесячно\n\
 Необходимая сумма: {} {}'.format(ORANGE_BALL, payments, user.currency))
-    markup = types.ReplyKeyboardMarkup()
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     # user = read_exodus_user(message.chat.id)
     if user.status == '':
         btn1 = types.KeyboardButton(text='Редактировать')
         btn2 = types.KeyboardButton(text='Сохранить')
-        markup.row(btn1)
-        markup.row(btn2)
+        markup.row(btn1, btn2)
     else:
         btn1 = types.KeyboardButton(text='Редактировать')
         btn2 = types.KeyboardButton(text='Отмена')
         btn3 = types.KeyboardButton(text='Сохранить')
-        markup.row(btn1, btn2)
-        markup.row(btn3)
+        markup.row(btn1, btn3, btn2)
     msg = bot.send_message(message.chat.id, f'Опубликовать эти данные?\n\
 Все пользователи, которые связаны с вами внутри Эксодус бота, получат уведомление.', reply_markup=markup)
     bot.register_next_step_handler(msg, orange_step_final, link)
@@ -4706,6 +4751,17 @@ def unfreeze_intentions(user):
 
 
 # -------------------------------------------
+
+@bot.callback_query_handler(func=lambda call: call.data[:17]=='show_people_link_')
+def help_link_generate_menu(call):
+    user_id = int(call.data[17:])
+    user = read_exodus_user(user_id)
+    status = get_status(user.status)
+    link = create_link(call.message.chat.id, user_id)
+    bot_text = f'Ссылка для помощи {user.first_name} {user.last_name} {status}\n{link}'
+    bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=bot_text)
+    #return
+
 
 @bot.callback_query_handler(func=lambda call: call.data[0:18] == 'orange_invitation-')
 def orange_invitation(call):
