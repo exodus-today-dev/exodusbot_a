@@ -213,6 +213,9 @@ def call_people_menu(message):
         left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
         right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
 
+        if right_sum == 0:
+            continue
+
         status = user.status
         if status == "orange":
             string_name = f'\n{i+1}. {user.first_name} {user.last_name} {ORANGE_BALL} {left_sum} {HEART_RED}/{right_sum} {HELP}'
