@@ -78,6 +78,17 @@ class Intention(base):
     # event_id_int = Column(Integer(), ForeignKey('events.event_id'))
 
 
+class HistoryIntention(base):
+    __tablename__ = 'history_intention'
+
+    intention_id = Column(Integer, primary_key=True)
+    from_id = Column(Integer)
+    to_id = Column(Integer)
+    payment = Column(Float)
+    currency = Column(String)
+    create_date = Column(DateTime)
+
+
 class Requisites(base):
     __tablename__ = 'requisites'
 
@@ -580,6 +591,23 @@ def delete_intention_for_quit(telegram_id):
 
 # endregion
 
+
+def create_history_intention(from_id, to_id, payment, currency="USD"):
+    intention = HistoryIntention(from_id=from_id, to_id=to_id, payment=payment, currency=currency, create_date=datetime.now())
+
+    session.add(intention)
+    session.commit()
+
+
+def read_history_intention(from_id=None, to_id=None, create_date=None):
+    if from_id is not None:
+        intentions = session.query(HistoryIntention).filter(HistoryIntention.from_id == from_id)
+        return intentions
+
+    elif to_id is not None:
+        intentions = session.query(HistoryIntention).filter(HistoryIntention.to_id == to_id)
+        return intentions
+
 # region requisites
 # Create
 def create_requisites_user(telegram_id, name='', value='', is_default=False):
@@ -660,6 +688,7 @@ def delete_requisites_user(requisites_id):
 
     session.delete(requisites_user)
     session.commit()
+
 
 def delete_requisites_for_quit(telegram_id):
     requisites_user = session.query(Requisites).filter_by(telegram_id=telegram_id).first()
