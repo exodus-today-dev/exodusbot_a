@@ -801,6 +801,7 @@ def members_menu(message, meta_txt=None):
     """2.5"""
 
     user_id = message.chat.id
+    len_my_socium = len(get_my_socium(user_id))
     user = read_exodus_user(user_id)
 
     ref = user.ref
@@ -820,7 +821,7 @@ def members_menu(message, meta_txt=None):
     # btn3 = types.KeyboardButton(text='{} ({})'.format(MINUS, transactions_out_count))
     # btn4 = types.KeyboardButton(text='Запросы помощи({})'.format(requisites_count))
     btn5 = types.KeyboardButton(text='Главное меню')
-    btn6 = types.KeyboardButton(text='Моя сеть')
+    btn6 = types.KeyboardButton(text=f'Моя сеть {PEOPLES} {len_my_socium}')
     btn7 = types.KeyboardButton(text='Расширить сеть')
     markup.row(btn6, btn7, btn5)
 
@@ -1214,9 +1215,9 @@ def generate_user_info_text(user, self_id=''):
 
     if user.status == 'green':
         if user.link == '' or user.link == None:
-            user_info_text = f'{first_name} {last_name} {status} / {CREDIT_CARD} {req_name} <a href="{req_value}">{req_value}</a>\n'
+            user_info_text = f'{first_name} {last_name} {status}\n'
         else:
-            user_info_text = f'{first_name} {last_name} {status} / {SPEECH_BALOON} {user.link} / {CREDIT_CARD} {req_name} <a href="{req_value}">{req_value}</a>\n'
+            user_info_text = f'{first_name} {last_name} {status} / {SPEECH_BALOON} {user.link}\n'
         user_info_text += f'{MAN} {RIGHT_ARROW} {transactions_out_count} {PEOPLES}: {intentions_out_sum} {HEART_RED} / {obligations_out_sum} {HANDSHAKE}'
 
     elif user.status == 'orange':
