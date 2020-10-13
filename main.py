@@ -112,7 +112,7 @@ def global_menu(message, dont_show_status=True):
             already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
             left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
             right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
-            status = f'{ORANGE_BALL}\n({HEART_RED}{left_sum}/{right_sum}{HELP})\n' + f"\nВ моей сети: {len(list_my_socium)}\n"
+            status = f'{ORANGE_BALL}\n({left_sum}{HEART_RED}/{right_sum}{HELP})\n' + f"\nВ моей сети: {len(list_my_socium)}\n"
             status += text_req
             status += "\n\nСсылка на обсуждение \U0001F4E2"
             if user.link == '' or user.link == None:
@@ -126,7 +126,7 @@ def global_menu(message, dont_show_status=True):
             already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
             left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
             right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
-            status = f'{RED_BALL}\n({HEART_RED}{left_sum}/{right_sum}{HELP})\n' + f"\nВ моей сети: {len(list_my_socium)}\n"
+            status = f'{RED_BALL}\n({left_sum}{HEART_RED}/{right_sum}{HELP})\n' + f"\nВ моей сети: {len(list_my_socium)}\n"
             status += text_req
             status += "\n\nСсылка на обсуждение \U0001F4E2"
             if user.link == '' or user.link == None:
@@ -1961,7 +1961,7 @@ def intention_to_obligation(message):
 
     bot_text = f"Вы {HEART_RED}  {RIGHT_ARROW}  {HANDSHAKE} {intention.payment}  {RIGHT_ARROW}  {user_to.first_name} {user_to.last_name}\n\
 {user_to.first_name} {user_to.last_name} {status_to}\n\
-({HEART_RED}{left_sum}/{right_sum}{HELP} {LEFT_ARROW} {users_count} {PEOPLES})\n\
+({left_sum}{HEART_RED}/{right_sum}{HELP} {LEFT_ARROW} {users_count} {PEOPLES})\n\
 Ждите уведомления."
 
     bot.send_message(message.chat.id, bot_text)
@@ -1972,7 +1972,7 @@ def intention_to_obligation(message):
 
     bot_text_for_all = f"{user_from.first_name} {user_from.last_name} перевел свое {HEART_RED} в {HANDSHAKE} участнику {user_to.first_name} {user_to.last_name} на сумму: {intention.payment} {intention.currency}\n\
 {user_to.first_name} {user_to.last_name} {status_to}\n\
-({HEART_RED}{left_sum}/{right_sum}{HELP} {LEFT_ARROW} {users_count} {PEOPLES})"
+({left_sum}{HEART_RED}/{right_sum}{HELP} {LEFT_ARROW} {users_count} {PEOPLES})"
 
     for id in list_needy_id:
         bot.send_message(id, bot_text_for_all)
@@ -2589,7 +2589,7 @@ def for_me_obligation(message, reminder_call, intention_id):
 
     bot_text = f"{user_from.first_name} {user_from.last_name} {status_from} {RIGHT_ARROW} {HANDSHAKE} {intention.payment}\n\
 Вы: {status} \n\
-({HEART_RED}{left_sum}/{right_sum}{HELP})"
+({left_sum}{HEART_RED}/{right_sum}{HELP})"
 
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text='Запрос на исполнение')
@@ -2636,7 +2636,7 @@ def obligation_to_execution(message, obligation_id):
 
     user = read_exodus_user(telegram_id=intention.from_id)
     # update_intention(intention_id=obligation_id, status=15)
-    bot_text = f'Участнику {user.first_name} {user.last_name} отправлено ваше решение исполнить ' \
+    bot_text = f'Участнику {user.first_name} {user.last_name} направлено уведомление с просьбой исполнить ' \
                f'{HANDSHAKE} на сумму {intention.payment} {intention.currency}.'
 
     payment = intention.payment
@@ -3659,12 +3659,12 @@ def red_invitation_wizard_check(message, event_id=None):  # ------------------ T
     status = RED_BALL
     bot_text = f'Записано Ваше {HANDSHAKE} участнику {user.first_name} {user.last_name} на сумму {invitation_sum} {user.currency}\n\
 {user.first_name} {user.last_name}: {status} \n\
-({HEART_RED}{left_sum}/{right_sum}{HELP})'
+({left_sum}{HEART_RED}/{right_sum}{HELP})'
 
     # рассылка уведомлений моему кругу о том, что я начал кому то помогать, кроме того, кто запросил
     bot_text_for_all = f"{user_from.first_name} {user_from.last_name}  {RIGHT_ARROW}  {HANDSHAKE} {invitation_sum} {user.first_name} {user.last_name}\n\
 {user.first_name} {user.last_name}: {status} \n\
-({HEART_RED}{left_sum}/{right_sum}{HELP})"
+({left_sum}{HEART_RED}/{right_sum}{HELP})"
 
     for id in list_needy_id:
         bot.send_message(id, bot_text_for_all)
@@ -3675,7 +3675,7 @@ def red_invitation_wizard_check(message, event_id=None):  # ------------------ T
     # сообщение, получателю, что кто то записал обязательство в его пользу
     text_for_u = f"{user_from.first_name} {user_from.last_name} {status_from}  {RIGHT_ARROW}  {HANDSHAKE} {invitation_sum}\n\
 Ваш статус: {status} \n\
-({HEART_RED}{left_sum}/{right_sum}{HELP})"
+({left_sum}{HEART_RED}/{right_sum}{HELP})"
     bot.send_message(user.telegram_id, text_for_u)
 
     link = user.link
@@ -3737,7 +3737,7 @@ def red_invitation_wizard_check(message, event_id=None):  # ------------------ T
             right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
 
             # сообщение Вам, что вы вернулись автоматически
-            text = f"Вы вернулись к {ORANGE_BALL}\n({HEART_RED}{left_sum}/{right_sum}{HELP})"
+            text = f"Вы вернулись к {ORANGE_BALL}\n({left_sum}{HEART_RED}/{right_sum}{HELP})"
             bot.send_message(user_id, text)
 
             global_menu(message)
