@@ -87,6 +87,7 @@ class HistoryIntention(base):
     payment = Column(Float)
     currency = Column(String)
     create_date = Column(DateTime)
+    from_intention = Column(Integer)
 
 
 class Requisites(base):
@@ -514,15 +515,14 @@ def update_intention(intention_id, status=None, payment=None):
     session.commit()
 
 
-def update_intention_from_all_params(from_id, to_id, payment, status=None):
+def update_intention_from_all_params(from_id, to_id, payment, status):
     intention = session.query(Intention).filter_by(from_id=from_id, to_id=to_id, payment=payment).first()
-    if status is not None:
+    old_status = intention.status
+    if old_status is not None and old_status != 13:
         intention.status = status
-    # try:
-    #     session.commit()
-    # except:
-    #     session.rollback()
-    #     raise
+        if read_history_intention_from_all_params(from_id, to_id, payment, intention.intention_id) is None:
+            create_history_intention(from_id, to_id, payment, intention.intention_id)
+
     session.commit()
 
 
@@ -592,8 +592,9 @@ def delete_intention_for_quit(telegram_id):
 # endregion
 
 
-def create_history_intention(from_id, to_id, payment, currency="USD"):
-    intention = HistoryIntention(from_id=from_id, to_id=to_id, payment=payment, currency=currency, create_date=datetime.now())
+# region history_intention
+def create_history_intention(from_id, to_id, payment, from_intention, currency="USD"):
+    intention = HistoryIntention(from_id=from_id, to_id=to_id, payment=payment, currency=currency, create_date=datetime.now(), from_intention=from_intention)
 
     session.add(intention)
     session.commit()
@@ -607,6 +608,13 @@ def read_history_intention(from_id=None, to_id=None, create_date=None):
     elif to_id is not None:
         intentions = session.query(HistoryIntention).filter(HistoryIntention.to_id == to_id)
         return intentions
+
+
+def read_history_intention_from_all_params(from_id, to_id, payment, from_intention):
+    intention = session.query(HistoryIntention).filter_by(from_id=from_id, to_id=to_id, payment=payment, from_intention=from_intention).first()
+    return intention
+# endregion
+
 
 # region requisites
 # Create
