@@ -181,7 +181,7 @@ def obligation_recieved_notice(event_id):
     # confirmation_of_an_obligation(event.from_id, user.first_name, event.current_payments, event.currency)
     bot_text = f"{user.first_name} {user.last_name} подтвердил, что ваше {HANDSHAKE} на сумму {event.current_payments} {event.currency} исполнено.\n\n\
 {user.first_name} {user.last_name} - {status}\n\
-{left_sum}/{right_sum}"
+({left_sum} {HEART_RED}/{right_sum} {HELP})"
     bot.send_message(event.from_id, bot_text)
     # update_event(event_id, True)
 
