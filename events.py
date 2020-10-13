@@ -90,7 +90,7 @@ def notice_of_intent(event_id):
             users_count = 0
 
     bot_text = f"{intent.create_date.strftime('%d %B %Y')}\n\
-{user.first_name} {user.last_name} {status_from}  {RIGHT_ARROW}  {HEART_RED} {intent.payment}\n\
+{user.first_name} {user.last_name} {status_from}  {RIGHT_ARROW} {intent.payment}{HEART_RED}\n\
 Вы - {status}\n\
 ({HEART_RED}{left_sum}/{right_sum}{HELP} {LEFT_ARROW} {users_count} {PEOPLES})"
 
@@ -105,8 +105,8 @@ def notice_of_intent(event_id):
 # {left_sum}/{right_sum}\n\
 # Помогают: {users_count}"
 
-    bot_text_for_all = f"{user.first_name} {user.last_name} {status_from}  {RIGHT_ARROW}  {intent.payment} {HEART_RED} {user_needy.first_name} {user_needy.last_name} {status}\n\
-({left_sum}/{right_sum} {LEFT_ARROW} {users_count} {PEOPLES})"
+    bot_text_for_all = f"{user.first_name} {user.last_name} {status_from}  {RIGHT_ARROW}  {intent.payment}{HEART_RED} {user_needy.first_name} {user_needy.last_name} {status}\n\
+({HEART_RED}{left_sum}/{right_sum}{HELP} {LEFT_ARROW} {users_count} {PEOPLES})"
 
     print(bot_text_for_all)
 
@@ -237,17 +237,19 @@ def reminder(event_id, direction=None):
     event = read_event(event_id)
     # user = read_exodus_user(telegram_id=event.from_id)
 
-    # message = "Для вас есть уведомление:"
-    message = f"+ 1 {HANDSHAKE}"
     keyboard = types.InlineKeyboardMarkup()
     row = []
     row.append(types.InlineKeyboardButton('Прочитать',
                                           callback_data='reminder_{}'.format(event_id)))
     keyboard.row(*row)
     if direction == 'out':
+        message = "Для вас есть уведомление:"
         bot.send_message(event.from_id, message, reply_markup=keyboard)
     elif direction == 'in':
         intention = read_intention_by_id(event.to_id)
+        user_from = read_exodus_user(intention.from_id)
+        user_from_status = get_status(user_from.status)
+        message = f"{user_from.first_name} {user_from.last_name} {user_from_status} {RIGHT_ARROW} {intention.payment} {HANDSHAKE}"
         bot.send_message(intention.to_id, message, reply_markup=keyboard)
 
 
