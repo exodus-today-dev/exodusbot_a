@@ -92,8 +92,7 @@ def notice_of_intent(event_id):
     bot_text = f"{intent.create_date.strftime('%d %B %Y')}\n\
 {user.first_name} {user.last_name} {status_from}  {RIGHT_ARROW}  {HEART_RED} {intent.payment}\n\
 Вы - {status}\n\
-{left_sum}/{right_sum}\n\
-Помогают: {users_count}"
+({HEART_RED}{left_sum}/{right_sum}{HELP} {LEFT_ARROW} {users_count} {PEOPLES})"
 
     bot.send_message(event.to_id, bot_text)
 

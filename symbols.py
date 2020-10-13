@@ -26,6 +26,7 @@ GLOBE = '\U0001F310' # Globe with Meridians
 SPEAK_HEAD = '\U0001F5E3' # Speaking Head In Silhouette
 SPIRAL_CALENDAR = '\U0001F5D3' # Spiral Calendar Pad
 QUESTION = '\U00002753' # Black Question Mark Ornament
+LIKE = '\U0001F44D' # Like
 
 
 START_TEXT = "Бот Эксодус - \n\

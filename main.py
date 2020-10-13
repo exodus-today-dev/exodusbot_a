@@ -85,7 +85,7 @@ def global_menu(message, dont_show_status=True):
     user = read_exodus_user(message.chat.id)
     if user is None:
         create_exodus_user(message.chat.id, message.chat.first_name, message.chat.last_name,
-                           message.chat.username)
+                           message.chat.username, status="green")
     user = read_exodus_user(message.chat.id)
     link = create_link(user.telegram_id, user.telegram_id)
 
@@ -112,7 +112,7 @@ def global_menu(message, dont_show_status=True):
             already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
             left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
             right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
-            status = f'{ORANGE_BALL}\n{left_sum}/{right_sum}\n' + f"\nВ моей сети: {len(list_my_socium)}\n"
+            status = f'{ORANGE_BALL}\n({HEART_RED}{left_sum}/{right_sum}{HELP})\n' + f"\nВ моей сети: {len(list_my_socium)}\n"
             status += text_req
             status += "\n\nСсылка на обсуждение \U0001F4E2"
             if user.link == '' or user.link == None:
@@ -126,7 +126,7 @@ def global_menu(message, dont_show_status=True):
             already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
             left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
             right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
-            status = f'{RED_BALL}\n{left_sum}/{right_sum}\n' + f"\nВ моей сети: {len(list_my_socium)}\n"
+            status = f'{RED_BALL}\n({HEART_RED}{left_sum}/{right_sum}{HELP})\n' + f"\nВ моей сети: {len(list_my_socium)}\n"
             status += text_req
             status += "\n\nСсылка на обсуждение \U0001F4E2"
             if user.link == '' or user.link == None:
@@ -397,7 +397,7 @@ def configuration_check(message):
         return
     elif "Выйти" in text:
         #quit_user_from_exodus(message.chat.id)
-        markup = types.ReplyKeyboardMarkup()
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         btn1 = types.KeyboardButton(text='Да, удалить профиль')
         btn2 = types.KeyboardButton(text='Нет, я остаюсь')
         markup.row(btn1, btn2)
@@ -807,18 +807,27 @@ def history_intention(message):
     history_intention_to = read_history_intention(to_id=user_id)
 
     if history_intention_from is not None:
-        from_count = history_intention_from.count()
+        #from_count = history_intention_from.count()
+        text_from = ''
+        for intention in history_intention_from:
+            user_from = read_exodus_user(intention.to_id)
+            text_from += f'{intention.create_date.date().strftime("%d-%m-%Y")}     {intention.payment}{LIKE} вы {RIGHT_ARROW} {user_from.first_name} {user_from.last_name}\n'
     else:
-        from_count = 0
+        text_from = 'За все время исполнили вы - 0'
 
     if history_intention_to is not None:
-        to_count = history_intention_to.count()
+        #to_count = history_intention_to.count()
+        text_to = ''
+        for intention in history_intention_to:
+            user_to = read_exodus_user(intention.from_id)
+            text_to += f'{intention.create_date.date().strftime("%d-%m-%Y")}     {intention.payment}{LIKE} {user_to.first_name} {user_to.last_name} {RIGHT_ARROW} вам\n'
     else:
-        to_count = 0
+        text_to = 'За все время исполнили в вашу пользу - 0'
 
-    bot_text = f'За все время исполненно в вашу пользу - {to_count}\n\n\
-За все время исполнили вы - {from_count}'
-    bot.send_message(message.chat.id, bot_text)
+    bot_text = f'*Ваша история исполненных обязательств:*\n\
+{text_to}\n\n\
+{text_from}'
+    bot.send_message(message.chat.id, bot_text, parse_mode="Markdown")
     transactions_menu(message)
     return
 
@@ -1531,7 +1540,7 @@ def expand_my_socium(message):
             right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
 
             string_name = string_name + '\n{}. {} {} {}  {}/{}'.format(i + 1, user.first_name, user.last_name,
-                                                                       get_status(user.status), left_sum, right_sum)
+                                                                       get_status(user.status), left_sum+HEART_RED, right_sum+HELP)
 
         bot_text = 'Расширение сети:{}'.format(string_name) + '\n\n' \
                                                               'Введите номер Участника, чтобы ' \
@@ -1930,8 +1939,7 @@ def intention_to_obligation(message):
 
     bot_text = f"Вы {HEART_RED}  {RIGHT_ARROW}  {HANDSHAKE} {intention.payment}  {RIGHT_ARROW}  {user_to.first_name} {user_to.last_name}\n\
 {user_to.first_name} {user_to.last_name} {status_to}\n\
-{left_sum}/{right_sum}\n\
-Помогают: {users_count}\n\n\
+({HEART_RED}{left_sum}/{right_sum}{HELP} {LEFT_ARROW} {users_count} {PEOPLES})\n\
 Ждите уведомления."
 
     bot.send_message(message.chat.id, bot_text)
@@ -1942,8 +1950,7 @@ def intention_to_obligation(message):
 
     bot_text_for_all = f"{user_from.first_name} {user_from.last_name} перевел свое {HEART_RED} в {HANDSHAKE} участнику {user_to.first_name} {user_to.last_name} на сумму: {intention.payment} {intention.currency}\n\
 {user_to.first_name} {user_to.last_name} {status_to}\n\
-{left_sum}/{right_sum}\n\
-Помогают: {users_count}"
+({HEART_RED}{left_sum}/{right_sum}{HELP} {LEFT_ARROW} {users_count} {PEOPLES})"
 
     for id in list_needy_id:
         bot.send_message(id, bot_text_for_all)
@@ -2561,8 +2568,8 @@ def for_me_obligation(message, reminder_call, intention_id):
     status_from = get_status(user_from.status)
 
     bot_text = f"{user_from.first_name} {user_from.last_name} {status_from} {RIGHT_ARROW} {HANDSHAKE} {intention.payment}\n\
-Ваш статус: {status} \n\
-{left_sum}/{right_sum} {user_to.currency}"
+Вы: {status} \n\
+({HEART_RED}{left_sum}/{right_sum}{HELP})"
 
     markup = types.ReplyKeyboardMarkup()
     btn1 = types.KeyboardButton(text='Запрос на исполнение')
@@ -3190,9 +3197,10 @@ def start_without_invitation(message, ref=""):
     """1.1"""
 
     exists = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
+    print(exists)
     if not exists:
         create_exodus_user(message.chat.id, message.chat.first_name, message.chat.last_name,
-                           message.chat.username, ref=ref)
+                           message.chat.username, status="green", ref=ref)
         exists = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
     if exists.status == '':
         orange_green_wizard(message)
@@ -3293,7 +3301,7 @@ def orange_invitation_check(message, event_id=None, ref=None):
         exists = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
         if not exists:
             create_exodus_user(message.chat.id, message.chat.first_name, message.chat.last_name,
-                               message.chat.username, ref=ref)
+                               message.chat.username, status="green", ref=ref)
         orange_invitation_wizard(message, user_to, event_id)
 
     elif 'Главное меню' in text:
@@ -3529,7 +3537,7 @@ def red_invitation_check(message, event_id=None, ref=None):
         exists = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
         if not exists:
             create_exodus_user(message.chat.id, message.chat.first_name, message.chat.last_name,
-                               message.chat.username, ref=ref)
+                               message.chat.username, status="green", ref=ref)
         red_invitation_wizard(message, user_to, event_id)
 
     elif 'Главное меню' in text:
@@ -3634,12 +3642,12 @@ def red_invitation_wizard_check(message, event_id=None):  # ------------------ T
     status = RED_BALL
     bot_text = f'Записано Ваше {HANDSHAKE} участнику {user.first_name} {user.last_name} на сумму {invitation_sum} {user.currency}\n\
 {user.first_name} {user.last_name}: {status} \n\
-{left_sum}/{right_sum}'
+({HEART_RED}{left_sum}/{right_sum}{HELP})'
 
     # рассылка уведомлений моему кругу о том, что я начал кому то помогать, кроме того, кто запросил
     bot_text_for_all = f"{user_from.first_name} {user_from.last_name}  {RIGHT_ARROW}  {HANDSHAKE} {invitation_sum} {user.first_name} {user.last_name}\n\
 {user.first_name} {user.last_name}: {status} \n\
-{left_sum}/{right_sum}"
+({HEART_RED}{left_sum}/{right_sum}{HELP})"
 
     for id in list_needy_id:
         bot.send_message(id, bot_text_for_all)
@@ -3650,7 +3658,7 @@ def red_invitation_wizard_check(message, event_id=None):  # ------------------ T
     # сообщение, получателю, что кто то записал обязательство в его пользу
     text_for_u = f"{user_from.first_name} {user_from.last_name} {status_from}  {RIGHT_ARROW}  {HANDSHAKE} {invitation_sum}\n\
 Ваш статус: {status} \n\
-{left_sum}/{right_sum}"
+({HEART_RED}{left_sum}/{right_sum}{HELP})"
     bot.send_message(user.telegram_id, text_for_u)
 
     link = user.link
@@ -3712,7 +3720,7 @@ def red_invitation_wizard_check(message, event_id=None):  # ------------------ T
             right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
 
             # сообщение Вам, что вы вернулись автоматически
-            text = f"Вы вернулись к {ORANGE_BALL}\n{left_sum}/{right_sum} {user.currency}"
+            text = f"Вы вернулись к {ORANGE_BALL}\n({HEART_RED}{left_sum}/{right_sum}{HELP})"
             bot.send_message(user_id, text)
 
             global_menu(message)
@@ -4414,7 +4422,7 @@ def green_orange_check(message):
 
 def orange_green_wizard(message):
     #    bot.delete_message(message.chat.id, message.message_id)
-    markup = types.ReplyKeyboardMarkup()
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text=ORANGE_BALL)
     btn2 = types.KeyboardButton(text=GREEN_BALL)
     markup.row(btn1, btn2)
