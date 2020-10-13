@@ -586,7 +586,7 @@ def delete_requisite(message, requisite):
 \n\
 Название: {requisite.name}\n\
 Значение: {requisite.value}"
-    markup = types.ReplyKeyboardMarkup()
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text='Да, удалить')
     btn2 = types.KeyboardButton(text='Нет')
     markup.row(btn1, btn2)
@@ -755,6 +755,28 @@ def transactions_menu(message):
 # {HANDSHAKE}: \n\
 # {PLUS}: {me_obligation} {user.currency}\n\
 # {MINUS}: {my_obligation} {user.currency}\n"
+
+    history_intention_from = read_history_intention(from_id=user_id)
+    history_intention_to = read_history_intention(to_id=user_id)
+
+    if history_intention_from is not None:
+        from_count = history_intention_from.count()
+        sum_from = 0
+        for intention in history_intention_from:
+            sum_from += intention.payment
+    else:
+        from_count = 0
+        sum_from = 0
+
+    if history_intention_to is not None:
+        to_count = history_intention_to.count()
+        sum_to = 0
+        for intention in history_intention_to:
+            sum_to += intention.payment
+    else:
+        to_count = 0
+        sum_to = 0
+
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text=f'{me_intent_count}{HEART_RED} / {me_obligation_count}{HANDSHAKE} {RIGHT_ARROW} {MAN}')
     btn2 = types.KeyboardButton(text=f'{MAN} {RIGHT_ARROW} {my_intent_count}{HEART_RED} / {my_obligation_count}{HANDSHAKE}')
@@ -763,10 +785,10 @@ def transactions_menu(message):
     # btn2 = types.KeyboardButton(text=f'{HEART_RED}{me_intent_count}{PEOPLES}{RIGHT_ARROW}{MAN}')
     # btn3 = types.KeyboardButton(text=f'{HANDSHAKE}{MAN}{RIGHT_ARROW}{my_obligation_count}{PEOPLES}')
     # btn4 = types.KeyboardButton(text=f'{HANDSHAKE}{me_obligation_count}{PEOPLES}{RIGHT_ARROW}{MAN}')
-    btn5 = types.KeyboardButton(text='Исполненные')
+    btn5 = types.KeyboardButton(text=f'{to_count}/{sum_to}{LIKE}{RIGHT_ARROW}{MAN}{RIGHT_ARROW}{from_count}/{sum_from}{LIKE}')
     btn6 = types.KeyboardButton(text='Главное меню')
-    markup.row(btn1, btn2, btn6)
-    markup.row(btn5)
+    markup.row(btn1, btn2)
+    markup.row(btn5, btn6)
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
     bot.register_next_step_handler(msg, transactions_check)
 
@@ -786,7 +808,7 @@ def transactions_check(message):
     # elif text == 'Не исполненные':
     #     not_executed_wizard(message)
     #     return
-    elif text == 'Исполненные':
+    elif f'{LIKE}' in text:
         history_intention(message)
         return
     elif text == 'Главное меню':
@@ -2035,7 +2057,7 @@ def cancel_intention(message):
     intention = read_intention_by_id(intention_id)
     user_to = read_exodus_user(telegram_id=intention.to_id)
     bot_text = f"Вы хотите отменить свое {HEART_RED} участнику {user_to.first_name} {user_to.last_name} на {intention.payment} {intention.currency}?"
-    markup = types.ReplyKeyboardMarkup()
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text='Нет')
     btn2 = types.KeyboardButton(text='Да')
     markup.row(btn1, btn2)
@@ -2170,13 +2192,12 @@ def obligation_for_needy(message, reminder_call, intention_id):
 Деньги можно отправить на реквизиты:"
     # отдельное сообщени для реквизитов -
     # <значение> (чтобы удобно скопировать)
-    markup = types.ReplyKeyboardMarkup()
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     # btn1 = types.KeyboardButton(text='Другие реквизиты')  # TODO сделать и подвязать реквизиты
     btn2 = types.KeyboardButton(text='Да, я отправил деньги')
     btn3 = types.KeyboardButton(text='Напомнить позже')
     # markup.row(btn1)
-    markup.row(btn2)
-    markup.row(btn3)
+    markup.row(btn2, btn3)
     bot.send_message(message.chat.id, bot_text, reply_markup=markup)
 
     bot.send_message(message.chat.id, f"{req_name}")
@@ -2230,11 +2251,10 @@ def obligation_sent_confirm(message):
         req_value = requisites[0].value
     bot_text = f"Пожалуйста подтвердите, что вы отправили {intention.payment} {intention.currency}\
 	Участнику {user_to.first_name} {user_to.last_name} на реквизиты {req_name} {req_value}:"
-    markup = types.ReplyKeyboardMarkup()
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text='Да')
     btn2 = types.KeyboardButton(text='Нет')
-    markup.row(btn1)
-    markup.row(btn2)
+    markup.row(btn1, btn2)
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
     bot.register_next_step_handler(msg, obligation_sent_confirm_check)
     return
@@ -2571,14 +2591,13 @@ def for_me_obligation(message, reminder_call, intention_id):
 Вы: {status} \n\
 ({HEART_RED}{left_sum}/{right_sum}{HELP})"
 
-    markup = types.ReplyKeyboardMarkup()
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text='Запрос на исполнение')
     btn2 = types.KeyboardButton(text='Хранить')
     btn3 = types.KeyboardButton(text='Напомнить позже')
     btn4 = types.KeyboardButton(text='Главное меню')
-    markup.row(btn1)
-    markup.row(btn2, btn3)
-    markup.row(btn4)
+    markup.row(btn1, btn2)
+    markup.row(btn3, btn4)
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
     bot.register_next_step_handler(msg, for_me_obligation_check, intention_id)
     return
@@ -2737,7 +2756,7 @@ def not_executed_wizard(message):
     else:
         for_other_intent = intentions.count()
     bot_text = f'Не исполненными считаются те {HANDSHAKE}, которые не подтвердил получатель.'
-    markup = types.ReplyKeyboardMarkup()
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text=f"{PLUS} ({for_me_intent})")
     btn2 = types.KeyboardButton(text=f"{MINUS} ({for_other_intent})")
     btn3 = types.KeyboardButton(text='Назад')
@@ -2823,7 +2842,7 @@ def executed_not_confirm_me(message):
 Отправитель: {user.first_name} {user.last_name} {get_status(user.status)}\n\
 Сумма: {intention.payment} {intention.currency}\n\
 Реквизиты: {req_name} {req_value}"  # TODO реквезиты
-    markup = types.ReplyKeyboardMarkup()
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text="Я получил эту сумму")
     btn2 = types.KeyboardButton(text="Повторный запрос на исполнение")
     btn3 = types.KeyboardButton(text='Назад')
@@ -2872,11 +2891,10 @@ def executed_confirm(message):
 Получатель: {user.first_name} {user.last_name} {get_status(user.status)}\n\
 Сумма: {intention.payment} {intention.currency}\n\
 Реквизиты: {req_name} {req_value}"
-    markup = types.ReplyKeyboardMarkup()
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text="Да, я получил")
     btn2 = types.KeyboardButton(text='Назад')
-    markup.row(btn1)
-    markup.row(btn2)
+    markup.row(btn1, btn2)
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
     bot.register_next_step_handler(msg, executed_confirm_check)
     return
@@ -2977,11 +2995,10 @@ def executed_not_confirm(message):
 Получатель: {user.first_name} {user.last_name} {get_status(user.status)}\n\
 Сумма: {intention.payment} {intention.currency}\n\
 Реквизиты: {req_name} {req_value}"  # TODO реквезиты
-    markup = types.ReplyKeyboardMarkup()
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text="Я отправил эту сумму")
     btn2 = types.KeyboardButton(text='Назад')
-    markup.row(btn1)
-    markup.row(btn2)
+    markup.row(btn1, btn2)
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
     bot.register_next_step_handler(msg, executed_not_confirm_check)
     return
