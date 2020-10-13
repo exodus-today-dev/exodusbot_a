@@ -4866,7 +4866,7 @@ def process_callback(call):
         bot.send_message(call.message.chat.id, message)
 
         update_intention_from_all_params(event.from_id, event.to_id, int(event.current_payments), 13)
-        create_history_intention(event.from_id, event.to_id, int(event.current_payments))
+        #create_history_intention(event.from_id, event.to_id, int(event.current_payments))
 
         global_menu(call.message)
 
@@ -4890,7 +4890,7 @@ def process_callback(call):
         bot.send_message(call.message.chat.id, message)
 
         update_intention_from_all_params(event.from_id, event.to_id, int(event.current_payments), 13)
-        create_history_intention(event.from_id, event.to_id, int(event.current_payments))
+        #create_history_intention(event.from_id, event.to_id, int(event.current_payments))
 
         global_menu(call.message)
     elif call.data[0:26] == '6_10_no_send_confirmation_':
