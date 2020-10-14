@@ -1467,7 +1467,7 @@ def check_other_socium(message, member_id):
             bot.send_message(message.chat.id, user_info_text, parse_mode='html')
             selected_member_action_menu(message, telegram_id)
         except:
-            msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
+            msg = bot.send_message(message.chat.id, "*Пошло что-то не так. Попробуйте снова*", parse_mode="Markdown")
             bot.register_next_step_handler(msg,
                                            check_other_socium, member_id)
         return
@@ -1478,6 +1478,7 @@ def show_my_socium(message):
     list_my_socium = get_my_socium(message.chat.id)
 
     string_name = ''
+    list_exodus_id_my_socium = []
     for i, id_help in enumerate(list_my_socium):
         user = read_exodus_user(id_help)
         already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
@@ -1492,6 +1493,7 @@ def show_my_socium(message):
             string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} {left_sum} {HEART_RED}/{right_sum} {HELP}'
         elif "red" in status:
             string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} {right_sum} {HELP}'
+        list_exodus_id_my_socium.append(user.exodus_id)
 
     bot_text = 'В моей сети:{}'.format(string_name) + '\n\n' \
                                                       'Введите номер Участника, чтобы ' \
@@ -1500,10 +1502,10 @@ def show_my_socium(message):
     btn1 = types.KeyboardButton(text='Назад')
     markup.row(btn1)
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup, parse_mode="html", disable_web_page_preview=True)
-    bot.register_next_step_handler(msg, check_my_socium)
+    bot.register_next_step_handler(msg, check_my_socium, list_exodus_id_my_socium)
 
 
-def check_my_socium(message):
+def check_my_socium(message, list_exodus_id_my_socium):
     text = message.text
     bot.delete_message(message.chat.id, message.message_id)
     if 'Назад' in text:
@@ -1517,14 +1519,18 @@ def check_my_socium(message):
             # bookmark #debug.bookmark #dev.bookmark
 
             selected_id = int(text)
-            user = read_exodus_user_by_exodus_id(selected_id)
-            telegram_id = user.telegram_id
-            user_info_text = generate_user_info_text(user, message.chat.id)
-            bot.send_message(message.chat.id, user_info_text, parse_mode='html')
-            selected_member_action_menu(message, telegram_id)
+            if selected_id not in list_exodus_id_my_socium:
+                bot.send_message(message.chat.id, "*Этого пользователя нет в вашей сети. Введите корректный номер*", parse_mode="Markdown")
+                show_my_socium(message)
+            else:
+                user = read_exodus_user_by_exodus_id(selected_id)
+                telegram_id = user.telegram_id
+                user_info_text = generate_user_info_text(user, message.chat.id)
+                bot.send_message(message.chat.id, user_info_text, parse_mode='html')
+                selected_member_action_menu(message, telegram_id)
         except:
-            msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
-            bot.register_next_step_handler(msg, check_my_socium)
+            bot.send_message(message.chat.id, "*Пошло что-то не так. Попробуйте снова*", parse_mode="Markdown")
+            show_my_socium(message)
         return
 
 
