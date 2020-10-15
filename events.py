@@ -92,7 +92,7 @@ def notice_of_intent(event_id):
     bot_text = f"{intent.create_date.strftime('%d %B %Y')}\n\
 {user.first_name} {user.last_name} {status_from}  {RIGHT_ARROW} {intent.payment}{HEART_RED}\n\
 Вы - {status}\n\
-({HEART_RED}{left_sum}/{right_sum}{HELP} {LEFT_ARROW} {users_count} {PEOPLES})"
+({left_sum}{HEART_RED}/{right_sum}{HELP} {LEFT_ARROW} {users_count} {PEOPLES})"
 
     bot.send_message(event.to_id, bot_text)
 
@@ -106,7 +106,7 @@ def notice_of_intent(event_id):
 # Помогают: {users_count}"
 
     bot_text_for_all = f"{user.first_name} {user.last_name} {status_from}  {RIGHT_ARROW}  {intent.payment}{HEART_RED} {user_needy.first_name} {user_needy.last_name} {status}\n\
-({HEART_RED}{left_sum}/{right_sum}{HELP} {LEFT_ARROW} {users_count} {PEOPLES})"
+({left_sum}{HEART_RED}/{right_sum}{HELP} {LEFT_ARROW} {users_count} {PEOPLES})"
 
     print(bot_text_for_all)
 
