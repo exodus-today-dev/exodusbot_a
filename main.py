@@ -1,15 +1,11 @@
 #!/usr/bin/python
 
-# This is a simple echo bot using the decorator mechanism.
-# It echoes any incoming text messages.
-
 from datetime import timedelta
 
 import telebot
 from aiohttp import web
 from telebot import types
 
-# from db_controller.controller import *
 from models import *
 from status_codes import *
 from symbols import *
@@ -17,8 +13,6 @@ from symbols import *
 bot = telebot.TeleBot(config.API_TOKEN)
 
 # --------------------------------- DB ------------------------------
-
-# test
 
 user_dict = {}
 
@@ -1431,11 +1425,11 @@ def members_list_in_network_check(message, member_id, direction):
 
 def show_other_socium(message, user_id):
     # print(user_id)
-    bot.delete_message(message.chat.id, message.message_id)
+    #bot.delete_message(message.chat.id, message.message_id)
     list_my_socium = get_my_socium(user_id)
 
     string_name = ''
-    for i, id_help in enumerate(list_my_socium):
+    for id_help in list_my_socium:
         user = read_exodus_user(id_help)
         already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
         already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
@@ -1476,13 +1470,19 @@ def check_other_socium(message, member_id):
             selected_id = int(text)
             user = read_exodus_user_by_exodus_id(selected_id)
             telegram_id = user.telegram_id
-            user_info_text = generate_user_info_text(user, message.chat.id)
-            bot.send_message(message.chat.id, user_info_text, parse_mode='html')
-            selected_member_action_menu(message, telegram_id)
+
+            list_my_socium = get_my_socium(member_id)
+            if telegram_id in list_my_socium:
+                user_info_text = generate_user_info_text(user, message.chat.id)
+                bot.send_message(message.chat.id, user_info_text, parse_mode='html')
+                selected_member_action_menu(message, telegram_id)
+            else:
+                bot.send_message(message.chat.id, "*Этого пользователя нет в вашей сети. Введите корректный номер*",
+                                 parse_mode="Markdown")
+                show_other_socium(message, member_id)
         except:
-            msg = bot.send_message(message.chat.id, "*Пошло что-то не так. Попробуйте снова*", parse_mode="Markdown")
-            bot.register_next_step_handler(msg,
-                                           check_other_socium, member_id)
+            bot.send_message(message.chat.id, "*Пошло что-то не так. Попробуйте снова*", parse_mode="Markdown")
+            show_other_socium(message, member_id)
         return
 
 
@@ -1492,7 +1492,7 @@ def show_my_socium(message):
 
     string_name = ''
     list_exodus_id_my_socium = []
-    for i, id_help in enumerate(list_my_socium):
+    for id_help in list_my_socium:
         user = read_exodus_user(id_help)
         already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
         already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
