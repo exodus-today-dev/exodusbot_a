@@ -18,6 +18,7 @@ bot = telebot.TeleBot(config.API_TOKEN)
 
 # --------------------------------- DB ------------------------------
 
+# test
 
 user_dict = {}
 
@@ -120,7 +121,6 @@ def global_menu(message, dont_show_status=True):
             else:
                 status += f"\n{user.link}"  # ссылка на обсуждение # ссылка на обсуждение
             status += f"\n\nСсылка для помощи \U0001F4E9\n{link}"
-
 
         elif 'red' in user.status:
             already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
