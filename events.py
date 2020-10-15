@@ -92,7 +92,7 @@ def notice_of_intent(event_id):
     bot_text = f"{intent.create_date.strftime('%d %B %Y')}\n\
 {user.first_name} {user.last_name} {status_from}  {RIGHT_ARROW} {intent.payment}{HEART_RED}\n\
 Вы - {status}\n\
-({left_sum}{HEART_RED}/{right_sum}{HELP} {LEFT_ARROW} {users_count} {PEOPLES})"
+({left_sum}{HEART_RED} / {right_sum}{HELP} {LEFT_ARROW} {users_count} {PEOPLES})"
 
     bot.send_message(event.to_id, bot_text)
 
@@ -106,7 +106,7 @@ def notice_of_intent(event_id):
 # Помогают: {users_count}"
 
     bot_text_for_all = f"{user.first_name} {user.last_name} {status_from}  {RIGHT_ARROW}  {intent.payment}{HEART_RED} {user_needy.first_name} {user_needy.last_name} {status}\n\
-({left_sum}{HEART_RED}/{right_sum}{HELP} {LEFT_ARROW} {users_count} {PEOPLES})"
+({left_sum}{HEART_RED} / {right_sum}{HELP} {LEFT_ARROW} {users_count} {PEOPLES})"
 
     print(bot_text_for_all)
 
@@ -181,7 +181,7 @@ def obligation_recieved_notice(event_id):
     # confirmation_of_an_obligation(event.from_id, user.first_name, event.current_payments, event.currency)
     bot_text = f"{user.first_name} {user.last_name} подтвердил, что ваше {HANDSHAKE} на сумму {event.current_payments} {event.currency} исполнено.\n\n\
 {user.first_name} {user.last_name} - {status}\n\
-({left_sum} {HEART_RED}/{right_sum} {HELP})"
+({left_sum} {HEART_RED} / {right_sum} {HELP})"
     bot.send_message(event.from_id, bot_text)
     # update_event(event_id, True)
 
