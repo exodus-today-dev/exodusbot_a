@@ -207,7 +207,7 @@ def call_people_menu(message):
     bot_text = 'В моей сети нуждаются в помощи:'
 
     markup_inline = types.InlineKeyboardMarkup()
-    for i, id_help in enumerate(list_my_socium):
+    for id_help in list_my_socium:
         user = read_exodus_user(id_help)
         already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
         already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
@@ -219,9 +219,9 @@ def call_people_menu(message):
 
         status = user.status
         if status == "orange":
-            string_name = f'\n{i + 1}. {user.first_name} {user.last_name} {ORANGE_BALL} {left_sum} {HEART_RED}/{right_sum} {HELP}'
+            string_name = f'\n{user.first_name} {user.last_name} {ORANGE_BALL} {left_sum} {HEART_RED}/{right_sum} {HELP}'
         elif "red" in status:
-            string_name = f'\n{i + 1}. {user.first_name} {user.last_name} {RED_BALL} {right_sum} {HELP}'
+            string_name = f'\n{user.first_name} {user.last_name} {RED_BALL} {right_sum} {HELP}'
 
         markup_inline.add(
             (types.InlineKeyboardButton(f"{string_name}", callback_data="show_people_link_" + str(id_help))))
