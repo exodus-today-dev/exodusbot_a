@@ -203,38 +203,45 @@ def global_check(message):
 def call_people_menu(message):
     list_my_socium = list(get_my_socium(message.chat.id))
     list_my_socium.append(message.chat.id)
+    len_my_socium = len(list_my_socium)
+
+    keyboard_inline = []
+    btn_inline = []
+
+    # for i in range(len_my_socium):
+    #     keyboard_inline.append(types.InlineKeyboardMarkup())
+    #     btn_inline.append(types.InlineKeyboardButton("Позвать", callback_data="show_people_link_"+str(list_my_socium[i])))
 
     bot_text = 'В моей сети нуждаются в помощи:'
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    btn1 = types.KeyboardButton(text='Назад')
+    markup.row(btn1)
+    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
 
-    markup_inline = types.InlineKeyboardMarkup()
-    for id_help in list_my_socium:
+    for i, id_help in enumerate(list_my_socium):
         user = read_exodus_user(id_help)
         already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
         already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
         left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
         right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
 
-        if right_sum == 0:
-            continue
+        keyboard_inline.append(types.InlineKeyboardMarkup())
+        btn_inline.append(types.InlineKeyboardButton(f"Сгенерировать ссылку для {user.first_name}", callback_data="show_people_link_"+str(id_help)))
 
         status = user.status
         if status == "orange":
-            string_name = f'\n{user.first_name} {user.last_name} {ORANGE_BALL} {left_sum} {HEART_RED}/{right_sum} {HELP}'
+            string_name = f'\n<a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} {left_sum} {HEART_RED}/{right_sum} {HELP}'
         elif "red" in status:
-            string_name = f'\n{user.first_name} {user.last_name} {RED_BALL} {right_sum} {HELP}'
+            string_name = f'\n<a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} {right_sum} {HELP}'
+        else:
+            continue
 
-        markup_inline.add(
-            (types.InlineKeyboardButton(f"{string_name}", callback_data="show_people_link_" + str(id_help))))
+        keyboard_inline[i].add(btn_inline[i])
 
-    bot.send_message(message.chat.id, bot_text, parse_mode="html", disable_web_page_preview=True,
-                     reply_markup=markup_inline)
-
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    btn1 = types.KeyboardButton(text='Назад')
-    markup.row(btn1)
-    msg = bot.send_message(message.chat.id, 'Нажмите на кнопку для генерации ссылки', reply_markup=markup)
+        bot.send_message(message.chat.id, string_name, parse_mode="html", disable_web_page_preview=True, reply_markup=keyboard_inline[i])
 
     bot.register_next_step_handler(msg, show_people_link)
+
 
 
 def show_people_link(message):
