@@ -112,7 +112,7 @@ def global_menu(message, dont_show_status=True):
             already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
             left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
             right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
-            status = f'{ORANGE_BALL}\n({left_sum}{HEART_RED}/{right_sum}{HELP})\n' + f"\nВ моей сети: {len(list_my_socium)}\n"
+            status = f'{ORANGE_BALL}\n({left_sum}{HEART_RED} / {right_sum}{HELP})\n' + f"\nВ моей сети: {len(list_my_socium)}\n"
             status += text_req
             status += "\n\nСсылка на обсуждение \U0001F4E2"
             if user.link == '' or user.link == None:
@@ -126,7 +126,7 @@ def global_menu(message, dont_show_status=True):
             already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
             left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
             right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
-            status = f'{RED_BALL}\n({left_sum}{HEART_RED}/{right_sum}{HELP})\n' + f"\nВ моей сети: {len(list_my_socium)}\n"
+            status = f'{RED_BALL}\n({left_sum}{HEART_RED} / {right_sum}{HELP})\n' + f"\nВ моей сети: {len(list_my_socium)}\n"
             status += text_req
             status += "\n\nСсылка на обсуждение \U0001F4E2"
             if user.link == '' or user.link == None:
