@@ -836,28 +836,30 @@ def history_intention(message):
     history_intention_from = read_history_intention(from_id=user_id)
     history_intention_to = read_history_intention(to_id=user_id)
 
-    if history_intention_from is not None:
+    print(history_intention_from.count(), history_intention_to.count())
+
+    if history_intention_from.count() != 0:
         # from_count = history_intention_from.count()
         text_from = ''
         for intention in history_intention_from:
             user_from = read_exodus_user(intention.to_id)
-            text_from += f'{intention.create_date.date().strftime("%d-%m-%Y")}     {intention.payment}{LIKE} вы {RIGHT_ARROW} {user_from.first_name} {user_from.last_name}\n'
+            text_from += f'{intention.create_date.date().strftime("%d-%m-%Y")}  {intention.payment}{LIKE} вы {RIGHT_ARROW} {user_from.first_name} {user_from.last_name}\n'
     else:
         text_from = 'За все время исполнили вы - 0'
 
-    if history_intention_to is not None:
+    if history_intention_to.count() != 0:
         # to_count = history_intention_to.count()
         text_to = ''
         for intention in history_intention_to:
             user_to = read_exodus_user(intention.from_id)
-            text_to += f'{intention.create_date.date().strftime("%d-%m-%Y")}     {intention.payment}{LIKE} {user_to.first_name} {user_to.last_name} {RIGHT_ARROW} вам\n'
+            text_to += f'{intention.create_date.date().strftime("%d-%m-%Y")}  {intention.payment}{LIKE} {user_to.first_name} {user_to.last_name} {RIGHT_ARROW} вам\n'
     else:
         text_to = 'За все время исполнили в вашу пользу - 0'
 
-    bot_text = f'*Ваша история исполненных обязательств:*\n\
+    bot_text = f'Ваша история исполненных обязательств:\n\
 {text_to}\n\n\
 {text_from}'
-    bot.send_message(message.chat.id, bot_text, parse_mode="Markdown")
+    bot.send_message(message.chat.id, bot_text)
     transactions_menu(message)
     return
 
@@ -3638,11 +3640,6 @@ def red_invitation_wizard_check(message, event_id=None):  # ------------------ T
     # else:
     #     all_users = len(set(ring.help_array))
 
-    # d0 = user.start_date
-    # d1 = date.today()
-    # delta = d1 - d0
-    # days_end = user.days - delta.days
-    #
     # already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
     # already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
     # left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
@@ -3683,15 +3680,20 @@ def red_invitation_wizard_check(message, event_id=None):  # ------------------ T
     left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
     right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
 
+    d0 = user.start_date
+    d1 = date.today()
+    delta = d1 - d0
+    days_end = user.days - delta.days
+
     status = RED_BALL
     bot_text = f'Записано Ваше {HANDSHAKE} участнику {user.first_name} {user.last_name} на сумму {invitation_sum} {user.currency}\n\
 {user.first_name} {user.last_name}: {status} \n\
-({right_sum}{HELP})'
+({right_sum}{HELP} за {days_end} дней)'
 
     # рассылка уведомлений моему кругу о том, что я начал кому то помогать, кроме того, кто запросил
     bot_text_for_all = f"{user_from.first_name} {user_from.last_name}  {RIGHT_ARROW}  {HANDSHAKE} {invitation_sum} {user.first_name} {user.last_name}\n\
 {user.first_name} {user.last_name}: {status} \n\
-({right_sum}{HELP})"
+({right_sum}{HELP} за {days_end} дней)"
 
     for id in list_needy_id:
         bot.send_message(id, bot_text_for_all)
