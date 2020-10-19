@@ -1300,6 +1300,7 @@ def generate_user_info_text(user, self_id=''):
 
 def members_list_in_network_menu(message, member_id, direction):
     """ 5.2 """
+    print_members_list_in_network(message, member_id, direction)
 
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 
