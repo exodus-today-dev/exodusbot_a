@@ -149,9 +149,9 @@ def global_menu(message, dont_show_status=True):
     btn8 = types.KeyboardButton(text='{} {} {} {}'.format(MAN, RIGHT_ARROW, transactions_out_count, PEOPLES))
     btn9 = types.KeyboardButton(text='{} {} {} {}'.format(transactions_in_count, PEOPLES, RIGHT_ARROW, MAN))
     btn10 = types.KeyboardButton(text=f'{requisites_count} {SPEAK_HEAD} {HELP}')
-    markup.row(btn5, btn9, btn3)
-    markup.row(btn6, btn8, btn4)
-    markup.row(btn7, btn10, btn2)
+    markup.row(btn3, btn9, btn5)
+    markup.row(btn4, btn8, btn6)
+    markup.row(btn2, btn10, btn7)
     if not dont_show_status:
         bot.send_message(message.chat.id, 'Ваш статус: {}'.format(status))
     bot.send_message(message.chat.id, 'Меню:', reply_markup=markup)
@@ -221,7 +221,8 @@ def call_people_menu(message):
         right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
 
         keyboard_inline.append(types.InlineKeyboardMarkup())
-        btn_inline.append(types.InlineKeyboardButton(f"Сгенерировать ссылку для {user.first_name}", callback_data="show_people_link_"+str(id_help)))
+        btn_inline.append(types.InlineKeyboardButton(f"Сгенерировать ссылку для {user.first_name}",
+                                                     callback_data="show_people_link_" + str(id_help)))
 
         status = user.status
         if status == "orange":
@@ -233,10 +234,10 @@ def call_people_menu(message):
 
         keyboard_inline[i].add(btn_inline[i])
 
-        bot.send_message(message.chat.id, string_name, parse_mode="html", disable_web_page_preview=True, reply_markup=keyboard_inline[i])
+        bot.send_message(message.chat.id, string_name, parse_mode="html", disable_web_page_preview=True,
+                         reply_markup=keyboard_inline[i])
 
     bot.register_next_step_handler(msg, show_people_link)
-
 
 
 def show_people_link(message):
@@ -836,8 +837,6 @@ def history_intention(message):
     history_intention_from = read_history_intention(from_id=user_id)
     history_intention_to = read_history_intention(to_id=user_id)
 
-    print(history_intention_from.count(), history_intention_to.count())
-
     if history_intention_from.count() != 0:
         # from_count = history_intention_from.count()
         text_from = ''
@@ -950,7 +949,6 @@ def print_members_list_in_network(message, member_id, direction):
         intentions = read_intention_for_user(from_id=member_id, statuses=(1, 11, 12))
 
     msg_text = ''
-    print(intentions.all())
     for i, row in enumerate(intentions.all()):
         # warning
         #  no.pagination.by.10
@@ -968,7 +966,7 @@ def print_members_list_in_network(message, member_id, direction):
             status_user = get_status(user.status)  # TODO отваливается при пустом или не существующем пользователе
         except:
             status_user = ''
-        print(row.status)
+
         if row.status == 1:
             msg_text = msg_text + '{i}. {first_name} {last_name}{status} - {sum}{status_intention}\n'.format(
                 i=user.exodus_id, first_name=user.first_name,
@@ -1302,7 +1300,6 @@ def generate_user_info_text(user, self_id=''):
 
 def members_list_in_network_menu(message, member_id, direction):
     """ 5.2 """
-    print_members_list_in_network(message, member_id, direction)
 
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 
@@ -1427,7 +1424,7 @@ def members_list_in_network_check(message, member_id, direction):
 
 def show_other_socium(message, user_id):
     # print(user_id)
-    #bot.delete_message(message.chat.id, message.message_id)
+    # bot.delete_message(message.chat.id, message.message_id)
     list_my_socium = get_my_socium(user_id)
 
     string_name = ''
@@ -1483,7 +1480,8 @@ def check_other_socium(message, member_id):
                                  parse_mode="Markdown")
                 show_other_socium(message, member_id)
         except:
-            bot.send_message(message.chat.id, "*Этого пользователя нет в вашей сети. Введите корректный номер*", parse_mode="Markdown")
+            bot.send_message(message.chat.id, "*Этого пользователя нет в вашей сети. Введите корректный номер*",
+                             parse_mode="Markdown")
             show_other_socium(message, member_id)
         return
 
@@ -3243,7 +3241,6 @@ def start_without_invitation(message, ref=""):
     """1.1"""
 
     exists = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
-    print(exists)
     if not exists:
         create_exodus_user(message.chat.id, message.chat.first_name, message.chat.last_name,
                            message.chat.username, status="green", ref=ref)
@@ -4913,10 +4910,12 @@ def process_callback(call):
         user = read_exodus_user(telegram_id=event.from_id)
         first_name = user.first_name
         last_name = user.last_name
+
         message = 'Спасибо! Участнику {first_name} {last_name} будет отправлено уведомление о том, ' \
-                  'что вы подтвердили иcполнение {HANDSHAKE}.'.format(first_name=first_name,
-                                                                      last_name=last_name,
-                                                                      HANDSHAKE=HANDSHAKE)
+                  'что вы подтвердили иcполнение {HANDSHAKE} на сумму {sum}.'.format(first_name=first_name,
+                                                                                     last_name=last_name,
+                                                                                     HANDSHAKE=HANDSHAKE,
+                                                                                     sum=event.current_payments)
 
         bot.send_message(call.message.chat.id, message)
 
@@ -4934,14 +4933,24 @@ def process_callback(call):
         update_event_type(event_id, 'obligation_recieved')
         event = read_event(event_id)
         user = read_exodus_user(telegram_id=event.from_id)
+        user_to = read_exodus_user(telegram_id=event.to_id)
         first_name = user.first_name
-        message = 'Спасибо! Участнику {first_name} будет отправлено уведомление о том, ' \
-                  'что вы подтвердили иcполнение {HANDSHAKE}.'.format(first_name=first_name, HANDSHAKE=HANDSHAKE)
+        last_name = user.last_name
+
+        message = 'Спасибо! Участнику {first_name} {last_name} будет отправлено уведомление о том, ' \
+                  'что вы подтвердили иcполнение {HANDSHAKE} на сумму {sum}.'.format(first_name=first_name,
+                                                                                     last_name=last_name,
+                                                                                     HANDSHAKE=HANDSHAKE,
+                                                                                     sum=event.current_payments)
 
         bot.send_message(event.from_id,
-                         '{HANDSHAKE} на сумму {sum} {currency} исполнено'.format(HANDSHAKE=HANDSHAKE,
-                                                                                  sum=event.current_payments,
-                                                                                  currency=event.currency))
+                         '{HANDSHAKE} {right} {first_name} {last_name} на сумму {sum} исполнено'.format(
+                             HANDSHAKE=HANDSHAKE,
+                             right=RIGHT_ARROW,
+                             first_name=user_to.first_name,
+                             last_name=user_to.last_name,
+                             sum=event.current_payments))
+
         bot.send_message(call.message.chat.id, message)
 
         update_intention_from_all_params(event.from_id, event.to_id, int(event.current_payments), 13)
