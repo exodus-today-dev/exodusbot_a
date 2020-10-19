@@ -108,8 +108,6 @@ def notice_of_intent(event_id):
     bot_text_for_all = f"{user.first_name} {user.last_name} {status_from}  {RIGHT_ARROW}  {intent.payment}{HEART_RED} {user_needy.first_name} {user_needy.last_name} {status}\n\
 ({left_sum}{HEART_RED} / {right_sum}{HELP} {LEFT_ARROW} {users_count} {PEOPLES})"
 
-    print(bot_text_for_all)
-
     for id in list_needy_id:
         bot.send_message(id, bot_text_for_all)
 
