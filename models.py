@@ -135,7 +135,6 @@ def quit_user_from_exodus(telegram_id):
     delete_temp_intention(telegram_id)
 
 
-
 # region temp_intention
 
 def create_temp_intention(to_id, status, intention_array):
@@ -200,6 +199,7 @@ def read_exodus_user_by_exodus_id(exodus_id):
     exodus_user = session.query(Exodus_Users).filter_by(exodus_id=exodus_id).first()
     return exodus_user
 
+
 # Update
 def update_exodus_user(telegram_id, first_name=None, last_name=None, username=None, ref=None, link=None,
                        min_payments=None, current_payments=None, max_payments=None, currency=None, status=None,
@@ -242,11 +242,9 @@ def update_exodus_user(telegram_id, first_name=None, last_name=None, username=No
 # Delete
 def delete_exodus_user(telegram_id):
     exodus_user = session.query(Exodus_Users).filter_by(telegram_id=telegram_id).first()
-    print(exodus_user)
     if exodus_user != None:
         session.delete(exodus_user)
         session.commit()
-
 
 
 # endregion
@@ -365,7 +363,8 @@ def delete_event_for_quit(telegram_id):
 # region rings_help
 
 def create_rings_help(needy_id, help_array_orange=[], help_array_red=[], help_array_all=[]):
-    ring = Rings_Help(needy_id=needy_id, help_array_orange=help_array_orange, help_array_red=help_array_red, help_array_all=help_array_all)
+    ring = Rings_Help(needy_id=needy_id, help_array_orange=help_array_orange, help_array_red=help_array_red,
+                      help_array_all=help_array_all)
     # try:
     #     session.add(ring)
     #     session.commit()
@@ -589,12 +588,14 @@ def delete_intention_for_quit(telegram_id):
     except:
         session.rollback()
 
+
 # endregion
 
 
 # region history_intention
 def create_history_intention(from_id, to_id, payment, from_intention, currency="USD"):
-    intention = HistoryIntention(from_id=from_id, to_id=to_id, payment=payment, currency=currency, create_date=datetime.now(), from_intention=from_intention)
+    intention = HistoryIntention(from_id=from_id, to_id=to_id, payment=payment, currency=currency,
+                                 create_date=datetime.now(), from_intention=from_intention)
 
     session.add(intention)
     session.commit()
@@ -611,8 +612,11 @@ def read_history_intention(from_id=None, to_id=None, create_date=None):
 
 
 def read_history_intention_from_all_params(from_id, to_id, payment, from_intention):
-    intention = session.query(HistoryIntention).filter_by(from_id=from_id, to_id=to_id, payment=payment, from_intention=from_intention).first()
+    intention = session.query(HistoryIntention).filter_by(from_id=from_id, to_id=to_id, payment=payment,
+                                                          from_intention=from_intention).first()
     return intention
+
+
 # endregion
 
 
@@ -701,15 +705,9 @@ def delete_requisites_user(requisites_id):
 def delete_requisites_for_quit(telegram_id):
     requisites_user = session.query(Requisites).filter_by(telegram_id=telegram_id).first()
 
-    # try:
-    #     session.delete(requisites_user)
-    #     session.commit()
-    # except:
-    #     session.rollback()
-    #     raise
-
-    session.delete(requisites_user)
-    session.commit()
+    if requisites_user is not None:
+        session.delete(requisites_user)
+        session.commit()
 
 
 # endregion
