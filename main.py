@@ -440,10 +440,11 @@ def check_quit_bot(message):
         first_name = user.first_name
         last_name = user.last_name
         quit_user_from_exodus(message.chat.id)
-        bot.send_message(message.chat.id, 'Вы удалили свой профиль.')
+        # удаляем клавиатуру и остаемся в том же меню
+        bot.send_message(message.chat.id, 'Вы удалили свой профиль.', reply_markup=types.ReplyKeyboardRemove())
         for id in my_socium:
             bot.send_message(id, '{} {} удалил свой профиль.'.format(first_name, last_name))
-        global_menu(message)
+        # global_menu(message)
         return
     elif "Нет" in text:
         bot.send_message(message.chat.id, 'Спасибо, что остаетесь с нами!')
@@ -1584,7 +1585,7 @@ def expand_my_socium(message):
             right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
 
             string_name = string_name + '\n{}. {} {} {}  {}/{}'.format(i + 1, user.first_name, user.last_name,
-                                                                       get_status(user.status), left_sum + HEART_RED,
+                                                                       get_status(user.status), str(left_sum) + HEART_RED,
                                                                        right_sum + HELP)
 
         bot_text = 'Расширение сети:{}'.format(string_name) + '\n\n' \
