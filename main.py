@@ -4340,26 +4340,26 @@ def red_edit_wizard_step3(message):
                                'Кол-во дней должны быть в виде цифр. Введите кол-во дней, в течении которых вам необходимо собрать эту сумму:')
         bot.register_next_step_handler(msg, red_edit_wizard_step3)
         return
-    user_dict[message.chat.id].days = days
+#    user_dict[message.chat.id].days = days
 
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    btn1 = types.KeyboardButton(text='Пропустить')
-    markup.row(btn1)
+#     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+#     btn1 = types.KeyboardButton(text='Пропустить')
+#     markup.row(btn1)
+#
+#     msg = bot.send_message(message.chat.id, 'Введите ссылку на чат:', reply_markup=markup)
+#     bot.register_next_step_handler(msg, red_edit_wizard_step35)
+#
+#
+# def red_edit_wizard_step35(message):
+#     if message.text != 'Пропустить':
+#         link = message.text
+#     else:
+#         link = None
 
-    msg = bot.send_message(message.chat.id, 'Введите ссылку на чат:', reply_markup=markup)
-    bot.register_next_step_handler(msg, red_edit_wizard_step35)
-
-
-def red_edit_wizard_step35(message):
-    if message.text != 'Пропустить':
-        link = message.text
-    else:
-        link = None
-    user = user_dict[message.chat.id]
+    user = read_exodus_user(chat_id)
     bot_text = f'Пожалуйста проверьте введенные данные:\n\
 \n\
 Статус: {RED_BALL}\n\
-Обсуждение: {link}\n\
 В течении: {user.days}\n\
 Необходимая сумма: {user.max_payments} {user.currency}'
     bot.send_message(message.chat.id, bot_text)
@@ -4373,10 +4373,10 @@ def red_edit_wizard_step35(message):
 \n\
 Все пользователи, которые связаны с вами внутри Эксодус бота, получат уведомление.'
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
-    bot.register_next_step_handler(msg, red_edit_wizard_step4, link)
+    bot.register_next_step_handler(msg, red_edit_wizard_step4)
 
 
-def red_edit_wizard_step4(message, link):
+def red_edit_wizard_step4(message):
     bot.delete_message(message.chat.id, message.message_id)
     text = message.text
     if text == 'Редактировать':
@@ -4393,7 +4393,7 @@ def red_edit_wizard_step4(message, link):
         delete_event_new_status(message.chat.id)
         freeze_intentions(user)
 
-        update_exodus_user(telegram_id=message.chat.id, status='red' + str(user.status), link=link,
+        update_exodus_user(telegram_id=message.chat.id, status='red' + str(user.status),
                            start_date=date.today(),
                            days=user_dict[message.chat.id].days, min_payments=None,
                            max_payments=user_dict[message.chat.id].max_payments)
@@ -4437,7 +4437,7 @@ def red_edit_wizard_step4(message, link):
         welcome_base(message)
     else:
         msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
-        bot.register_next_step_handler(msg, red_edit_wizard_step4, link)
+        bot.register_next_step_handler(msg, red_edit_wizard_step4)
 
 
 # def green_orange_wizard(message):
@@ -4510,7 +4510,7 @@ def orange_edit_wizard(message):
     if 'red' in user.status and user.min_payments != 0:
         bot.send_message(message.chat.id,
                          f'Ваш статус возвращается на {ORANGE_BALL}')
-        link = user.link
+        #link = user.link
         if 'red' in user.status:
             payments = user.min_payments
         else:
@@ -4533,7 +4533,7 @@ def orange_edit_wizard(message):
             markup.row(btn1, btn3, btn2)
         msg = bot.send_message(message.chat.id, f'Опубликовать эти данные?\n\
 Все пользователи, которые связаны с вами внутри Эксодус бота, получат уведомление.', reply_markup=markup)
-        bot.register_next_step_handler(msg, orange_step_final, link)
+        bot.register_next_step_handler(msg, orange_step_final)
     else:
         check_orange_green_edit_wizard(message)
 
@@ -4580,20 +4580,23 @@ def orange_step_need_payments(message):
         return
     update_exodus_user(chat_id, max_payments=float(text))
 
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    btn1 = types.KeyboardButton(text='Пропустить')
-    markup.row(btn1)
 
-    msg = bot.send_message(chat_id, 'Введите ссылку на чат:', reply_markup=markup)
-    bot.register_next_step_handler(msg, orange_step_link)
+#     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+#     btn1 = types.KeyboardButton(text='Пропустить')
+#     markup.row(btn1)
+#
+#     msg = bot.send_message(chat_id, 'Введите ссылку на чат:', reply_markup=markup)
+#     bot.register_next_step_handler(msg, orange_step_link)
+#
+#
+# def orange_step_link(message):
+#     user = read_exodus_user(message.chat.id)
+#     if message.text != 'Пропустить':
+#         link = message.text
+#     else:
+#         link = None
 
-
-def orange_step_link(message):
     user = read_exodus_user(message.chat.id)
-    if message.text != 'Пропустить':
-        link = message.text
-    else:
-        link = None
     if 'red' in user.status and user.min_payments != 0:
         payments = user.min_payments
     else:
@@ -4616,7 +4619,7 @@ def orange_step_link(message):
         markup.row(btn1, btn3, btn2)
     msg = bot.send_message(message.chat.id, f'Опубликовать эти данные?\n\
 Все пользователи, которые связаны с вами внутри Эксодус бота, получат уведомление.', reply_markup=markup)
-    bot.register_next_step_handler(msg, orange_step_final, link)
+    bot.register_next_step_handler(msg, orange_step_final)
 
 
 # Минимальная сумма
@@ -4648,7 +4651,7 @@ def orange_step_link(message):
 #     bot.register_next_step_handler(msg, orange_step_final)
 
 
-def orange_step_final(message, link):
+def orange_step_final(message):
     text = message.text
     # bot.delete_message(message.chat.id, message.message_id)
     if text == 'Редактировать':
@@ -4676,7 +4679,7 @@ def orange_step_final(message, link):
 
             count_unfreez_intentions = 0
 
-        update_exodus_user(message.chat.id, status='orange', link=link)
+        update_exodus_user(message.chat.id, status='orange')
 
         # создаем список с моей сетью
         list_needy_id = get_my_socium(message.chat.id)
