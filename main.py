@@ -4340,7 +4340,7 @@ def red_edit_wizard_step3(message):
                                'Кол-во дней должны быть в виде цифр. Введите кол-во дней, в течении которых вам необходимо собрать эту сумму:')
         bot.register_next_step_handler(msg, red_edit_wizard_step3)
         return
-#    user_dict[message.chat.id].days = days
+    user_dict[message.chat.id].days = days
 
 #     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 #     btn1 = types.KeyboardButton(text='Пропустить')
@@ -4356,7 +4356,7 @@ def red_edit_wizard_step3(message):
 #     else:
 #         link = None
 
-    user = read_exodus_user(chat_id)
+    user = user_dict[message.chat.id]
     bot_text = f'Пожалуйста проверьте введенные данные:\n\
 \n\
 Статус: {RED_BALL}\n\
