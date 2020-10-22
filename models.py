@@ -416,8 +416,14 @@ def delete_rings_help_for_quit(telegram_id):
     array = read_rings_help_in_help_array_all(telegram_id)
     if array != []:
         for help in array:
-            session.delete(help)
-        session.commit()
+            with db.connect() as conn:
+                help_array_all = set(help.help_array_all)
+                help_array_all.discard(telegram_id)
+                help_array_all = list(help_array_all)
+                if help_array_all == None:
+                    help_array_all = []
+                u = text('UPDATE rings_help SET help_array_all = :q WHERE rings_id = :id')  # так работает
+                conn.execute(u, q=help_array_all, id=help.rings_id)
 
     needy_id = read_rings_help(telegram_id)
     if needy_id != None:
