@@ -610,7 +610,7 @@ def delete_requisite_check(message, requisite):
         requisites_wizard(message)
         return
     elif text == 'Нет':
-        select_requisite(message, requisite.name)
+        requisites_wizard(message)
         return
     elif "/start" in text:
         welcome_base(message)
@@ -4493,8 +4493,10 @@ def orange_green_wizard_step1(message):
         update_exodus_user(telegram_id=message.chat.id, status='green', min_payments=0, max_payments=0)
         # global_menu(message)
         requisites = read_requisites_user(message.chat.id)
-        if not requisites:
-            add_requisite_name(message)
+        if requisites == []:
+            #add_requisite_name(message)
+            create_requisites_user(telegram_id=message.chat.id, name="Спросить лично", value="0")
+            global_menu(message)
     else:
         orange_green_wizard(message)
 
@@ -4715,8 +4717,10 @@ def orange_step_final(message):
 
         # global_menu(message)
         requisites = read_requisites_user(message.chat.id)
-        if not requisites:
-            add_requisite_name(message)
+        if requisites == []:
+            #add_requisite_name(message)
+            create_requisites_user(telegram_id=message.chat.id, name="Спросить лично", value="0")
+            global_menu(message)
         else:
             global_menu(message)
         return
