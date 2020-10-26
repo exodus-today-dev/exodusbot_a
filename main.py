@@ -945,11 +945,14 @@ def print_members_list_in_network(message, member_id, direction):
     if direction == 'in':
         # intentions = read_intention_for_user(to_id=member_id, statuses=(1, 11, 12)).distinct("from_id")
         intentions = read_intention_for_user(to_id=member_id, statuses=(1, 11, 12))
+        user = read_exodus_user(member_id)
+        msg_text = f'{PEOPLES} {RIGHT_ARROW} {user.first_name}\n\n'
     elif direction == 'out':
         # intentions = read_intention_for_user(from_id=member_id, statuses=(1, 11, 12)).distinct("to_id")
         intentions = read_intention_for_user(from_id=member_id, statuses=(1, 11, 12))
+        user = read_exodus_user(member_id)
+        msg_text = f'{user.first_name} {RIGHT_ARROW} {PEOPLES}\n\n'
 
-    msg_text = ''
     for i, row in enumerate(intentions.all()):
         # warning
         #  no.pagination.by.10
@@ -1301,6 +1304,8 @@ def generate_user_info_text(user, self_id=''):
 
 def members_list_in_network_menu(message, member_id, direction):
     """ 5.2 """
+
+
     print_members_list_in_network(message, member_id, direction)
 
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
