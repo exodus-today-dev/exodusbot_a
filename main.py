@@ -140,11 +140,13 @@ def global_menu(message, dont_show_status=True):
     transactions_out_count = read_intention_for_user(from_id=message.chat.id, statuses=(1, 11, 12)).count()
     requisites_count = get_requisites_count(message.chat.id)
 
-    not_executed = read_event_id_status(message.chat.id, "obligation_sended")
+    not_executed_from = read_event_to_id_status(message.chat.id, "obligation_sended")
+    not_executed_to = read_event_from_id_status(message.chat.id, "obligation_sended")
+
 
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn2 = types.KeyboardButton(text=f'{SPIRAL_CALENDAR} Органайзер')
-    btn3 = types.KeyboardButton(text=f'{status_button} Профиль')
+    btn3 = types.KeyboardButton(text=f'{MAN}{status_button} Профиль')
     btn4 = types.KeyboardButton(text=f'{PEOPLES} Участники')
     btn5 = types.KeyboardButton(text=f'{QUESTION} FAQ')
     btn6 = types.KeyboardButton(text=f'{SPEECH_BALOON} HELP')
@@ -152,7 +154,9 @@ def global_menu(message, dont_show_status=True):
     btn8 = types.KeyboardButton(text='{} {} {} {}'.format(MAN, RIGHT_ARROW, transactions_out_count, PEOPLES))
     btn9 = types.KeyboardButton(text='{} {} {} {}'.format(transactions_in_count, PEOPLES, RIGHT_ARROW, MAN))
     #btn10 = types.KeyboardButton(text=f'{requisites_count} {SPEAK_HEAD} {HELP}')
-    btn10 = types.KeyboardButton(text=f'{SPEAK_HEAD} {len(not_executed)} {HANDSHAKE} {RIGHT_ARROW} {LIKE}')
+    #btn10 = types.KeyboardButton(text=f'{SPEAK_HEAD} {len(not_executed)} {HANDSHAKE} {RIGHT_ARROW} {LIKE}')
+    btn10 = types.KeyboardButton(text=f'{HANDSHAKE}{RIGHT_ARROW}{LIKE}\n\
+{len(not_executed_from)}{RIGHT_ARROW}{MAN}{RIGHT_ARROW}{len(not_executed_to)}')
     markup.row(btn3, btn9, btn5)
     markup.row(btn4, btn8, btn6)
     markup.row(btn2, btn10, btn7)
@@ -193,7 +197,7 @@ def global_check(message):
     # elif f'0 {SPEAK_HEAD} {HELP}' in text:
     #     bot.send_message(message.chat.id, 'Никто помощь пока не запрашивал')
     #     return
-    elif f'{RIGHT_ARROW} {LIKE}' in text:
+    elif f'{RIGHT_ARROW}{MAN}{RIGHT_ARROW}' in text:
         not_approve_intention_12(message)
         return
     # elif f'0 {SPEAK_HEAD} {HELP}' in text:
@@ -207,19 +211,28 @@ def global_check(message):
 # -------------------------------------------------------------------
 def not_approve_intention_12(message):
     user_id = message.chat.id
-    not_executed = read_event_id_status(user_id, "obligation_sended")
+    not_executed_from = read_event_to_id_status(user_id, "obligation_sended")
+    not_executed_to = read_event_from_id_status(user_id, "obligation_sended")
 
-    if not_executed != []:
+    if not_executed_from != [] or not_executed_to != []:
+        text = ''
+        if not_executed_from != []:
+            text += "Пожалуйста, проверьте и подтвердите:\n"
+            for row in not_executed_from:
+                user_from = read_exodus_user(row.from_id)
+                text += f'{row.event_id}. {user_from.first_name} {user_from.last_name} {row.current_payments}{HANDSHAKE} {RIGHT_ARROW} {LIKE}\n'
+
+        if not_executed_to != []:
+            text += "\nПовторить уведомление об отправке денег:\n"
+            for row in not_executed_to:
+                user_from = read_exodus_user(row.to_id)
+                text += f'{row.event_id}. {user_from.first_name} {user_from.last_name} {row.current_payments}{HANDSHAKE} {RIGHT_ARROW} {LIKE}\n'
+
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        text = "Пожалуйста, проверьте и подтвердите:\n"
-        for row in not_executed:
-            user_from = read_exodus_user(row.from_id)
-            text += f'{row.event_id}. {user_from.first_name} {user_from.last_name} {row.current_payments}{HANDSHAKE} {RIGHT_ARROW} {LIKE}\n'
-
         btn2 = types.KeyboardButton(text='Назад')
         markup.row(btn2)
 
-        text += '\n' \
+        text += '\n\n' \
                    'Введите номер Участника, чтобы ' \
                    'посмотреть подробную информацию:'
         msg = bot.send_message(message.chat.id, text, reply_markup=markup)
@@ -233,6 +246,7 @@ def not_approve_intention_12(message):
 
 def check_not_approve_intention_12(message):
     text = message.text
+    user_id = message.chat.id
 
     if text == 'Назад':
         global_menu(message)
@@ -245,9 +259,20 @@ def check_not_approve_intention_12(message):
     else:
         try:
             selected_id = int(text)
-            obligation_sended_notice(selected_id)
-            global_menu(message)
+            event = read_event(selected_id)
+            if user_id == event.to_id:
+                obligation_sended_notice(selected_id)
 
+            elif user_id == event.from_id:
+                user_from_notif = read_exodus_user(user_id)
+                bot_text_from = f"{user_from_notif.first_name} {user_from_notif.last_name} исполнил в вашу пользу {event.current_payments}{HANDSHAKE}.\n\
+Пожалуйста, проверьте и подтвердите {HANDSHAKE}{RIGHT_ARROW}{LIKE}"
+                bot.send_message(event.to_id, bot_text_from)
+
+                user_to = read_exodus_user(event.to_id)
+                bot.send_message(user_id, f"{user_to.first_name} {user_to.last_name} отправлено повторное уведомление об исполненном {HANDSHAKE}")
+
+            global_menu(message)
         except:
             msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
             bot.register_next_step_handler(msg, not_approve_intention_12)
