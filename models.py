@@ -332,6 +332,11 @@ def read_event(event_id):
     return event
 
 
+def read_event_id_status(to_id, type):
+    events = session.query(Events).filter(Events.to_id == to_id, Events.type == type).all()
+    return events
+
+
 def delete_event_new_status(to_id):
     session.query(Events).filter(Events.to_id == to_id,
                                  or_(Events.status_code == NEW_ORANGE_STATUS,
@@ -521,14 +526,17 @@ def update_intention(intention_id, status=None, payment=None):
 
 
 def update_intention_from_all_params(from_id, to_id, payment, status):
-    intention = session.query(Intention).filter_by(from_id=from_id, to_id=to_id, payment=payment).first()
+    intention = session.query(Intention).filter_by(from_id=from_id, to_id=to_id, payment=payment).all()[-1]
+    print(intention.intention_id)
     old_status = intention.status
     if old_status is not None and old_status != 13:
+        print(old_status)
         intention.status = status
+        session.commit()
         if read_history_intention_from_all_params(from_id, to_id, payment, intention.intention_id) is None:
             create_history_intention(from_id, to_id, payment, intention.intention_id)
-
     session.commit()
+
 
 
 def read_intention_for_user(from_id=None, to_id=None, statuses=None):
