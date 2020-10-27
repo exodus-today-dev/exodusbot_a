@@ -6,6 +6,7 @@ import telebot
 from aiohttp import web
 from telebot import types
 
+from events import obligation_sended_notice
 from models import *
 from status_codes import *
 from symbols import *
@@ -139,6 +140,8 @@ def global_menu(message, dont_show_status=True):
     transactions_out_count = read_intention_for_user(from_id=message.chat.id, statuses=(1, 11, 12)).count()
     requisites_count = get_requisites_count(message.chat.id)
 
+    not_executed = read_event_id_status(message.chat.id, "obligation_sended")
+
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn2 = types.KeyboardButton(text=f'{SPIRAL_CALENDAR} Органайзер')
     btn3 = types.KeyboardButton(text=f'{status_button} Профиль')
@@ -148,7 +151,8 @@ def global_menu(message, dont_show_status=True):
     btn7 = types.KeyboardButton(text=f'{GLOBE} Позвать')
     btn8 = types.KeyboardButton(text='{} {} {} {}'.format(MAN, RIGHT_ARROW, transactions_out_count, PEOPLES))
     btn9 = types.KeyboardButton(text='{} {} {} {}'.format(transactions_in_count, PEOPLES, RIGHT_ARROW, MAN))
-    btn10 = types.KeyboardButton(text=f'{requisites_count} {SPEAK_HEAD} {HELP}')
+    #btn10 = types.KeyboardButton(text=f'{requisites_count} {SPEAK_HEAD} {HELP}')
+    btn10 = types.KeyboardButton(text=f'{SPEAK_HEAD} {len(not_executed)} {HANDSHAKE} {RIGHT_ARROW} {LIKE}')
     markup.row(btn3, btn9, btn5)
     markup.row(btn4, btn8, btn6)
     markup.row(btn2, btn10, btn7)
@@ -186,15 +190,71 @@ def global_check(message):
     elif f'{PEOPLES} {RIGHT_ARROW}' in text:
         members_list_in_network_menu(message, message.chat.id, 'in')
         return
-    elif f'0 {SPEAK_HEAD} {HELP}' in text:
-        bot.send_message(message.chat.id, 'Никто помощь пока не запрашивал')
+    # elif f'0 {SPEAK_HEAD} {HELP}' in text:
+    #     bot.send_message(message.chat.id, 'Никто помощь пока не запрашивал')
+    #     return
+    elif f'{RIGHT_ARROW} {LIKE}' in text:
+        not_approve_intention_12(message)
         return
-    elif f'{SPEAK_HEAD} {HELP}' in text:
-        show_help_requisites(message)
-        return
+    # elif f'0 {SPEAK_HEAD} {HELP}' in text:
+    #     bot.send_message(message.chat.id, 'Никто помощь пока не запрашивал')
+    #     return
+    # elif f'{SPEAK_HEAD} {HELP}' in text:
+    #     show_help_requisites(message)
+    #     return
 
 
 # -------------------------------------------------------------------
+def not_approve_intention_12(message):
+    user_id = message.chat.id
+    not_executed = read_event_id_status(user_id, "obligation_sended")
+
+    if not_executed != []:
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        text = "Пожалуйста, проверьте и подтвердите:\n"
+        for row in not_executed:
+            user_from = read_exodus_user(row.from_id)
+            text += f'{row.event_id}. {user_from.first_name} {user_from.last_name} {row.current_payments}{HANDSHAKE} {RIGHT_ARROW} {LIKE}\n'
+
+        btn2 = types.KeyboardButton(text='Назад')
+        markup.row(btn2)
+
+        text += '\n' \
+                   'Введите номер Участника, чтобы ' \
+                   'посмотреть подробную информацию:'
+        msg = bot.send_message(message.chat.id, text, reply_markup=markup)
+
+        bot.register_next_step_handler(msg, check_not_approve_intention_12)
+    else:
+        text = "Нет неподтвержденных обязательств"
+        bot.send_message(message.chat.id, text)
+        global_menu(message)
+
+
+def check_not_approve_intention_12(message):
+    text = message.text
+
+    if text == 'Назад':
+        global_menu(message)
+        return
+
+    elif "/start" in text:
+        welcome_base(message)
+        return
+
+    else:
+        try:
+            selected_id = int(text)
+            obligation_sended_notice(selected_id)
+            global_menu(message)
+
+        except:
+            msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
+            bot.register_next_step_handler(msg, not_approve_intention_12)
+        return
+    return
+
+
 def call_people_menu(message):
     list_my_socium = list(get_my_socium(message.chat.id))
     list_my_socium.append(message.chat.id)
@@ -843,7 +903,7 @@ def history_intention(message):
         text_from = ''
         for intention in history_intention_from:
             user_from = read_exodus_user(intention.to_id)
-            text_from += f'{intention.create_date.date().strftime("%d-%m-%Y")}  {intention.payment}{LIKE} вы {RIGHT_ARROW} {user_from.first_name} {user_from.last_name}\n'
+            text_from += f'{intention.create_date.date().strftime("%d-%m-%Y")}     {intention.payment}{LIKE} вы {RIGHT_ARROW} {user_from.first_name} {user_from.last_name}\n'
     else:
         text_from = 'За все время исполнили вы - 0'
 
@@ -852,7 +912,7 @@ def history_intention(message):
         text_to = ''
         for intention in history_intention_to:
             user_to = read_exodus_user(intention.from_id)
-            text_to += f'{intention.create_date.date().strftime("%d-%m-%Y")}  {intention.payment}{LIKE} {user_to.first_name} {user_to.last_name} {RIGHT_ARROW} вам\n'
+            text_to += f'{intention.create_date.date().strftime("%d-%m-%Y")}     {intention.payment}{LIKE} {user_to.first_name} {user_to.last_name} {RIGHT_ARROW} вам\n'
     else:
         text_to = 'За все время исполнили в вашу пользу - 0'
 
@@ -2312,7 +2372,7 @@ def obligation_sent_confirm_yes(message):
     intention = read_intention_by_id(intention_id)
     user_to = read_exodus_user(telegram_id=intention.to_id)
     bot_text = f"Спасибо!\n\
-Участнику  {user_to.first_name} {user_to.last_name} будет отправлено уведомление об исполненном {HANDSHAKE} на сумму {intention.payment} {intention.currency}."
+{user_to.first_name} {user_to.last_name} отправлено уведомление, что {intention.payment} {HANDSHAKE} исполнено."
     bot.send_message(message.chat.id, bot_text)
     update_intention(intention_id=intention_id, status=12)
 
@@ -2348,12 +2408,10 @@ def obligation_sent_confirm_yes(message):
                  reminder_date=reminder_date,
                  status_code=OBLIGATION_APPROVED)
 
-    # bot_text = f"Спасибо! Получателю {user.first_name} {user.last_name} " \
-    #            f"будет отправлено уведомление о том, что деньги отправлены."
-    # bot.send_message(message.chat.id, bot_text)
-    #
-    #
-    # executed_not_confirm_check(message)
+    user_from_notif = read_exodus_user(message.chat.id)
+    bot_text_from = f"{user_from_notif.first_name} {user_from_notif.last_name} исполнил в вашу пользу {intention.payment}{HANDSHAKE}.\n\
+Пожалуйста, проверьте и подтвердите {HANDSHAKE}{RIGHT_ARROW}{LIKE}"
+    bot.send_message(user_to.telegram_id, bot_text_from)
 
     global_menu(message)
     return
@@ -3440,12 +3498,8 @@ def show_all_members(message, user_to):
     ring = read_rings_help(user.telegram_id)
     if ring is None:
         users_count = 0
-        first_name = []
-        last_name = []
     elif ring.help_array_red is None:
         users_count = 0
-        first_name = []
-        last_name = []
     else:
         if "red" in user.status:
             user_list = set(ring.help_array_red)
@@ -3457,20 +3511,15 @@ def show_all_members(message, user_to):
         # узнаем кто со мной в сети
         list_my_socium = get_my_socium(message.chat.id)
 
-        first_name = []
-        last_name = []
+        string_name = ''
         for id_help in user_list:
             if id_help in list_my_socium or id_help == message.chat.id:
-                first_name.append(read_exodus_user(id_help).first_name)
-                last_name.append(read_exodus_user(id_help).last_name)
-    bot_text = 'Участнику {} {} помогают {} участников:\n'.format(user.first_name, user.last_name, users_count)
+                user_id_help = read_exodus_user(id_help)
+                status = get_status(user_id_help.status)
+                string_name = string_name + f'\n{user_id_help.first_name} {user_id_help.last_name} {status}'
+    bot_text = 'Участнику {} {} помогают {} {}:\n'.format(user.first_name, user.last_name, users_count, PEOPLES)
 
-    string_name = ''
-    for i in range(len(first_name)):
-        string_name = string_name + '\n{} {}'.format(first_name[i], last_name[i])
-
-    bot_text = bot_text + '\n\
-В моей сети:{}'.format(string_name)
+    bot_text = bot_text + string_name
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text='Назад')
     markup.row(btn1)
