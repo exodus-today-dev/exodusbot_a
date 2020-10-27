@@ -217,13 +217,13 @@ def not_approve_intention_12(message):
     if not_executed_from != [] or not_executed_to != []:
         text = ''
         if not_executed_from != []:
-            text += "Пожалуйста, проверьте и подтвердите:\n"
+            text += f"Пожалуйста, проверьте и подтвердите {HANDSHAKE}:\n"
             for row in not_executed_from:
                 user_from = read_exodus_user(row.from_id)
                 text += f'{row.event_id}. {user_from.first_name} {user_from.last_name} {row.current_payments}{HANDSHAKE} {RIGHT_ARROW} {LIKE}\n'
 
         if not_executed_to != []:
-            text += "\nПовторить уведомление об отправке денег:\n"
+            text += f"\nПовторить уведомление об исполнении {HANDSHAKE}:\n"
             for row in not_executed_to:
                 user_from = read_exodus_user(row.to_id)
                 text += f'{row.event_id}. {user_from.first_name} {user_from.last_name} {row.current_payments}{HANDSHAKE} {RIGHT_ARROW} {LIKE}\n'
@@ -239,7 +239,7 @@ def not_approve_intention_12(message):
 
         bot.register_next_step_handler(msg, check_not_approve_intention_12)
     else:
-        text = "Нет неподтвержденных обязательств"
+        text = f"Нет неподтвержденных {HANDSHAKE}"
         bot.send_message(message.chat.id, text)
         global_menu(message)
 
@@ -1387,10 +1387,8 @@ def generate_user_info_text(user, self_id=''):
     return user_info_text
 
 
-def members_list_in_network_menu(message, member_id, direction):
+def members_list_in_network_menu(message, member_id, direction, g_menu=True):
     """ 5.2 """
-
-
     print_members_list_in_network(message, member_id, direction)
 
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -1405,7 +1403,7 @@ def members_list_in_network_menu(message, member_id, direction):
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
 
     bot.register_next_step_handler(msg, members_list_in_network_check,
-                                   member_id, direction)
+                                   member_id, direction, g_menu)
 
 
 def selected_member_action_menu(message, member_id):
@@ -1445,10 +1443,10 @@ def selected_member_action_check(message, member_id):  # bookmark
         members_menu_profile_link(message, member_id, "selected_member_action_check")
         return
     elif f'{PEOPLES} {RIGHT_ARROW}' in text:
-        members_list_in_network_menu(message, member_id, 'in')
+        members_list_in_network_menu(message, member_id, 'in', False)
         return
     elif f'{first_name} {RIGHT_ARROW}' in text:
-        members_list_in_network_menu(message, member_id, 'out')
+        members_list_in_network_menu(message, member_id, 'out', False)
     elif text == 'Главное меню':
         global_menu(message)
     elif 'Сеть' in text:
@@ -1467,7 +1465,7 @@ def selected_member_action_check(message, member_id):  # bookmark
         selected_member_action_menu(message, member_id)
 
 
-def members_list_in_network_check(message, member_id, direction):
+def members_list_in_network_check(message, member_id, direction, g_menu):
     """ 5.2 """
     text = message.text
 
@@ -1477,8 +1475,12 @@ def members_list_in_network_check(message, member_id, direction):
     #     return
 
     if text == 'Назад':
-        global_menu(message)
-        return
+        if g_menu:
+            global_menu(message)
+            return
+        else:
+            selected_member_action_menu(message, member_id)
+            return
 
     elif "/start" in text:
         welcome_base(message)
@@ -1506,7 +1508,7 @@ def members_list_in_network_check(message, member_id, direction):
             msg = bot.send_message(message.chat.id, "Пошло что-то не так. Попробуйте снова")
             bot.register_next_step_handler(msg,
                                            members_list_in_network_check,
-                                           member_id, direction)
+                                           member_id, direction, g_menu)
 
         return
     return
