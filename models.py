@@ -332,8 +332,13 @@ def read_event(event_id):
     return event
 
 
-def read_event_id_status(to_id, type):
+def read_event_to_id_status(to_id, type):
     events = session.query(Events).filter(Events.to_id == to_id, Events.type == type).all()
+    return events
+
+
+def read_event_from_id_status(from_id, type):
+    events = session.query(Events).filter(Events.from_id == from_id, Events.type == type).all()
     return events
 
 
@@ -527,10 +532,8 @@ def update_intention(intention_id, status=None, payment=None):
 
 def update_intention_from_all_params(from_id, to_id, payment, status):
     intention = session.query(Intention).filter_by(from_id=from_id, to_id=to_id, payment=payment).all()[-1]
-    print(intention.intention_id)
     old_status = intention.status
     if old_status is not None and old_status != 13:
-        print(old_status)
         intention.status = status
         session.commit()
         if read_history_intention_from_all_params(from_id, to_id, payment, intention.intention_id) is None:
