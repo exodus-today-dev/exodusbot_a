@@ -136,13 +136,29 @@ def global_menu(message, dont_show_status=True):
 
     status_button = get_status(user.status)
 
-    transactions_in_count = read_intention_for_user(to_id=message.chat.id, statuses=(1, 11, 12)).count()
-    transactions_out_count = read_intention_for_user(from_id=message.chat.id, statuses=(1, 11, 12)).count()
-    requisites_count = get_requisites_count(message.chat.id)
+    transactions_in = read_intention_for_user(to_id=message.chat.id, statuses=(1, 11, 12)).all()
+    set_transactions_in = set()
+    for i in transactions_in:
+        set_transactions_in.add(i.from_id)
+
+    transactions_out = read_intention_for_user(from_id=message.chat.id, statuses=(1, 11, 12)).all()
+    set_transactions_from = set()
+    for i in transactions_out:
+        set_transactions_from.add(i.to_id)
+
+    intentions_history_in = read_history_intention(to_id=message.chat.id)
+    intentions_history_from = read_history_intention(from_id=message.chat.id)
+
+    for row in intentions_history_in.all():
+        set_transactions_in.add(row.from_id)
+    list_users_in_count = len(set_transactions_in)
+
+    for row in intentions_history_from.all():
+        set_transactions_from.add(row.to_id)
+    list_users_from_count = len(set_transactions_from)
 
     not_executed_from = read_event_to_id_status(message.chat.id, "obligation_sended")
     not_executed_to = read_event_from_id_status(message.chat.id, "obligation_sended")
-
 
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn2 = types.KeyboardButton(text=f'{SPIRAL_CALENDAR} Органайзер')
@@ -151,8 +167,8 @@ def global_menu(message, dont_show_status=True):
     btn5 = types.KeyboardButton(text=f'{QUESTION} FAQ')
     btn6 = types.KeyboardButton(text=f'{SPEECH_BALOON} HELP')
     btn7 = types.KeyboardButton(text=f'{GLOBE} Позвать')
-    btn8 = types.KeyboardButton(text='{} {} {} {}'.format(MAN, RIGHT_ARROW, transactions_out_count, PEOPLES))
-    btn9 = types.KeyboardButton(text='{} {} {} {}'.format(transactions_in_count, PEOPLES, RIGHT_ARROW, MAN))
+    btn8 = types.KeyboardButton(text='{} {} {} {}'.format(MAN, RIGHT_ARROW, list_users_from_count, PEOPLES))
+    btn9 = types.KeyboardButton(text='{} {} {} {}'.format(list_users_in_count, PEOPLES, RIGHT_ARROW, MAN))
     #btn10 = types.KeyboardButton(text=f'{requisites_count} {SPEAK_HEAD} {HELP}')
     #btn10 = types.KeyboardButton(text=f'{SPEAK_HEAD} {len(not_executed)} {HANDSHAKE} {RIGHT_ARROW} {LIKE}')
     btn10 = types.KeyboardButton(text=f'{HANDSHAKE}{RIGHT_ARROW}{LIKE}\n\
@@ -1030,45 +1046,60 @@ def print_members_list_in_network(message, member_id, direction):
     if direction == 'in':
         # intentions = read_intention_for_user(to_id=member_id, statuses=(1, 11, 12)).distinct("from_id")
         intentions = read_intention_for_user(to_id=member_id, statuses=(1, 11, 12))
+        intentions_history = read_history_intention(to_id=member_id)
         user = read_exodus_user(member_id)
         msg_text = f'{PEOPLES} {RIGHT_ARROW} {user.first_name}\n\n'
     elif direction == 'out':
         # intentions = read_intention_for_user(from_id=member_id, statuses=(1, 11, 12)).distinct("to_id")
         intentions = read_intention_for_user(from_id=member_id, statuses=(1, 11, 12))
+        intentions_history = read_history_intention(from_id=member_id)
         user = read_exodus_user(member_id)
         msg_text = f'{user.first_name} {RIGHT_ARROW} {PEOPLES}\n\n'
 
-    for i, row in enumerate(intentions.all()):
-        # warning
-        #  no.pagination.by.10
+    user = None
 
-        # warning
-        #  crash: if no user found
+    list_users = set()
 
-        user = None
+    for row in intentions.all():
 
         if direction == 'in':
-            user = read_exodus_user(row.from_id)
+            list_users.add(row.from_id)
         elif direction == 'out':
-            user = read_exodus_user(row.to_id)
-        try:
-            status_user = get_status(user.status)  # TODO отваливается при пустом или не существующем пользователе
-        except:
-            status_user = ''
+            list_users.add(row.to_id)
 
-        if row.status == 1:
-            msg_text = msg_text + '{i}. {first_name} {last_name}{status} - {sum}{status_intention}\n'.format(
-                i=user.exodus_id, first_name=user.first_name,
-                last_name=user.last_name, status=status_user, sum=row.payment, status_intention=HEART_RED)
-        else:
-            msg_text = msg_text + '{i}. {first_name} {last_name}{status} - {sum}{status_intention}\n'.format(
-                i=user.exodus_id, first_name=user.first_name,
-                last_name=user.last_name, status=status_user, sum=row.payment, status_intention=HANDSHAKE)
+    for row in intentions_history.all():
+
+        if direction == 'in':
+            list_users.add(row.from_id)
+        elif direction == 'out':
+            list_users.add(row.to_id)
+
+    string_name = ''
+    for row in list_users:
+
+        user = read_exodus_user(row)
+
+        already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
+        already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
+        left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
+        right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
+
+        status = user.status
+        if status == 'green':
+            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {GREEN_BALL}'
+        elif status == "orange":
+            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} {left_sum} {HEART_RED} / {right_sum} {HELP}'
+        elif "red" in status:
+            d0 = user.start_date
+            d1 = date.today()
+            delta = d1 - d0
+            days_end = user.days - delta.days
+            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} {right_sum} {HELP} / {days_end} дней'
 
     # сообщение в телеграмме не может быть длиннее 4096 символов. 14 юзеров - это 400 символов.
     # нужно привязать пагинацию
     if len(msg_text) < 4000:
-        bot.send_message(message.chat.id, msg_text)
+        bot.send_message(message.chat.id, string_name, parse_mode='html')
 
     return
 
@@ -1410,15 +1441,33 @@ def selected_member_action_menu(message, member_id):
     """ 5.2 """
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 
-    transactions_in_count = count_in_transactions(member_id)
-    transactions_out_count = count_out_transactions(member_id)
+    transactions_in = read_intention_for_user(to_id=member_id, statuses=(1, 11, 12)).all()
+    set_transactions_in = set()
+    for i in transactions_in:
+        set_transactions_in.add(i.from_id)
+
+    transactions_out = read_intention_for_user(from_id=member_id, statuses=(1, 11, 12)).all()
+    set_transactions_from = set()
+    for i in transactions_out:
+        set_transactions_from.add(i.to_id)
+
+    intentions_history_in = read_history_intention(to_id=member_id)
+    intentions_history_from = read_history_intention(from_id=member_id)
+
+    for row in intentions_history_in.all():
+        set_transactions_in.add(row.from_id)
+    list_users_in_count = len(set_transactions_in)
+
+    for row in intentions_history_from.all():
+        set_transactions_from.add(row.to_id)
+    list_users_from_count = len(set_transactions_from)
 
     user = read_exodus_user(member_id)
     first_name = user.first_name
 
     btn1 = types.KeyboardButton(text=f'{MAN} {first_name}')
-    btn2 = types.KeyboardButton(text=f'{transactions_in_count} {PEOPLES} {RIGHT_ARROW} {first_name}')
-    btn3 = types.KeyboardButton(text=f'{first_name} {RIGHT_ARROW} {transactions_out_count} {PEOPLES}')
+    btn2 = types.KeyboardButton(text=f'{list_users_in_count} {PEOPLES} {RIGHT_ARROW} {first_name}')
+    btn3 = types.KeyboardButton(text=f'{first_name} {RIGHT_ARROW} {list_users_from_count} {PEOPLES}')
     btn4 = types.KeyboardButton(text='Главное меню')
     btn5 = types.KeyboardButton(text=f'Сеть {PEOPLES} {first_name}')
     btn6 = types.KeyboardButton(text=f'Помочь {first_name}')
@@ -1535,7 +1584,11 @@ def show_other_socium(message, user_id):
         elif status == "orange":
             string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} {left_sum} {HEART_RED} / {right_sum} {HELP}'
         elif "red" in status:
-            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} {right_sum} {HELP}'
+            d0 = user.start_date
+            d1 = date.today()
+            delta = d1 - d0
+            days_end = user.days - delta.days
+            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} {right_sum} {HELP} / {days_end} дней'
 
     bot_text = 'В сети участника:{}'.format(string_name) + '\n\n' \
                                                            'Введите номер Участника, чтобы ' \
@@ -1599,7 +1652,11 @@ def show_my_socium(message):
         elif status == "orange":
             string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} {left_sum} {HEART_RED} / {right_sum} {HELP}'
         elif "red" in status:
-            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} {right_sum} {HELP}'
+            d0 = user.start_date
+            d1 = date.today()
+            delta = d1 - d0
+            days_end = user.days - delta.days
+            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} {right_sum} {HELP} / {days_end} дней'
         list_exodus_id_my_socium.append(user.exodus_id)
 
     bot_text = 'В моей сети:{}'.format(string_name) + '\n\n' \
