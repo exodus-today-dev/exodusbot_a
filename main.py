@@ -1048,15 +1048,13 @@ def print_members_list_in_network(message, member_id, direction):
         intentions = read_intention_for_user(to_id=member_id, statuses=(1, 11, 12))
         intentions_history = read_history_intention(to_id=member_id)
         user = read_exodus_user(member_id)
-        msg_text = f'{PEOPLES} {RIGHT_ARROW} {user.first_name}\n\n'
+        string_name = f'{PEOPLES} {RIGHT_ARROW} {user.first_name}\n'
     elif direction == 'out':
         # intentions = read_intention_for_user(from_id=member_id, statuses=(1, 11, 12)).distinct("to_id")
         intentions = read_intention_for_user(from_id=member_id, statuses=(1, 11, 12))
         intentions_history = read_history_intention(from_id=member_id)
         user = read_exodus_user(member_id)
-        msg_text = f'{user.first_name} {RIGHT_ARROW} {PEOPLES}\n\n'
-
-    user = None
+        string_name = f'{user.first_name} {RIGHT_ARROW} {PEOPLES}\n'
 
     list_users = set()
 
@@ -1074,7 +1072,6 @@ def print_members_list_in_network(message, member_id, direction):
         elif direction == 'out':
             list_users.add(row.to_id)
 
-    string_name = ''
     for row in list_users:
 
         user = read_exodus_user(row)
@@ -1098,7 +1095,7 @@ def print_members_list_in_network(message, member_id, direction):
 
     # сообщение в телеграмме не может быть длиннее 4096 символов. 14 юзеров - это 400 символов.
     # нужно привязать пагинацию
-    if len(msg_text) < 4000:
+    if len(string_name) < 4000:
         bot.send_message(message.chat.id, string_name, parse_mode='html')
 
     return
