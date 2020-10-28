@@ -1735,7 +1735,7 @@ def expand_my_socium(message):
 
             string_name = string_name + '\n{}. {} {} {}  {}/{}'.format(i + 1, user.first_name, user.last_name,
                                                                        get_status(user.status), str(left_sum) + HEART_RED,
-                                                                       right_sum + HELP)
+                                                                       str(right_sum) + HELP)
 
         bot_text = 'Расширение сети:{}'.format(string_name) + '\n\n' \
                                                               'Введите номер Участника, чтобы ' \
