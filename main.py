@@ -1036,6 +1036,53 @@ def members_menu(message, meta_txt=None):
 
 # new # >>>
 
+def check_intentions_member_id(from_user, to_user):
+    flag_in = False
+    intentions = read_intention_for_user(to_id=to_user, statuses=(1, 11, 12, 13)).all()
+    for row in intentions:
+        if row.from_id == from_user:
+            flag_in = True
+            break
+    return flag_in
+
+
+def print_list_check_intentions_member_id(message, member_id):
+    intentions = read_intention_for_user(to_id=member_id, statuses=(1, 11, 12, 13))
+    user = read_exodus_user(member_id)
+    string_name = f'{PEOPLES} {RIGHT_ARROW} {user.first_name}\n'
+
+    for row in intentions.all():
+        user = read_exodus_user(row.from_id)
+
+        already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
+        already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
+        left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
+        right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
+
+        status = user.status
+        if status == 'green':
+            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {GREEN_BALL}'
+        elif status == "orange":
+            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} {left_sum} {HEART_RED} / {right_sum} {HELP}'
+        elif "red" in status:
+            d0 = user.start_date
+            d1 = date.today()
+            delta = d1 - d0
+            days_end = user.days - delta.days
+            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} {right_sum} {HELP} / {days_end} дней'
+        if row.status == 1:
+            string_name += f' {RIGHT_ARROW} {row.payment} {HEART_RED}'
+        elif row.status == 11 or row.status == 12:
+            string_name += f' {RIGHT_ARROW} {row.payment} {HANDSHAKE}'
+        elif row.status == 13:
+            string_name += f' {RIGHT_ARROW} {row.payment} {LIKE}'
+
+    if len(string_name) < 4000:
+        bot.send_message(message.chat.id, string_name, parse_mode='html')
+
+    return
+
+
 def print_members_list_in_network(message, member_id, direction):
     # """ 5.2 """
 
@@ -1049,6 +1096,7 @@ def print_members_list_in_network(message, member_id, direction):
         intentions_history = read_history_intention(to_id=member_id)
         user = read_exodus_user(member_id)
         string_name = f'{PEOPLES} {RIGHT_ARROW} {user.first_name}\n'
+
     elif direction == 'out':
         # intentions = read_intention_for_user(from_id=member_id, statuses=(1, 11, 12)).distinct("to_id")
         intentions = read_intention_for_user(from_id=member_id, statuses=(1, 11, 12))
@@ -1417,7 +1465,10 @@ def generate_user_info_text(user, self_id=''):
 
 def members_list_in_network_menu(message, member_id, direction, g_menu=True):
     """ 5.2 """
-    print_members_list_in_network(message, member_id, direction)
+    if (direction == "in") and (not g_menu) and check_intentions_member_id(message.chat.id, member_id):
+        print_list_check_intentions_member_id(message, member_id)
+    else:
+        print_members_list_in_network(message, member_id, direction)
 
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 
@@ -1454,6 +1505,9 @@ def selected_member_action_menu(message, member_id):
     for row in intentions_history_in.all():
         set_transactions_in.add(row.from_id)
     list_users_in_count = len(set_transactions_in)
+
+    if check_intentions_member_id(message.chat.id, member_id):
+        list_users_in_count = read_intention_for_user(to_id=member_id, statuses=(1, 11, 12, 13)).count()
 
     for row in intentions_history_from.all():
         set_transactions_from.add(row.to_id)
