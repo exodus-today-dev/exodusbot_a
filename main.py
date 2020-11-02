@@ -369,18 +369,18 @@ def instruction_menu(message, text=START_TEXT):
     # bot_text = 'Настройки:'
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 
-    btn1 = types.KeyboardButton(text='Цель')
-    btn3 = types.KeyboardButton(text='Способ')
-    btn2 = types.KeyboardButton(text='Принципы')
-    btn4 = types.KeyboardButton(text='Как это работает')
-    btn5 = types.KeyboardButton(text='Глоссарий')
+    btn1 = types.KeyboardButton(text='Про бота')
+    btn3 = types.KeyboardButton(text='Условные обозначения')
+    btn2 = types.KeyboardButton(text='Описание меню')
+    btn4 = types.KeyboardButton(text='Как начать пользоваться')
+    btn5 = types.KeyboardButton(text='Возможные кейсы')
     btn6 = types.KeyboardButton(text='Главное меню')
 
     markup.row(btn1, btn2, btn3)
     markup.row(btn4, btn5, btn6)
 
     bot_text = text
-    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
+    msg = bot.send_message(message.chat.id, bot_text, parse_mode="markdown", reply_markup=markup)
     # with open('./static_files/test_03d.mp4',"rb") as misc:
     #     f=misc.read()
     # bot.send_video(message.chat.id, f)
@@ -389,24 +389,24 @@ def instruction_menu(message, text=START_TEXT):
 
 def check_instruction_menu(message):
     text = message.text
-    if text == 'Цель':
-        text = TEXT_PURPOSE
+    if text == 'Про бота':
+        text = TEXT_ABOUT
         instruction_menu(message, text)
         return
-    elif text == 'Способ':
-        text = TEXT_METHOD
+    elif text == 'Условные обозначения':
+        text = TEXT_CONVENTION
         instruction_menu(message, text)
         return
-    elif text == 'Принципы':
-        text = TEXT_PRINCIPS
+    elif text == 'Описание меню':
+        text = TEXT_MENU
         instruction_menu(message, text)
         return
-    elif text == 'Глоссарий':
-        text = TEXT_GLOSSARY
+    elif text == 'Как начать пользоваться':
+        text = TEXT_HOW_START
         instruction_menu(message, text)
         return
-    elif text == 'Как это работает':
-        text = TEXT_HOW_WORK
+    elif text == 'Возможные кейсы':
+        text = TEXT_CASE
         instruction_menu(message, text)
         return
     elif text == 'Главное меню':
