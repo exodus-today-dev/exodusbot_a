@@ -25,6 +25,7 @@ list_event_id_obligation_sended = []
 list_event_id_obligation_recieved = []
 list_event_id_for_6_10 = []
 
+check_in_first_day = [1]
 
 def read():
     # all_users = session.query(Exodus_Users).count()
@@ -32,26 +33,32 @@ def read():
     current_date = date.today()
     day_now = datetime.now().day
 
-    if (datetime.now() + timedelta(days=3)).day == 1:
+    check_day = 1
+
+    if (datetime.now() + timedelta(days=3)).day == check_day:
         check_border_before_3_days()
-    elif day_now == 1:
+        check_in_first_day[0] = 1
+    elif day_now == check_day and check_in_first_day[0] == 1:
+        #check_in_first_day = False
         check_border_first_date()
+        check_in_first_day[0] = 0
+
 
     for event in all:
         # проверяем событие из будущего, чтобы 1 числа создать intetion со статусом 1
-        if event.type == 'future_event' and day_now == 1:
+        if event.type == 'future_event' and day_now == check_day:
             create_future_intention(event)
 
         if event.type == 'orange':
-            #print('Отправлен orange {}'.format(event.event_id))
+            # print('Отправлен orange {}'.format(event.event_id))
             update_event(event.event_id, True)
             invitation_help_orange(event.event_id)
         if event.type == 'red':
-            #print('Отправлен red {}'.format(event.event_id))
+            # print('Отправлен red {}'.format(event.event_id))
             update_event(event.event_id, True)
             invitation_help_red(event.event_id)
         if event.type == 'notice' and event.status == 'orange':
-            #print('Отправлен notice {}'.format(event.event_id))
+            # print('Отправлен notice {}'.format(event.event_id))
             update_event(event.event_id, True)
             notice_of_intent(event.event_id)
         # 6.4
@@ -87,7 +94,9 @@ def read():
             reminder(event.event_id, direction='in')  # 6.8
 
         # 6.10
-        if event.type == 'obligation_sended' and (current_date - timedelta(days=5)) == event.reminder_date or (current_date - timedelta(days=5)) > event.reminder_date and event.event_id not in list_event_id_for_6_10:
+        if event.type == 'obligation_sended' and (current_date - timedelta(days=5)) == event.reminder_date or (
+                current_date - timedelta(
+                days=5)) > event.reminder_date and event.event_id not in list_event_id_for_6_10:
             list_event_id_for_6_10.append(event.event_id)
             update_event(event.event_id, True)
             reminder_for_6_10(event.event_id)

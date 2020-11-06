@@ -257,9 +257,9 @@ def check_border_first_date():
     intentions = session.query(Intention).filter(Intention.status.in_((1, 11, 12, 13))).all()
 
     for intention in intentions:
-        event = read_event(intention.event_id)
-        if event.status_code != BEFORE_3_DAYS:
-            continue
+        # event = read_event(intention.event_id)
+        # if event.status_code != BEFORE_3_DAYS:
+        #     continue
         if intention.status == 1:
             update_intention(intention.intention_id, status=0)
             update_event_status_code(intention.event_id, CLOSED)
