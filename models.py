@@ -119,6 +119,14 @@ class Temp_Intention(base):
     intention_array = Column(ARRAY(Integer))
 
 
+class User_Language(base):
+    __tablename__ = 'user_language'
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer)
+    language = Column(String(128))
+
+
 # endregion
 
 Session = sessionmaker(db)
@@ -133,6 +141,26 @@ def quit_user_from_exodus(telegram_id):
     delete_requisites_for_quit(telegram_id)
     delete_rings_help_for_quit(telegram_id)
     delete_temp_intention(telegram_id)
+
+
+# region user_language
+
+def create_user_language(user_id, language):
+    temp = User_Language(user_id=user_id, language=language)
+    session.add(temp)
+    session.commit()
+
+
+def read_user_language(user_id):
+    return session.query(User_Language).filter_by(user_id=user_id).first()
+
+
+def update_user_language(user_id, language):
+    user = session.query(User_Language).filter_by(user_id=user_id).first()
+    user.language = language
+    session.commit()
+
+# endregion
 
 
 # region temp_intention
