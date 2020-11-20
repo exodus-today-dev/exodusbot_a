@@ -27,6 +27,8 @@ SPEAK_HEAD = '\U0001F5E3'  # Speaking Head In Silhouette
 SPIRAL_CALENDAR = '\U0001F5D3'  # Spiral Calendar Pad
 QUESTION = '\U00002753'  # Black Question Mark Ornament
 LIKE = '\U0001F44D'  # Like
+RUSSIAN = '\U0001F1F7'  # Russian flag
+AMERICAN = '\U0001F1F8'  # American flag
 
 START_TEXT = "Бот Эксодус - \n\
 организация децентрализованной сетевой взаимопомощи.\n\n\

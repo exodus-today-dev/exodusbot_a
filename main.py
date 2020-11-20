@@ -438,7 +438,7 @@ def status_check(message):
         return
 
 
-def configuration_menu(message):
+def configuration_menu(message, text=None):
     """2.3-3"""
     # user = read_exodus_user(message.chat.id)
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -452,26 +452,23 @@ def configuration_menu(message):
     btn4 = types.KeyboardButton(text='Главное меню')
     btn5 = types.KeyboardButton(text=f'{FOOTPRINTS} Выйти из бота')
 
+    lang = read_user_language(message.chat.id)
+    if lang:
+        if lang.language == "ru":
+            btn6 = types.KeyboardButton(text=f'Изменить язык')
+        else:
+            btn6 = types.KeyboardButton(text=f'Change language')
+    else:
+        btn6 = types.KeyboardButton(text=f'Выбрать язык')
+
     markup.row(btn1, btn2, btn3)
     # markup.row(btn2)
-    markup.row(btn5, btn4)
+    markup.row(btn5, btn6, btn4)
 
-    #     bot_text = f'Настройки:\n\
-    # \n\
-    # Валюта: {user.currency}\n\
-    # \n\
-    # Реквизиты:'
-    #     requisites = read_requisites_user(message.chat.id)
-    #     if requisites == []:
-    #         bot_text = bot_text + '\nВы не указали реквизиты'
-    #     else:
-    #         n = 0
-    #         for requisite in requisites:
-    #             n += 1
-    #             bot_text += f'\n{n}. {requisite.name} - {requisite.value}'
-
-    # bot_text = 'Профиль:'
-    bot_text = generate_user_info_text(user)
+    if text:
+        bot_text = text
+    else:
+        bot_text = generate_user_info_text(user)
     msg = bot.send_message(message.chat.id, bot_text, parse_mode="html", reply_markup=markup)
     bot.register_next_step_handler(msg, configuration_check)
 
@@ -527,8 +524,39 @@ def configuration_check(message):
                                reply_markup=markup)
         bot.register_next_step_handler(msg, config_wizzard_currency)
         return
+    elif "Изменить язык" in text:
+        update_user_language(message.chat.id, "en")
+        configuration_menu(message, text='Change language to english!')
+        return
+    elif "Change" in text:
+        update_user_language(message.chat.id, "ru")
+        configuration_menu(message, text='Вы изменили язык на русский!')
+        return
+    elif "Выбрать" in text:
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        btn1 = types.KeyboardButton(text='Русский')
+        btn2 = types.KeyboardButton(text='English')
+
+        markup.row(btn1, btn2)
+        msg = bot.send_message(message.chat.id, 'Change/Выбрать', reply_markup=markup)
+        bot.register_next_step_handler(msg, choise_language)
+
     elif "/start" in text:
         welcome_base(message)
+        return
+
+
+def choise_language(message):
+    text = message.text
+    bot.delete_message(message.chat.id, message.message_id)
+
+    if "Рус" in text:
+        create_user_language(message.chat.id, "ru")
+        configuration_menu(message, text='Вы выбрали Русский язык')
+        return
+    else:
+        create_user_language(message.chat.id, "en")
+        configuration_menu(message, text='You have chosen English')
         return
 
 
