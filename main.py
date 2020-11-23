@@ -85,6 +85,8 @@ def global_menu(message, dont_show_status=True):
     user = read_exodus_user(message.chat.id)
     link = create_link(user.telegram_id, user.telegram_id)
 
+    lang = read_user_language(message.chat.id).language
+
     text_req = '\nРеквизиты:'
     requisites = read_requisites_user(message.chat.id)
 
@@ -160,25 +162,52 @@ def global_menu(message, dont_show_status=True):
     not_executed_from = read_event_to_id_status(message.chat.id, "obligation_sended")
     not_executed_to = read_event_from_id_status(message.chat.id, "obligation_sended")
 
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    btn2 = types.KeyboardButton(text=f'{SPIRAL_CALENDAR} Органайзер')
-    btn3 = types.KeyboardButton(text=f'{MAN}{status_button} Профиль')
-    btn4 = types.KeyboardButton(text=f'{PEOPLES} Участники')
-    btn5 = types.KeyboardButton(text=f'{QUESTION} FAQ')
-    btn6 = types.KeyboardButton(text=f'{SPEECH_BALOON} HELP')
-    btn7 = types.KeyboardButton(text=f'{GLOBE} Позвать')
-    btn8 = types.KeyboardButton(text='{} {} {} {}'.format(MAN, RIGHT_ARROW, list_users_from_count, PEOPLES))
-    btn9 = types.KeyboardButton(text='{} {} {} {}'.format(list_users_in_count, PEOPLES, RIGHT_ARROW, MAN))
-    #btn10 = types.KeyboardButton(text=f'{requisites_count} {SPEAK_HEAD} {HELP}')
-    #btn10 = types.KeyboardButton(text=f'{SPEAK_HEAD} {len(not_executed)} {HANDSHAKE} {RIGHT_ARROW} {LIKE}')
-    btn10 = types.KeyboardButton(text=f'{HANDSHAKE}{RIGHT_ARROW}{LIKE}\n\
-{len(not_executed_from)}{RIGHT_ARROW}{MAN}{RIGHT_ARROW}{len(not_executed_to)}')
-    markup.row(btn3, btn9, btn5)
-    markup.row(btn4, btn8, btn6)
-    markup.row(btn2, btn10, btn7)
-    if not dont_show_status:
-        bot.send_message(message.chat.id, 'Ваш статус: {}'.format(status))
-    bot.send_message(message.chat.id, 'Меню:', reply_markup=markup)
+
+    if lang == "ru":
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        btn2 = types.KeyboardButton(text=f'{SPIRAL_CALENDAR} Органайзер')
+        btn3 = types.KeyboardButton(text=f'{MAN}{status_button} Профиль')
+        btn4 = types.KeyboardButton(text=f'{PEOPLES} Участники')
+        btn5 = types.KeyboardButton(text=f'{QUESTION} FAQ')
+        btn6 = types.KeyboardButton(text=f'{SPEECH_BALOON} HELP')
+        btn7 = types.KeyboardButton(text=f'{GLOBE} Позвать')
+        btn8 = types.KeyboardButton(text='{} {} {} {}'.format(MAN, RIGHT_ARROW, list_users_from_count, PEOPLES))
+        btn9 = types.KeyboardButton(text='{} {} {} {}'.format(list_users_in_count, PEOPLES, RIGHT_ARROW, MAN))
+        #btn10 = types.KeyboardButton(text=f'{requisites_count} {SPEAK_HEAD} {HELP}')
+        #btn10 = types.KeyboardButton(text=f'{SPEAK_HEAD} {len(not_executed)} {HANDSHAKE} {RIGHT_ARROW} {LIKE}')
+        btn10 = types.KeyboardButton(text=f'{HANDSHAKE}{RIGHT_ARROW}{LIKE}\n\
+    {len(not_executed_from)}{RIGHT_ARROW}{MAN}{RIGHT_ARROW}{len(not_executed_to)}')
+        markup.row(btn3, btn9, btn5)
+        markup.row(btn4, btn8, btn6)
+        markup.row(btn2, btn10, btn7)
+
+        if not dont_show_status:
+            bot.send_message(message.chat.id, 'Ваш статус: {}'.format(status))
+        bot.send_message(message.chat.id, 'Меню:', reply_markup=markup)
+
+    else:
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        btn2 = types.KeyboardButton(text=f'{SPIRAL_CALENDAR} Organiser')
+        btn3 = types.KeyboardButton(text=f'{MAN}{status_button} Profile')
+        btn4 = types.KeyboardButton(text=f'{PEOPLES} Participants')
+        btn5 = types.KeyboardButton(text=f'{QUESTION} FAQ')
+        btn6 = types.KeyboardButton(text=f'{SPEECH_BALOON} HELP')
+        btn7 = types.KeyboardButton(text=f'{GLOBE} Call')
+        btn8 = types.KeyboardButton(text='{} {} {} {}'.format(MAN, RIGHT_ARROW, list_users_from_count, PEOPLES))
+        btn9 = types.KeyboardButton(text='{} {} {} {}'.format(list_users_in_count, PEOPLES, RIGHT_ARROW, MAN))
+        # btn10 = types.KeyboardButton(text=f'{requisites_count} {SPEAK_HEAD} {HELP}')
+        # btn10 = types.KeyboardButton(text=f'{SPEAK_HEAD} {len(not_executed)} {HANDSHAKE} {RIGHT_ARROW} {LIKE}')
+        btn10 = types.KeyboardButton(text=f'{HANDSHAKE}{RIGHT_ARROW}{LIKE}\n\
+        {len(not_executed_from)}{RIGHT_ARROW}{MAN}{RIGHT_ARROW}{len(not_executed_to)}')
+        markup.row(btn3, btn9, btn5)
+        markup.row(btn4, btn8, btn6)
+        markup.row(btn2, btn10, btn7)
+
+        if not dont_show_status:
+            bot.send_message(message.chat.id, 'Your status: {}'.format(status))
+        bot.send_message(message.chat.id, 'Menu:', reply_markup=markup)
+
+
 
 
 def global_check(message):
@@ -186,17 +215,17 @@ def global_check(message):
     text = message.text
     # if text == 'Мой статус':
     #     status_menu(message)
-    if 'Органайзер' in text:
+    if 'Органайзер' in text or "Organiser" in text:
         transactions_menu(message)
-    elif 'Профиль' in text:
+    elif 'Профиль' in text or 'Profile' in text:
         configuration_menu(message)
-    elif 'Участники' in text:
+    elif 'Участники' in text or 'Participants' in text:
         members_menu(message)
     elif 'FAQ' in text:
         instruction_menu(message)
     elif 'HELP' in text:
         help_menu(message)
-    elif 'Позвать' in text:
+    elif 'Позвать' in text or 'Call' in text:
         call_people_menu(message)
     elif f'{MAN} {RIGHT_ARROW} 0' in text:
         bot.send_message(message.chat.id, f'В пользу других нет записей')
@@ -446,23 +475,24 @@ def configuration_menu(message, text=None):
     user = read_exodus_user(telegram_id=message.chat.id)
     status = get_status(user.status)
 
-    btn1 = types.KeyboardButton(text=f'{status} Статус')
-    btn3 = types.KeyboardButton(text=f'{CREDIT_CARD} Реквизиты')
-    btn2 = types.KeyboardButton(text=f'{SPEECH_BALOON} Изменить ссылку на чат')
-    btn4 = types.KeyboardButton(text='Главное меню')
-    btn5 = types.KeyboardButton(text=f'{FOOTPRINTS} Выйти из бота')
+    lang = read_user_language(message.chat.id).language
 
-    lang = read_user_language(message.chat.id)
-    if lang:
-        if lang.language == "ru":
-            btn6 = types.KeyboardButton(text=f'Изменить язык')
-        else:
-            btn6 = types.KeyboardButton(text=f'Change language')
+    if lang == "ru":
+        btn1 = types.KeyboardButton(text=f'{status} Статус')
+        btn3 = types.KeyboardButton(text=f'{CREDIT_CARD} Реквизиты')
+        btn2 = types.KeyboardButton(text=f'{SPEECH_BALOON} Изменить ссылку на чат')
+        btn4 = types.KeyboardButton(text='Главное меню')
+        btn5 = types.KeyboardButton(text=f'{FOOTPRINTS} Выйти из бота')
+        btn6 = types.KeyboardButton(text=f'Изменить язык')
     else:
-        btn6 = types.KeyboardButton(text=f'Выбрать язык')
+        btn1 = types.KeyboardButton(text=f'{status} Status')
+        btn3 = types.KeyboardButton(text=f'{CREDIT_CARD} Requisites')
+        btn2 = types.KeyboardButton(text=f'{SPEECH_BALOON} Change the chat link')
+        btn4 = types.KeyboardButton(text='Global menu')
+        btn5 = types.KeyboardButton(text=f'{FOOTPRINTS} Log out of the bot')
+        btn6 = types.KeyboardButton(text=f'Change language')
 
     markup.row(btn1, btn2, btn3)
-    # markup.row(btn2)
     markup.row(btn5, btn6, btn4)
 
     if text:
@@ -481,23 +511,23 @@ def configuration_check(message):
         pass
     text = message.text
 
-    if 'Статус' in text:
+    if 'Статус' in text or 'Status' in text:
         status_menu(message)
         return
-    elif 'Реквизиты' in text:
+    elif 'Реквизиты' in text or 'Requisites' in text:
         requisites_wizard(message)
         return
-    elif 'Изменить ссылку' in text:
+    elif 'Изменить ссылку' in text or 'Change the chat link' in text:
         edit_link_menu(message)
         return
     elif text == 'Настройки уведомлений':
         bot.send_message(message.chat.id, 'Настройки уведомлений')  # TODO
         global_menu(message)
         return
-    elif 'Главное меню' in text:
+    elif 'Главное меню' in text or 'Global menu' in text:
         global_menu(message)
         return
-    elif "Выйти" in text:
+    elif "Выйти" in text or 'Log out' in text:
         # quit_user_from_exodus(message.chat.id)
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         btn1 = types.KeyboardButton(text='Да, удалить профиль')
@@ -532,31 +562,8 @@ def configuration_check(message):
         update_user_language(message.chat.id, "ru")
         configuration_menu(message, text='Вы изменили язык на русский!')
         return
-    elif "Выбрать" in text:
-        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        btn1 = types.KeyboardButton(text='Русский')
-        btn2 = types.KeyboardButton(text='English')
-
-        markup.row(btn1, btn2)
-        msg = bot.send_message(message.chat.id, 'Change/Выбрать', reply_markup=markup)
-        bot.register_next_step_handler(msg, choise_language)
-
     elif "/start" in text:
         welcome_base(message)
-        return
-
-
-def choise_language(message):
-    text = message.text
-    bot.delete_message(message.chat.id, message.message_id)
-
-    if "Рус" in text:
-        create_user_language(message.chat.id, "ru")
-        configuration_menu(message, text='Вы выбрали Русский язык')
-        return
-    else:
-        create_user_language(message.chat.id, "en")
-        configuration_menu(message, text='You have chosen English')
         return
 
 
@@ -913,6 +920,8 @@ def transactions_menu(message):
         to_count = 0
         sum_to = 0
 
+    lang = read_user_language(user_id).language
+
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(
         text=f'{me_intent_count}{HEART_RED} / {me_obligation_count}{HANDSHAKE} {RIGHT_ARROW} {MAN}')
@@ -925,7 +934,12 @@ def transactions_menu(message):
     # btn4 = types.KeyboardButton(text=f'{HANDSHAKE}{me_obligation_count}{PEOPLES}{RIGHT_ARROW}{MAN}')
     btn5 = types.KeyboardButton(
         text=f'{to_count}/{sum_to}{LIKE}{RIGHT_ARROW}{MAN}{RIGHT_ARROW}{from_count}/{sum_from}{LIKE}')
-    btn6 = types.KeyboardButton(text='Главное меню')
+
+    if lang =="ru":
+        btn6 = types.KeyboardButton(text='Главное меню')
+    else:
+        btn6 = types.KeyboardButton(text='Global menu')
+
     markup.row(btn1, btn2)
     markup.row(btn5, btn6)
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
@@ -950,7 +964,7 @@ def transactions_check(message):
     elif f'{LIKE}' in text:
         history_intention(message)
         return
-    elif text == 'Главное меню':
+    elif 'Global menu' in text or 'Главное меню'in text:
         global_menu(message)
         return
     elif "/start" in text:
@@ -1011,14 +1025,23 @@ def members_menu(message, meta_txt=None):
     # transactions_out_count = read_intention_for_user(from_id=message.chat.id, statuses=(1, 11, 12)).count()
     # requisites_count = get_requisites_count(message.chat.id)
 
+    lang = read_user_language(user_id)
+
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     # btn1 = types.KeyboardButton(text='Мой профиль')
     # btn2 = types.KeyboardButton(text='{} ({})'.format(PLUS, transactions_in_count))
     # btn3 = types.KeyboardButton(text='{} ({})'.format(MINUS, transactions_out_count))
     # btn4 = types.KeyboardButton(text='Запросы помощи({})'.format(requisites_count))
-    btn5 = types.KeyboardButton(text='Главное меню')
-    btn6 = types.KeyboardButton(text=f'Моя сеть {PEOPLES} {len_my_socium}')
-    btn7 = types.KeyboardButton(text='Расширить сеть')
+    if lang == "ru":
+        btn5 = types.KeyboardButton(text='Главное меню')
+        btn6 = types.KeyboardButton(text=f'Моя сеть {PEOPLES} {len_my_socium}')
+        btn7 = types.KeyboardButton(text='Расширить сеть')
+        bot_text = "Участники:"
+    else:
+        btn5 = types.KeyboardButton(text='Global menu')
+        btn6 = types.KeyboardButton(text=f'My network {PEOPLES} {len_my_socium}')
+        btn7 = types.KeyboardButton(text='Expand your network')
+        bot_text = "Participants:"
     markup.row(btn6, btn7, btn5)
 
     # currency = user.currency
@@ -1051,8 +1074,6 @@ def members_menu(message, meta_txt=None):
     #     exe_out=executed_out_sum, tr_in=transactions_in_count,
     #     tr_out=transactions_out_count, HEART_RED=HEART_RED, HANDSHAKE=HANDSHAKE,
     #     PLUS=PLUS, MINUS=MINUS)
-
-    bot_text = "Участники:"
 
     if meta_txt is None:
         msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
@@ -1906,15 +1927,15 @@ def members_check(message):
     # elif 'Запросы помощи' in text:
     #     show_help_requisites(message)
     #     return
-    if text == 'Главное меню':
+    if text == 'Главное меню' or text == "Global menu":
         global_menu(message)
         return
 
-    elif 'Моя сеть' in text:
+    elif 'Моя сеть' in text or 'My network' in text:
         show_my_socium(message)
         return
 
-    elif 'Расширить сеть' in text:
+    elif 'Расширить сеть' in text or 'Expand your network' in text:
         expand_my_socium(message)
         return
 
