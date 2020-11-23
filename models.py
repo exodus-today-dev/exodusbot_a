@@ -141,6 +141,7 @@ def quit_user_from_exodus(telegram_id):
     delete_requisites_for_quit(telegram_id)
     delete_rings_help_for_quit(telegram_id)
     delete_temp_intention(telegram_id)
+    delete_user_language(telegram_id)
 
 
 # region user_language
@@ -152,13 +153,25 @@ def create_user_language(user_id, language):
 
 
 def read_user_language(user_id):
-    return session.query(User_Language).filter_by(user_id=user_id).first()
+    user = session.query(User_Language).filter_by(user_id=user_id).first()
+    if user:
+        return session.query(User_Language).filter_by(user_id=user_id).first()
+    else:
+        create_user_language(user_id, "ru")
+        return session.query(User_Language).filter_by(user_id=user_id).first()
 
 
 def update_user_language(user_id, language):
     user = session.query(User_Language).filter_by(user_id=user_id).first()
     user.language = language
     session.commit()
+
+
+def delete_user_language(user_id):
+    user_lang = session.query(User_Language).filter_by(user_id=user_id).first()
+    if user_lang != None:
+        session.delete(user_lang)
+        session.commit()
 
 # endregion
 
