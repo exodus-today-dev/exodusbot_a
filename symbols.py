@@ -1,4 +1,6 @@
 # GREEN_BALL = '\U0001F7E2'
+from models import read_user_language
+
 GREEN_BALL = '\U00002705'  # Heavy Check Mark
 # ORANGE_BALL = '\U0001F7E0'
 ORANGE_BALL = '\U0001F506'  # High Brightness
@@ -214,3 +216,12 @@ def get_status(text):
     else:
         status = ""
     return status
+
+
+def exception_message(message):
+    lang = read_user_language(message.chat.id).language
+    if lang == "ru":
+        msg = "Пошло что-то не так. Попробуйте снова!"
+    else:
+        msg = "Something went wrong. Try again!"
+    return msg
