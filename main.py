@@ -4842,12 +4842,22 @@ def orange_edit_wizard(message):
 
 
 def check_orange_green_edit_wizard(message):
+    user_id = message.chat.id
+    lang = read_user_language(user_id).language
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    btn1 = types.KeyboardButton(text='Да, изменить')
-    btn2 = types.KeyboardButton(text='Нет, вернуться назад')
-    markup.row(btn1, btn2)
-    msg = bot.send_message(message.chat.id, f'Вы собираетесь сменить статус на {ORANGE_BALL}\n\
+
+    if lang == "ru":
+        btn1 = types.KeyboardButton(text='Да, изменить')
+        btn2 = types.KeyboardButton(text='Нет, вернуться назад')
+        markup.row(btn1, btn2)
+        msg = bot.send_message(message.chat.id, f'Вы собираетесь сменить статус на {ORANGE_BALL}\n\
 Пожалуйста подтвердите смену статуса', reply_markup=markup)
+    else:
+        btn1 = types.KeyboardButton(text='Yes, change')
+        btn2 = types.KeyboardButton(text='No, go back')
+        markup.row(btn1, btn2)
+        msg = bot.send_message(message.chat.id, f'You are going to change your status to {ORANGE_BALL}\n\
+Please confirm the status change', reply_markup=markup)
     bot.register_next_step_handler(msg, check_answer_orange_green_wizard)
 
 
@@ -4861,7 +4871,13 @@ def check_answer_orange_green_wizard(message):
                                'Какая сумма вам необходима на базовые нужды в {}?'.format(user.currency),
                                reply_markup=markup)
         bot.register_next_step_handler(msg, orange_step_need_payments)
-    elif text == 'Нет, вернуться назад':
+    elif 'Yes, change' in text:
+        markup = types.ReplyKeyboardRemove(selective=False)
+        msg = bot.send_message(message.chat.id,
+                               'How much do you need for basic needs in {}?'.format(user.currency),
+                               reply_markup=markup)
+        bot.register_next_step_handler(msg, orange_step_need_payments)
+    elif text == 'Нет, вернуться назад' or 'No, go' in text:
         select_orange_red(message)
 
     elif text == 'Главное меню':
@@ -4874,54 +4890,71 @@ def orange_step_need_payments(message):
     user = read_exodus_user(message.chat.id)
     chat_id = message.chat.id
 
+    lang = read_user_language(chat_id).language
     text = message.text
-    if not is_digit(text):
-        msg = bot.send_message(chat_id,
-                               'Сумма должна быть только в виде цифр. Введите сумму в {}, которую вы бы хотели получать в течении месяца:'.format(
-                                   user.currency))
-        bot.register_next_step_handler(msg, orange_step_need_payments)
-        return
-    update_exodus_user(chat_id, max_payments=float(text))
 
+    if lang == "ru":
+        if not is_digit(text):
+            msg = bot.send_message(chat_id,
+                                   'Сумма должна быть только в виде цифр. Введите сумму в {}, которую вы бы хотели получать в течении месяца:'.format(
+                                       user.currency))
+            bot.register_next_step_handler(msg, orange_step_need_payments)
+            return
+        update_exodus_user(chat_id, max_payments=float(text))
 
-#     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-#     btn1 = types.KeyboardButton(text='Пропустить')
-#     markup.row(btn1)
-#
-#     msg = bot.send_message(chat_id, 'Введите ссылку на чат:', reply_markup=markup)
-#     bot.register_next_step_handler(msg, orange_step_link)
-#
-#
-# def orange_step_link(message):
-#     user = read_exodus_user(message.chat.id)
-#     if message.text != 'Пропустить':
-#         link = message.text
-#     else:
-#         link = None
-
-    user = read_exodus_user(message.chat.id)
-    if 'red' in user.status and user.min_payments != 0:
-        payments = user.min_payments
-    else:
-        payments = user.max_payments
-    bot.send_message(message.chat.id, 'Пожалуйста проверьте введенные данные:\n\
+        if 'red' in user.status and user.min_payments != 0:
+            payments = user.min_payments
+        else:
+            payments = user.max_payments
+        bot.send_message(message.chat.id, 'Пожалуйста проверьте введенные данные:\n\
 \n\
 Статус: {}\n\
 Период: Ежемесячно\n\
 Необходимая сумма: {} {}'.format(ORANGE_BALL, payments, user.currency))
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    # user = read_exodus_user(message.chat.id)
-    if user.status == '':
-        btn1 = types.KeyboardButton(text='Редактировать')
-        btn2 = types.KeyboardButton(text='Сохранить')
-        markup.row(btn1, btn2)
-    else:
-        btn1 = types.KeyboardButton(text='Редактировать')
-        btn2 = types.KeyboardButton(text='Отмена')
-        btn3 = types.KeyboardButton(text='Сохранить')
-        markup.row(btn1, btn3, btn2)
-    msg = bot.send_message(message.chat.id, f'Опубликовать эти данные?\n\
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        # user = read_exodus_user(message.chat.id)
+        if user.status == '':
+            btn1 = types.KeyboardButton(text='Редактировать')
+            btn2 = types.KeyboardButton(text='Сохранить')
+            markup.row(btn1, btn2)
+        else:
+            btn1 = types.KeyboardButton(text='Редактировать')
+            btn2 = types.KeyboardButton(text='Отмена')
+            btn3 = types.KeyboardButton(text='Сохранить')
+            markup.row(btn1, btn3, btn2)
+        msg = bot.send_message(message.chat.id, f'Опубликовать эти данные?\n\
 Все пользователи, которые связаны с вами внутри Эксодус бота, получат уведомление.', reply_markup=markup)
+    else:
+        if not is_digit(text):
+            msg = bot.send_message(chat_id,
+                                   'The amount should only be in the form of numbers. Enter the amount in {} that you would like to receive during the month:'.format(
+                                       user.currency))
+            bot.register_next_step_handler(msg, orange_step_need_payments)
+            return
+        update_exodus_user(chat_id, max_payments=float(text))
+
+        if 'red' in user.status and user.min_payments != 0:
+            payments = user.min_payments
+        else:
+            payments = user.max_payments
+        bot.send_message(message.chat.id, 'Please check the entered data:\n\
+\n\
+Status: {}\n\
+Period: Monthly\n\
+Necessary amount: {} {}'.format(ORANGE_BALL, payments, user.currency))
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        # user = read_exodus_user(message.chat.id)
+        if user.status == '':
+            btn1 = types.KeyboardButton(text='Edit')
+            btn2 = types.KeyboardButton(text='Save')
+            markup.row(btn1, btn2)
+        else:
+            btn1 = types.KeyboardButton(text='Edit')
+            btn2 = types.KeyboardButton(text='Cancel')
+            btn3 = types.KeyboardButton(text='Save')
+            markup.row(btn1, btn3, btn2)
+        msg = bot.send_message(message.chat.id, f'Publish this data?\n\
+All users who are connected to you inside the Exodus bot will receive a notification.', reply_markup=markup)
     bot.register_next_step_handler(msg, orange_step_final)
 
 
@@ -4956,17 +4989,29 @@ def orange_step_need_payments(message):
 
 def orange_step_final(message):
     text = message.text
+    chat_id = message.chat.id
+
+    lang = read_user_language(chat_id).language
     # bot.delete_message(message.chat.id, message.message_id)
-    if text == 'Редактировать':
-        bot.send_message(message.chat.id, 'Вы выбрали редактирование')
+    if text == 'Редактировать' or 'Edit' in text:
+        if lang == "ru":
+            bot.send_message(message.chat.id, 'Вы выбрали редактирование')
+        else:
+            bot.send_message(message.chat.id, 'You have selected editing')
         orange_edit_wizard(message)
         return
-    if text == 'Отмена':
-        bot.send_message(message.chat.id, 'Настройки не сохранены')
+    if text == 'Отмена' or 'Cancel' in text:
+        if lang == "ru":
+            bot.send_message(message.chat.id, 'Настройки не сохранены')
+        else:
+            bot.send_message(message.chat.id, 'Settings are not saved')
         global_menu(message)
         return
-    if text == 'Сохранить':
-        bot.send_message(message.chat.id, 'Настройки сохранены')
+    if text == 'Сохранить' or 'Save' in text:
+        if lang == "ru":
+            bot.send_message(message.chat.id, 'Настройки сохранены')
+        else:
+            bot.send_message(message.chat.id, 'Settings are saved')
 
         # удаляем статусы для запроса помощи
         delete_event_new_status(message.chat.id)
@@ -5010,9 +5055,15 @@ def orange_step_final(message):
         telegram_name = read_exodus_user(message.chat.id)
         for row in list_needy_id:
             try:
-                bot.send_message(row,
-                                 '{} {} сменил статус на {}'.format(telegram_name.first_name, telegram_name.last_name,
-                                                                    ORANGE_BALL))
+                lang_row = read_user_language(row)
+                if lang_row == "ru":
+                    bot.send_message(row,
+                                     '{} {} сменил статус на {}'.format(telegram_name.first_name, telegram_name.last_name,
+                                                                        ORANGE_BALL))
+                else:
+                    bot.send_message(row,
+                                     '{} {} changed the status to {}'.format(telegram_name.first_name, telegram_name.last_name,
+                                                                        ORANGE_BALL))
             except:
                 continue
 
@@ -5020,7 +5071,7 @@ def orange_step_final(message):
         requisites = read_requisites_user(message.chat.id)
         if requisites == []:
             #add_requisite_name(message)
-            create_requisites_user(telegram_id=message.chat.id, name="Спросить лично", value="0")
+            create_requisites_user(telegram_id=message.chat.id, name="Ask in person", value="0")
             global_menu(message)
         else:
             global_menu(message)
