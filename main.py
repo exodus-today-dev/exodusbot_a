@@ -191,8 +191,8 @@ def global_menu(message, dont_show_status=True):
         btn3 = types.KeyboardButton(text=f'{MAN}{status_button} Profile')
         btn4 = types.KeyboardButton(text=f'{PEOPLES} Participants')
         btn5 = types.KeyboardButton(text=f'{QUESTION} FAQ')
-        btn6 = types.KeyboardButton(text=f'{SPEECH_BALOON} HELP')
-        btn7 = types.KeyboardButton(text=f'{GLOBE} Call')
+        btn6 = types.KeyboardButton(text=f'{SPEECH_BALOON} Support chat')
+        btn7 = types.KeyboardButton(text=f'{GLOBE} Get help')
         btn8 = types.KeyboardButton(text='{} {} {} {}'.format(MAN, RIGHT_ARROW, list_users_from_count, PEOPLES))
         btn9 = types.KeyboardButton(text='{} {} {} {}'.format(list_users_in_count, PEOPLES, RIGHT_ARROW, MAN))
         # btn10 = types.KeyboardButton(text=f'{requisites_count} {SPEAK_HEAD} {HELP}')
@@ -208,8 +208,6 @@ def global_menu(message, dont_show_status=True):
         bot.send_message(message.chat.id, 'Menu:', reply_markup=markup)
 
 
-
-
 def global_check(message):
     """2.0.1"""
     text = message.text
@@ -223,9 +221,9 @@ def global_check(message):
         members_menu(message)
     elif 'FAQ' in text:
         instruction_menu(message)
-    elif 'HELP' in text:
+    elif 'Support' in text:
         help_menu(message)
-    elif 'Позвать' in text or 'Call' in text:
+    elif 'Позвать' in text or 'Get' in text:
         call_people_menu(message)
     elif f'{MAN} {RIGHT_ARROW} 0' in text:
         bot.send_message(message.chat.id, f'В пользу других нет записей')
