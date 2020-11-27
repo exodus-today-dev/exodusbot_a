@@ -1528,10 +1528,18 @@ def generate_user_info_text(user, self_id=''):
     left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
     right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
 
-    if user.link == '' or user.link == None:
-        user_info_text = f'{first_name} {last_name} {status} / {GLOBE} <a href="{link}">Позвать</a> / {CREDIT_CARD} {req_name} <a href="{req_value}">{req_value}</a>\n'
+    lang = read_user_language(telegram_id).language
+
+    if lang == "ru":
+        if user.link == '' or user.link == None:
+            user_info_text = f'{first_name} {last_name} {status} / {GLOBE} <a href="{link}">Позвать</a> / {CREDIT_CARD} {req_name} <a href="{req_value}">{req_value}</a>\n'
+        else:
+            user_info_text = f'{first_name} {last_name} {status} / {GLOBE} <a href="{link}">Позвать</a> / {SPEECH_BALOON} {user.link} / {CREDIT_CARD} {req_name} <a href="{req_value}">{req_value}</a>\n'
     else:
-        user_info_text = f'{first_name} {last_name} {status} / {GLOBE} <a href="{link}">Позвать</a> / {SPEECH_BALOON} {user.link} / {CREDIT_CARD} {req_name} <a href="{req_value}">{req_value}</a>\n'
+        if user.link == '' or user.link == None:
+            user_info_text = f'{first_name} {last_name} {status} / {GLOBE} <a href="{link}">Get help</a> / {CREDIT_CARD} {req_name} <a href="{req_value}">{req_value}</a>\n'
+        else:
+            user_info_text = f'{first_name} {last_name} {status} / {GLOBE} <a href="{link}">Get help</a> / {SPEECH_BALOON} {user.link} / {CREDIT_CARD} {req_name} <a href="{req_value}">{req_value}</a>\n'
 
     if user.status == 'green':
         if user.link == '' or user.link == None:
@@ -1549,7 +1557,10 @@ def generate_user_info_text(user, self_id=''):
         d1 = date.today()
         delta = d1 - d0
         days_end = user.days - delta.days
-        user_info_text += f'{transactions_in_count} {PEOPLES} {RIGHT_ARROW} {MAN} ({right_sum} {HELP} / {days_end} дней)\n'
+        if lang == "ru":
+            user_info_text += f'{transactions_in_count} {PEOPLES} {RIGHT_ARROW} {MAN} ({right_sum} {HELP} / {days_end} дней)\n'
+        else:
+            user_info_text += f'{transactions_in_count} {PEOPLES} {RIGHT_ARROW} {MAN} ({right_sum} {HELP} / {days_end} days)\n'
 
     return user_info_text
 
@@ -2358,8 +2369,12 @@ def edit_intention_check(message):
     if payment == 'Назад':
         intention_for_needy(message, reminder_call=False, intention_id=None)
         return
+    lang = read_user_language(message.chat.id).language
     if not is_digit(payment):
-        msg = bot.send_message(message.chat.id, 'Сумма должна быть только в виде цифр.')
+        if lang == "ru":
+            msg = bot.send_message(message.chat.id, TEXT_SUM_DIGIT['ru'])
+        else:
+            msg = bot.send_message(message.chat.id, TEXT_SUM_DIGIT['en'])
         bot.register_next_step_handler(msg, edit_intention_check)
         return
     update_intention(intention_id=intention_id, payment=payment)
@@ -3666,8 +3681,13 @@ def orange_invitation_wizard_check(message, event_id=None):  # -----------------
     if message.text == 'Назад':
         start_orange_invitation(message, user.telegram_id)
         return
+    lang = read_user_language(message.chat.id).language
     if not is_digit(invitation_sum):
-        msg = bot.send_message(message.chat.id, 'Сумма должна быть только в виде цифр.')
+        if lang == "ru":
+            msg = bot.send_message(message.chat.id, TEXT_SUM_DIGIT['ru'])
+        else:
+            msg = bot.send_message(message.chat.id, TEXT_SUM_DIGIT['en'])
+
         bot.register_next_step_handler(msg, orange_invitation_wizard_check)
         return
 
@@ -3893,8 +3913,12 @@ def red_invitation_wizard_check(message, event_id=None):  # ------------------ T
     if message.text == 'Назад':
         start_red_invitation(message, user.telegram_id)
         return
+    lang = read_user_language(message.chat.id).language
     if not is_digit(invitation_sum):
-        msg = bot.send_message(message.chat.id, 'Сумма должна быть только в виде цифр.')
+        if lang == "ru":
+            msg = bot.send_message(message.chat.id, TEXT_SUM_DIGIT['ru'])
+        else:
+            msg = bot.send_message(message.chat.id, TEXT_SUM_DIGIT['en'])
         bot.register_next_step_handler(msg, red_invitation_wizard_check)
         return
 
@@ -4125,14 +4149,20 @@ def orange_status_wizard(message):
     # Ссылка на обсуждение \U0001F4E2 \n{user.link}\
     # \n\nСсылка для помощи \U0001F4E9\n{link}'
 
-    bot_text = f'{ORANGE_BALL} {MONEY_BAG} {user.max_payments}, ежемесячно'
-
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    btn1 = types.KeyboardButton(text=f'Изменить данные {MONEY_BAG}')
-    btn2 = types.KeyboardButton(text='Изменить статус')
-    btn3 = types.KeyboardButton(text='Назад')
+    lang = read_user_language(message.chat.id).language
+    if lang =="ru":
+        bot_text = f'{ORANGE_BALL} {MONEY_BAG} {user.max_payments}, ежемесячно'
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        btn1 = types.KeyboardButton(text=f'Изменить данные {MONEY_BAG}')
+        btn2 = types.KeyboardButton(text='Изменить статус')
+        btn3 = types.KeyboardButton(text='Назад')
+    else:
+        bot_text = f'{ORANGE_BALL} {MONEY_BAG} {user.max_payments}, every month'
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        btn1 = types.KeyboardButton(text=f'Change data {MONEY_BAG}')
+        btn2 = types.KeyboardButton(text='Change status')
+        btn3 = types.KeyboardButton(text='Back')
     markup.row(btn1, btn2, btn3)
-
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
     bot.register_next_step_handler(msg, orange_menu_check)
 
@@ -4140,9 +4170,9 @@ def orange_status_wizard(message):
 def orange_menu_check(message):
     bot.delete_message(message.chat.id, message.message_id)
     text = message.text
-    if 'Изменить данные' in text:
+    if 'Изменить данные' in text or 'data' in text:
         edit_orange_data(message)
-    elif text == 'Изменить статус':
+    elif text == 'Изменить статус' or 'status' in text:
         green_red_wizard(message)
     elif text == 'Назад' or 'Back' in text:
         configuration_menu(message)
@@ -4155,11 +4185,19 @@ def orange_menu_check(message):
 
 def edit_orange_data(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    btn1 = types.KeyboardButton(text='Да')
-    btn2 = types.KeyboardButton(text='Нет')
-    markup.row(btn1, btn2)
-    msg = bot.send_message(message.chat.id, f'{ORANGE_BALL} Вы собираетесь изменить данные {MONEY_BAG}\n\
+    lang = read_user_language(message.chat.id).language
+    if lang == "ru":
+        btn1 = types.KeyboardButton(text='Да')
+        btn2 = types.KeyboardButton(text='Нет')
+        markup.row(btn1, btn2)
+        msg = bot.send_message(message.chat.id, f'{ORANGE_BALL} Вы собираетесь изменить данные {MONEY_BAG}\n\
 Пожалуйста подтвердите действие', reply_markup=markup)
+    else:
+        btn1 = types.KeyboardButton(text='Yes')
+        btn2 = types.KeyboardButton(text='No')
+        markup.row(btn1, btn2)
+        msg = bot.send_message(message.chat.id, f'{ORANGE_BALL} You are going to change the data {MONEY_BAG}\n\
+Please confirm the action', reply_markup=markup)
     bot.register_next_step_handler(msg, check_edit_orange_data)
 
 
@@ -4167,13 +4205,19 @@ def check_edit_orange_data(message):
     bot.delete_message(message.chat.id, message.message_id)
     text = message.text
     # user = read_exodus_user(message.chat.id)
-    if 'Да' in text:
+    if 'Да' in text or 'Yes' in text:
         markup = types.ReplyKeyboardRemove(selective=False)
-        msg = bot.send_message(message.chat.id,
-                               f'🔆Введите цифрами сумму💰, которая вам необходима на базовые нужды ежемесячно',
-                               reply_markup=markup)
+        lang = read_user_language(message.chat.id).language
+        if lang == "ru":
+            msg = bot.send_message(message.chat.id,
+                                   f'🔆Введите цифрами сумму{MONEY_BAG} , которая вам необходима на базовые нужды ежемесячно',
+                                   reply_markup=markup)
+        else:
+            msg = bot.send_message(message.chat.id,
+                                   f'🔆Enter the amount{MONEY_BAG} in numbers you need for basic needs on a monthly basis',
+                                   reply_markup=markup)
         bot.register_next_step_handler(msg, edit_orange_need_payments)
-    elif 'Нет' in text:
+    elif 'Нет' in text or 'No' in text:
         orange_status_wizard(message)
 
     elif text == 'Главное меню':
@@ -4187,10 +4231,13 @@ def edit_orange_need_payments(message):
     chat_id = message.chat.id
 
     new_sum = message.text
+    lang = read_user_language(message.chat.id).language
+
     if not is_digit(new_sum):
-        msg = bot.send_message(chat_id,
-                               'Сумма должна быть только в виде цифр. Введите сумму в {}, которую вы бы хотели получать в течении месяца:'.format(
-                                   user.currency))
+        if lang == "ru":
+            msg = bot.send_message(chat_id, TEXT_SUM_DIGIT['ru'])
+        else:
+            msg = bot.send_message(chat_id, TEXT_SUM_DIGIT['en'])
         bot.register_next_step_handler(msg, edit_orange_need_payments)
         return
 
@@ -4492,10 +4539,13 @@ def edit_red_need_payments(message):
     chat_id = message.chat.id
 
     new_sum = message.text
+    lang = read_user_language(message.chat.id).language
+
     if not is_digit(new_sum):
-        msg = bot.send_message(chat_id,
-                               'Сумма должна быть только в виде цифр. Введите сумму в {}, которая Вам необходима:'.format(
-                                   user.currency))
+        if lang == "ru":
+            msg = bot.send_message(chat_id, TEXT_SUM_DIGIT['ru'])
+        else:
+            msg = bot.send_message(chat_id, TEXT_SUM_DIGIT['en'])
         bot.register_next_step_handler(msg, edit_red_need_payments)
         return
 
@@ -4603,10 +4653,13 @@ def red_edit_wizard_step1(message):
     chat_id = message.chat.id
 
     text = message.text
+    lang = read_user_language(message.chat.id).language
+
     if not is_digit(text):
-        msg = bot.send_message(chat_id,
-                               'Сумма должна быть только в виде цифр. Введите сумму в {}, которая Вам необходима:'.format(
-                                   user.currency))
+        if lang == "ru":
+            msg = bot.send_message(chat_id, TEXT_SUM_DIGIT['ru'])
+        else:
+            msg = bot.send_message(chat_id, TEXT_SUM_DIGIT['en'])
         bot.register_next_step_handler(msg, red_edit_wizard_step1)
         return
     user_dict[chat_id].max_payments = float(text)
@@ -4893,9 +4946,7 @@ def orange_step_need_payments(message):
 
     if lang == "ru":
         if not is_digit(text):
-            msg = bot.send_message(chat_id,
-                                   'Сумма должна быть только в виде цифр. Введите сумму в {}, которую вы бы хотели получать в течении месяца:'.format(
-                                       user.currency))
+            msg = bot.send_message(chat_id, TEXT_SUM_DIGIT['ru'])
             bot.register_next_step_handler(msg, orange_step_need_payments)
             return
         update_exodus_user(chat_id, max_payments=float(text))
@@ -4924,9 +4975,7 @@ def orange_step_need_payments(message):
 Все пользователи, которые связаны с вами внутри Эксодус бота, получат уведомление.', reply_markup=markup)
     else:
         if not is_digit(text):
-            msg = bot.send_message(chat_id,
-                                   'The amount should only be in the form of numbers. Enter the amount in {} that you would like to receive during the month:'.format(
-                                       user.currency))
+            msg = bot.send_message(chat_id, TEXT_SUM_DIGIT['en'])
             bot.register_next_step_handler(msg, orange_step_need_payments)
             return
         update_exodus_user(chat_id, max_payments=float(text))
