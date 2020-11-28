@@ -23,6 +23,7 @@ temp_dict = {}
 
 transaction = {}
 
+lang = 'ru'
 
 # ------------------------------------------------------------------
 
@@ -84,8 +85,6 @@ def global_menu(message, dont_show_status=True):
                            message.chat.username, status="green")
     user = read_exodus_user(message.chat.id)
     link = create_link(user.telegram_id, user.telegram_id)
-
-    lang = read_user_language(message.chat.id).language
 
     text_req = '\nРеквизиты:'
     requisites = read_requisites_user(message.chat.id)
@@ -336,7 +335,7 @@ def call_people_menu(message):
     #     btn_inline.append(types.InlineKeyboardButton("Позвать", callback_data="show_people_link_"+str(list_my_socium[i])))
 
     user_id = message.chat.id
-    lang = read_user_language(user_id).language
+
 
     if lang == 'ru':
         bot_text = 'В моей сети нуждаются в помощи:'
@@ -485,8 +484,6 @@ def configuration_menu(message, text=None):
     user = read_exodus_user(telegram_id=message.chat.id)
     status = get_status(user.status)
 
-    lang = read_user_language(message.chat.id).language
-
     if lang == "ru":
         btn1 = types.KeyboardButton(text=f'{status} Статус')
         btn3 = types.KeyboardButton(text=f'{CREDIT_CARD} Реквизиты')
@@ -515,6 +512,8 @@ def configuration_menu(message, text=None):
 
 def configuration_check(message):
     """3"""
+    global lang
+
     try:
         bot.delete_message(message.chat.id, message.message_id)
     except:
@@ -566,10 +565,12 @@ def configuration_check(message):
         return
     elif "Изменить язык" in text:
         update_user_language(message.chat.id, "en")
+        lang = 'en'
         configuration_menu(message, text='Change language to english!')
         return
     elif "Change" in text:
         update_user_language(message.chat.id, "ru")
+        lang = 'ru'
         configuration_menu(message, text='Вы изменили язык на русский!')
         return
     elif "/start" in text:
@@ -610,7 +611,7 @@ def check_quit_bot(message):
 def edit_link_menu(message):
     user_id = message.chat.id
     user = read_exodus_user(user_id)
-    lang = read_user_language(user_id).language
+
 
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 
@@ -638,7 +639,7 @@ def edit_link_menu(message):
 def edit_link_check(message):
     link = message.text
     user_id = message.chat.id
-    lang = read_user_language(user_id).language
+
 
     if link == 'Назад' or 'Back' in link:
         configuration_menu(message)
@@ -656,7 +657,7 @@ def edit_link_check(message):
 
 def requisites_wizard(message):
     user_id = message.chat.id
-    lang = read_user_language(user_id).language
+
 
     requisites = read_requisites_user(user_id)
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -690,7 +691,7 @@ def requisites_wizard_check(message):
     user_id = message.chat.id
     bot.delete_message(user_id, message.message_id)
     text = message.text
-    lang = read_user_language(user_id).language
+
     requisites = read_requisites_user(user_id)
     tmp_list = []
     if requisites != []:
@@ -962,7 +963,7 @@ def transactions_menu(message):
         to_count = 0
         sum_to = 0
 
-    lang = read_user_language(user_id).language
+
 
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(
@@ -1066,8 +1067,6 @@ def members_menu(message, meta_txt=None):
     # transactions_in_count = read_intention_for_user(to_id=message.chat.id, statuses=(1, 11, 12)).count()
     # transactions_out_count = read_intention_for_user(from_id=message.chat.id, statuses=(1, 11, 12)).count()
     # requisites_count = get_requisites_count(message.chat.id)
-
-    lang = read_user_language(user_id)
 
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     # btn1 = types.KeyboardButton(text='Мой профиль')
@@ -1527,8 +1526,6 @@ def generate_user_info_text(user, self_id=''):
     already_payments_intent = get_intention_sum(telegram_id, statuses=(1,))
     left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
     right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
-
-    lang = read_user_language(telegram_id).language
 
     if lang == "ru":
         if user.link == '' or user.link == None:
@@ -2208,12 +2205,12 @@ def intention_for_needy(message, reminder_call, intention_id, show_back=False):
     return
 
 
-def intention_for_needy_check(message, intention_id=None):
+def intention_for_needy_check(message, intention_id):
     # 6.7
     text = message.text
     bot.delete_message(message.chat.id, message.message_id)
     if text == f'В {HANDSHAKE}':
-        intention_to_obligation(message)
+        intention_to_obligation(message, intention_id)
         return
     elif text == 'Изменить':
         edit_intention(message)
@@ -2223,7 +2220,7 @@ def intention_for_needy_check(message, intention_id=None):
         global_menu(message)
         return
     elif text == f'Отменить {HEART_RED}':
-        cancel_intention(message)
+        cancel_intention(message, intention_id)
         return
     elif 'Главное меню' in text:
         global_menu(message)
@@ -2241,8 +2238,8 @@ def intention_for_needy_check(message, intention_id=None):
     return
 
 
-def intention_to_obligation(message):
-    intention_id = transaction[message.chat.id]
+def intention_to_obligation(message, intention_id):
+    #intention_id = transaction[message.chat.id]
     intention = read_intention_by_id(intention_id)
     user_to = read_exodus_user(telegram_id=intention.to_id)
     user_from = read_exodus_user(telegram_id=message.chat.id)
@@ -2369,7 +2366,6 @@ def edit_intention_check(message):
     if payment == 'Назад':
         intention_for_needy(message, reminder_call=False, intention_id=None)
         return
-    lang = read_user_language(message.chat.id).language
     if not is_digit(payment):
         if lang == "ru":
             msg = bot.send_message(message.chat.id, TEXT_SUM_DIGIT['ru'])
@@ -2382,8 +2378,8 @@ def edit_intention_check(message):
     return
 
 
-def cancel_intention(message):
-    intention_id = transaction[message.chat.id]
+def cancel_intention(message, intention_id):
+    #intention_id = transaction[message.chat.id]
     intention = read_intention_by_id(intention_id)
     user_to = read_exodus_user(telegram_id=intention.to_id)
     bot_text = f"Вы хотите отменить свое {HEART_RED} участнику {user_to.first_name} {user_to.last_name} на {intention.payment} {intention.currency}?"
@@ -2392,12 +2388,12 @@ def cancel_intention(message):
     btn2 = types.KeyboardButton(text='Да')
     markup.row(btn1, btn2)
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
-    bot.register_next_step_handler(msg, cancel_intention_check)
+    bot.register_next_step_handler(msg, cancel_intention_check, intention_id)
     return
 
 
-def cancel_intention_check(message):
-    intention_id = transaction[message.chat.id]
+def cancel_intention_check(message, intention_id):
+    #intention_id = transaction[message.chat.id]
     intention = read_intention_by_id(intention_id)
     user_to = read_exodus_user(telegram_id=intention.to_id)
     bot_text = f"Ваше {HEART_RED} участнику {user_to.first_name} {user_to.last_name} на {intention.payment} {intention.currency} отменено."
@@ -3681,7 +3677,6 @@ def orange_invitation_wizard_check(message, event_id=None):  # -----------------
     if message.text == 'Назад':
         start_orange_invitation(message, user.telegram_id)
         return
-    lang = read_user_language(message.chat.id).language
     if not is_digit(invitation_sum):
         if lang == "ru":
             msg = bot.send_message(message.chat.id, TEXT_SUM_DIGIT['ru'])
@@ -3913,7 +3908,6 @@ def red_invitation_wizard_check(message, event_id=None):  # ------------------ T
     if message.text == 'Назад':
         start_red_invitation(message, user.telegram_id)
         return
-    lang = read_user_language(message.chat.id).language
     if not is_digit(invitation_sum):
         if lang == "ru":
             msg = bot.send_message(message.chat.id, TEXT_SUM_DIGIT['ru'])
@@ -4149,7 +4143,6 @@ def orange_status_wizard(message):
     # Ссылка на обсуждение \U0001F4E2 \n{user.link}\
     # \n\nСсылка для помощи \U0001F4E9\n{link}'
 
-    lang = read_user_language(message.chat.id).language
     if lang =="ru":
         bot_text = f'{ORANGE_BALL} {MONEY_BAG} {user.max_payments}, ежемесячно'
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -4185,7 +4178,6 @@ def orange_menu_check(message):
 
 def edit_orange_data(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    lang = read_user_language(message.chat.id).language
     if lang == "ru":
         btn1 = types.KeyboardButton(text='Да')
         btn2 = types.KeyboardButton(text='Нет')
@@ -4207,7 +4199,6 @@ def check_edit_orange_data(message):
     # user = read_exodus_user(message.chat.id)
     if 'Да' in text or 'Yes' in text:
         markup = types.ReplyKeyboardRemove(selective=False)
-        lang = read_user_language(message.chat.id).language
         if lang == "ru":
             msg = bot.send_message(message.chat.id,
                                    f'🔆Введите цифрами сумму{MONEY_BAG} , которая вам необходима на базовые нужды ежемесячно',
@@ -4231,7 +4222,6 @@ def edit_orange_need_payments(message):
     chat_id = message.chat.id
 
     new_sum = message.text
-    lang = read_user_language(message.chat.id).language
 
     if not is_digit(new_sum):
         if lang == "ru":
@@ -4391,7 +4381,7 @@ def green_edit_wizard_check(message):
 def green_status_wizard(message):
     """2.0.1"""
     user_id = message.chat.id
-    lang = read_user_language(user_id).language
+
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     if lang == "ru":
         btn1 = types.KeyboardButton(text='Изменить статус')
@@ -4429,7 +4419,7 @@ def green_status_wizard_check(message):
 
 def select_orange_red(message):
     user_id = message.chat.id
-    lang = read_user_language(user_id).language
+
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(text=ORANGE_BALL)
     btn2 = types.KeyboardButton(text=RED_BALL)
@@ -4539,7 +4529,6 @@ def edit_red_need_payments(message):
     chat_id = message.chat.id
 
     new_sum = message.text
-    lang = read_user_language(message.chat.id).language
 
     if not is_digit(new_sum):
         if lang == "ru":
@@ -4653,7 +4642,6 @@ def red_edit_wizard_step1(message):
     chat_id = message.chat.id
 
     text = message.text
-    lang = read_user_language(message.chat.id).language
 
     if not is_digit(text):
         if lang == "ru":
@@ -4894,7 +4882,7 @@ def orange_edit_wizard(message):
 
 def check_orange_green_edit_wizard(message):
     user_id = message.chat.id
-    lang = read_user_language(user_id).language
+
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 
     if lang == "ru":
@@ -4941,7 +4929,6 @@ def orange_step_need_payments(message):
     user = read_exodus_user(message.chat.id)
     chat_id = message.chat.id
 
-    lang = read_user_language(chat_id).language
     text = message.text
 
     if lang == "ru":
@@ -5038,7 +5025,6 @@ def orange_step_final(message):
     text = message.text
     chat_id = message.chat.id
 
-    lang = read_user_language(chat_id).language
     # bot.delete_message(message.chat.id, message.message_id)
     if text == 'Редактировать' or 'Edit' in text:
         if lang == "ru":
