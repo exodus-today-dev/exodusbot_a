@@ -23,7 +23,7 @@ temp_dict = {}
 
 transaction = {}
 
-lang = 'ru'
+lang = 'en'
 
 # ------------------------------------------------------------------
 
@@ -1618,14 +1618,21 @@ def selected_member_action_menu(message, member_id):
     btn1 = types.KeyboardButton(text=f'{MAN} {first_name}')
     btn2 = types.KeyboardButton(text=f'{list_users_in_count} {PEOPLES} {RIGHT_ARROW} {first_name}')
     btn3 = types.KeyboardButton(text=f'{first_name} {RIGHT_ARROW} {list_users_from_count} {PEOPLES}')
-    btn4 = types.KeyboardButton(text='Главное меню')
-    btn5 = types.KeyboardButton(text=f'Сеть {PEOPLES} {first_name}')
-    btn6 = types.KeyboardButton(text=f'Помочь {first_name}')
+
+    if lang == "ru":
+        btn4 = types.KeyboardButton(text='Главное меню')
+        btn5 = types.KeyboardButton(text=f'Сеть {PEOPLES} {first_name}')
+        btn6 = types.KeyboardButton(text=f'Помочь {first_name}')
+        bot_text = '\nВыберите пункт меню'
+    else:
+        btn4 = types.KeyboardButton(text='Global menu')
+        btn5 = types.KeyboardButton(text=f'Network {PEOPLES} {first_name}')
+        btn6 = types.KeyboardButton(text=f'Help {first_name}')
+        bot_text = '\nSelect menu item'
 
     markup.row(btn1, btn5, btn6)
     markup.row(btn3, btn2, btn4)
 
-    bot_text = '\nВыберите пункт меню'
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
 
     bot.register_next_step_handler(msg, selected_member_action_check,
@@ -1646,13 +1653,16 @@ def selected_member_action_check(message, member_id):  # bookmark
         return
     elif f'{first_name} {RIGHT_ARROW}' in text:
         members_list_in_network_menu(message, member_id, 'out', False)
-    elif text == 'Главное меню':
+    elif text == 'Global menu' or 'Главное меню' in text:
         global_menu(message)
-    elif 'Сеть' in text:
+    elif 'Сеть' in text or 'Network' in text:
         show_other_socium(message, member_id)
-    elif 'Помочь' in text:
+    elif 'Помочь' in text or 'Help' in text:
         link = create_link(user.telegram_id, user.telegram_id)
-        bot_text = f"\n\nСсылка для помощи \U0001F4E9\n{link}"
+        if lang == 'ru':
+            bot_text = f"\n\nСсылка для помощи \U0001F4E9\n{link}"
+        else:
+            bot_text = f"\n\nLink for help \U0001F4E9\n{link}"
         bot.send_message(message.chat.id, bot_text)
         selected_member_action_menu(message, member_id)
 
@@ -1809,11 +1819,17 @@ def show_my_socium(message):
             string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} {right_sum} {HELP} / {days_end} дней'
         list_exodus_id_my_socium.append(user.exodus_id)
 
-    bot_text = 'В моей сети:{}'.format(string_name) + '\n\n' \
-                                                      'Введите номер Участника, чтобы ' \
-                                                      'посмотреть подробную информацию:'
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    btn1 = types.KeyboardButton(text='Назад')
+    if lang == "ru":
+        bot_text = 'В моей сети:{}'.format(string_name) + '\n\n' \
+                                                          'Введите номер Участника, чтобы ' \
+                                                          'посмотреть подробную информацию:'
+        btn1 = types.KeyboardButton(text='Назад')
+    else:
+        bot_text = 'In my network: {}'.format(string_name) + '\n\n' \
+                                                                'Enter the Member number to ' \
+                                                                'view detailed information:'
+        btn1 = types.KeyboardButton(text='Back')
     markup.row(btn1)
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup, parse_mode="html",
                            disable_web_page_preview=True)
@@ -1835,7 +1851,11 @@ def check_my_socium(message, list_exodus_id_my_socium):
 
             selected_id = int(text)
             if selected_id not in list_exodus_id_my_socium:
-                bot.send_message(message.chat.id, "*Этого пользователя нет в вашей сети. Введите корректный номер*",
+                if lang == "ru":
+                    bot.send_message(message.chat.id, "*Этого пользователя нет в вашей сети. Введите корректный номер*",
+                                 parse_mode="Markdown")
+                else:
+                    bot.send_message(message.chat.id, "*This user is not on your network. Enter the correct number*",
                                  parse_mode="Markdown")
                 show_my_socium(message)
             else:
