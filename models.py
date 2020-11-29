@@ -155,10 +155,10 @@ def create_user_language(user_id, language):
 def read_user_language(user_id):
     user = session.query(User_Language).filter_by(user_id=user_id).first()
     if user:
-        return session.query(User_Language).filter_by(user_id=user_id).first()
+        return session.query(User_Language).filter_by(user_id=user_id).first().language
     else:
         create_user_language(user_id, "ru")
-        return session.query(User_Language).filter_by(user_id=user_id).first()
+        return session.query(User_Language).filter_by(user_id=user_id).first().language
 
 
 def update_user_language(user_id, language):
