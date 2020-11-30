@@ -166,8 +166,8 @@ def global_menu(message, dont_show_status=True):
         btn3 = types.KeyboardButton(text=f'{MAN}{status_button} Профиль')
         btn4 = types.KeyboardButton(text=f'{PEOPLES} Участники')
         btn5 = types.KeyboardButton(text=f'{QUESTION} FAQ')
-        btn6 = types.KeyboardButton(text=f'{SPEECH_BALOON} HELP')
-        btn7 = types.KeyboardButton(text=f'{GLOBE} Позвать')
+        btn6 = types.KeyboardButton(text=f'{SPEECH_BALOON} Чат поддержки')
+        btn7 = types.KeyboardButton(text=f'{GLOBE} Помочь')
         btn8 = types.KeyboardButton(text='{} {} {} {}'.format(MAN, RIGHT_ARROW, list_users_from_count, PEOPLES))
         btn9 = types.KeyboardButton(text='{} {} {} {}'.format(list_users_in_count, PEOPLES, RIGHT_ARROW, MAN))
         #btn10 = types.KeyboardButton(text=f'{requisites_count} {SPEAK_HEAD} {HELP}')
@@ -218,9 +218,9 @@ def global_check(message):
         members_menu(message)
     elif 'FAQ' in text:
         instruction_menu(message)
-    elif 'Support' in text:
+    elif 'Support' in text or 'поддержки' in text:
         help_menu(message)
-    elif 'Позвать' in text or 'Get' in text:
+    elif 'Помочь' in text or 'Get' in text:
         call_people_menu(message)
     elif f'{MAN} {RIGHT_ARROW} 0' in text:
         bot.send_message(message.chat.id, f'В пользу других нет записей')
@@ -1893,8 +1893,14 @@ def expand_my_socium(message):
     list_expand_socium = set(list_expand_socium)
     list_expand_socium.discard(message.chat.id)
 
+    lang = read_user_language(message.chat.id)
+
     if len(list_expand_socium) == 0:
-        members_menu(message, meta_txt="Нет новых участников")
+        if lang == 'ru':
+            meta_txt = "Нет новых участников"
+        else:
+            meta_txt = "No new members"
+        members_menu(message, meta_txt=meta_txt)
         return
     else:
         string_name = ''
@@ -1909,11 +1915,20 @@ def expand_my_socium(message):
                                                                        get_status(user.status), str(left_sum) + HEART_RED,
                                                                        str(right_sum) + HELP)
 
-        bot_text = 'Расширение сети:{}'.format(string_name) + '\n\n' \
-                                                              'Введите номер Участника, чтобы ' \
-                                                              'посмотреть подробную информацию:'
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        btn1 = types.KeyboardButton(text='Назад')
+
+        if lang == 'ru':
+            bot_text = 'Расширение сети:{}'.format(string_name) + '\n\n' \
+                                                                  'Введите номер Участника, чтобы ' \
+                                                                  'посмотреть подробную информацию:'
+            btn1 = types.KeyboardButton(text='Назад')
+
+        else:
+            bot_text = 'Network extension: {}'. format (string_name) + '\n\n' \
+                                                                        'Enter the Member number to ' \
+                                                                        'view detailed information:'
+            btn1 = types.KeyboardButton(text='Back')
+
         markup.row(btn1)
         msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
         bot.register_next_step_handler(msg, check_expand_my_socium, list_expand_socium)
@@ -1943,6 +1958,8 @@ def check_expand_my_socium(message, list_expand_socium):
             # bot.delete_message(user_id, message.message_id)
 
             ring = read_rings_help(user.telegram_id)
+            lang = read_user_language(message.chat.id)
+
             if ring is None:
                 all_users = 0
             else:
@@ -1950,23 +1967,42 @@ def check_expand_my_socium(message, list_expand_socium):
                     all_users = len(set(ring.help_array_orange))
                 except:
                     all_users = 0
-            bot_text = '{} Имя участника: {} {}\nСтатус: {}\n\U0001F4B0 {}/{} {}\nУже помогают: {}\n'.format(MAN,
-                                                                                                             user.first_name,
-                                                                                                             user.last_name,
-                                                                                                             ORANGE_BALL,
-                                                                                                             left_sum,
-                                                                                                             right_sum,
-                                                                                                             user.currency,
-                                                                                                             all_users)
+            if lang == 'ru':
+                bot_text = '{} Имя участника: {} {}\nСтатус: {}\n\U0001F4B0 {}/{} {}\nУже помогают: {}\n'.format(MAN,
+                                                                                                                 user.first_name,
+                                                                                                                 user.last_name,
+                                                                                                                 ORANGE_BALL,
+                                                                                                                 left_sum,
+                                                                                                                 right_sum,
+                                                                                                                 user.currency,
+                                                                                                                 all_users)
 
-            bot_text += "\nСсылка на обсуждение \U0001F4E2"
-            if user.link == '' or user.link == None:
-                bot_text += "\n"  # ссылка на обсуждение
+                bot_text += "\nСсылка на обсуждение \U0001F4E2"
+                if user.link == '' or user.link == None:
+                    bot_text += "\n"  # ссылка на обсуждение
+                else:
+                    bot_text += f"\n{user.link}"  # ссылка на обсуждение # ссылка на обсуждение
+
+                link = create_link(user.telegram_id, user.telegram_id)
+                bot_text += f"\n\nСсылка для помощи \U0001F4E9\n{link}"
             else:
-                bot_text += f"\n{user.link}"  # ссылка на обсуждение # ссылка на обсуждение
+                bot_text = '{} Member name: {} {}\nStatus: {}\n\U0001F4B0 {}/{} {}\nAlready help: {}\n'.format(MAN,
+                                                                                                                 user.first_name,
+                                                                                                                 user.last_name,
+                                                                                                                 ORANGE_BALL,
+                                                                                                                 left_sum,
+                                                                                                                 right_sum,
+                                                                                                                 user.currency,
+                                                                                                                 all_users)
 
-            link = create_link(user.telegram_id, user.telegram_id)
-            bot_text += f"\n\nСсылка для помощи \U0001F4E9\n{link}"
+                bot_text += "\nLink to discussion \U0001F4E2"
+                if user.link == '' or user.link == None:
+                    bot_text += "\n"  # ссылка на обсуждение
+                else:
+                    bot_text += f"\n{user.link}"  # ссылка на обсуждение # ссылка на обсуждение
+
+                link = create_link(user.telegram_id, user.telegram_id)
+                bot_text += f"\n\nLink for help \U0001F4E9\n{link}"
 
             # bot.send_message(user_id, bot_text)  # общий текст
             members_menu(message, meta_txt=bot_text)
@@ -5330,6 +5366,20 @@ def unfreeze_intentions(user):
 
 
 # -------------------------------------------
+
+@bot.message_handler(func=lambda message: str(message.text).lower() == 'messagepeople')
+def message_handler_notifications(message):
+    list_id_for_message = read_all_exodus_user()
+    message = "*Уважаемые участники тестирования бота Эксодус. Большое спасибо вам за обратную связь!\n\n" \
+              "Мы завершили тестирование и готовим бота к запуску в рабочем режиме в течении недели. \n\n" \
+              "Тестовая база данных будет обнулена и потребуется новая регистрация. \n\n" \
+              "О моменте перезагрузки мы сообщим дополнительно. \n\n" \
+              "Все вопросы можно задать в нашем чате поддержки: https://t.me/Exodus_Help\n\n" \
+              "Команда разработчиков.*"
+    for id in list_id_for_message:
+        bot.send_message(id, message, parse_mode='markdown')
+    return
+
 
 @bot.callback_query_handler(func=lambda call: call.data[:17] == 'show_people_link_')
 def help_link_generate_menu(call):
