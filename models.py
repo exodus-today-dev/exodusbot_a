@@ -236,6 +236,11 @@ def read_exodus_user(telegram_id):
     return exodus_user
 
 
+def read_all_exodus_user():
+    user_ids = [user.telegram_id for user in session.query(Exodus_Users.telegram_id).distinct()]
+    return user_ids
+
+
 def read_exodus_user_by_exodus_id(exodus_id):
     exodus_user = session.query(Exodus_Users).filter_by(exodus_id=exodus_id).first()
     return exodus_user
