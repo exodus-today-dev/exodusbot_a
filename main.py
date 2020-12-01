@@ -217,7 +217,7 @@ def global_check(message):
     elif 'Участники' in text or 'Participants' in text:
         members_menu(message)
     elif 'FAQ' in text:
-        instruction_menu(message)
+        instruction_menu(message, START_TEXT)
     elif 'Support' in text or 'поддержки' in text:
         help_menu(message)
     elif 'Помочь' in text or 'Get' in text:
@@ -398,23 +398,35 @@ def help_menu(message):
     bot.send_message(message.chat.id, help_text)
 
 
-def instruction_menu(message, text=START_TEXT):
+def instruction_menu(message, text):
     # text_instruction = TEXT_INSTRUCTIONS
     # bot.send_message(message.chat.id, text_instruction, parse_mode="Markdown")
     # bot_text = 'Настройки:'
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 
-    btn1 = types.KeyboardButton(text='Про бота')
-    btn3 = types.KeyboardButton(text='Условные обозначения')
-    btn2 = types.KeyboardButton(text='Описание меню')
-    btn4 = types.KeyboardButton(text='Как начать пользоваться')
-    btn5 = types.KeyboardButton(text='Возможные кейсы')
-    btn6 = types.KeyboardButton(text='Главное меню')
+    lang = read_user_language(message.chat.id)
+    if lang == 'ru':
+        bot_text = text["ru"]
+
+        btn1 = types.KeyboardButton(text='Про бота')
+        btn3 = types.KeyboardButton(text='Условные обозначения')
+        btn2 = types.KeyboardButton(text='Описание меню')
+        btn4 = types.KeyboardButton(text='Как начать пользоваться')
+        btn5 = types.KeyboardButton(text='Возможные кейсы')
+        btn6 = types.KeyboardButton(text='Главное меню')
+    else:
+        bot_text = text["en"]
+
+        btn1 = types.KeyboardButton(text='About the bot')
+        btn3 = types.KeyboardButton(text='Conventions')
+        btn2 = types.KeyboardButton(text='Menu description')
+        btn4 = types.KeyboardButton(text='How to start using it')
+        btn5 = types.KeyboardButton(text='Possible cases')
+        btn6 = types.KeyboardButton(text='Global menu')
 
     markup.row(btn1, btn2, btn3)
     markup.row(btn4, btn5, btn6)
 
-    bot_text = text
     msg = bot.send_message(message.chat.id, bot_text, parse_mode="markdown", reply_markup=markup)
     # with open('./static_files/test_03d.mp4',"rb") as misc:
     #     f=misc.read()
@@ -424,7 +436,31 @@ def instruction_menu(message, text=START_TEXT):
 
 def check_instruction_menu(message):
     text = message.text
-    if text == 'Про бота':
+    if text == 'About the bot':
+        text = TEXT_ABOUT
+        instruction_menu(message, text)
+        return
+    elif text == 'Conventions':
+        text = TEXT_CONVENTION
+        instruction_menu(message, text)
+        return
+    elif text == 'Menu description':
+        text = TEXT_MENU
+        instruction_menu(message, text)
+        return
+    elif text == 'How to start using it':
+        text = TEXT_HOW_START
+        instruction_menu(message, text)
+        return
+    elif text == 'Possible cases':
+        text = TEXT_CASE
+        instruction_menu(message, text)
+        return
+    elif text == 'Global menu':
+        global_menu(message)
+        return
+
+    elif text == 'Про бота':
         text = TEXT_ABOUT
         instruction_menu(message, text)
         return
@@ -698,7 +734,7 @@ def requisites_wizard_check(message):
     if text in tmp_list:
         select_requisite(message)
         return
-    elif text == 'Add requisites':
+    elif text == 'Add requisites' or 'Добавить реквизиты' in text:
         add_requisite_name(message)
         return
     elif text == 'Назад' or 'Back' in text:
@@ -716,17 +752,31 @@ def requisites_wizard_check(message):
 def select_requisite(message):
     text = message.text
 
+    lang = read_user_language(message.chat.id)
     if text.find('по умолчанию') > -1 or text.find('is default') > -1 :
-        bot.send_message(message.chat.id, 'Реквизиты по умолчанию:')
+        if lang == "ru":
+            bot.send_message(message.chat.id, 'Реквизиты по умолчанию:')
+        else:
+            bot.send_message(message.chat.id, 'Requisites is default:')
         text = text[:-15]
     requisite = read_requisites_name(message.chat.id, text)
-    text_bot = f"Название: {requisite.name}\n\
-Значение: {requisite.value}"
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    btn1 = types.KeyboardButton(text='Редактировать данные')
-    btn2 = types.KeyboardButton(text='Сделать реквизитами по умолчанию')
-    btn3 = types.KeyboardButton(text='Удалить')
-    btn4 = types.KeyboardButton(text='Назад')
+
+    if lang == "ru":
+        text_bot = f"Название: {requisite.name}\n\
+Значение: {requisite.value}"
+        btn1 = types.KeyboardButton(text='Редактировать данные')
+        btn2 = types.KeyboardButton(text='Сделать реквизитами по умолчанию')
+        btn3 = types.KeyboardButton(text='Удалить')
+        btn4 = types.KeyboardButton(text='Назад')
+    else:
+        text_bot = f"Name: {requisite.name}\n\
+Value: {requisite.value}"
+        btn1 = types.KeyboardButton(text='Edit data')
+        btn2 = types.KeyboardButton(text='Make it the default requisites')
+        btn3 = types.KeyboardButton(text='Delete')
+        btn4 = types.KeyboardButton(text='Back')
+
     markup.row(btn1, btn2)
     markup.row(btn3, btn4)
     msg = bot.send_message(message.chat.id, text_bot, reply_markup=markup)
@@ -737,16 +787,21 @@ def select_requisite(message):
 def select_requisite_check(message, requisite):
     bot.delete_message(message.chat.id, message.message_id)
     text = message.text
-    if text == 'Редактировать данные':
+    if text == 'Редактировать данные' or 'Edit' in text:
         add_requisite_name(message, requisite.requisites_id)
         return
-    elif text == 'Сделать реквизитами по умолчанию':
+    elif text == 'Сделать реквизитами по умолчанию' or 'Make it' in text:
+        lang = read_user_language(message.chat.id)
         unmark_default_requisites(message.chat.id)
         update_requisites_user(requisite.requisites_id, requisite.name, requisite.value, True)
-        bot.send_message(message.chat.id, 'Реквизиты сохранены')
+        if lang == 'ru':
+            bot.send_message(message.chat.id, 'Реквизиты сохранены')
+        else:
+            bot.send_message(message.chat.id, 'Requisites saved')
+
         requisites_wizard(message)
         return
-    elif text == 'Удалить':
+    elif text == 'Удалить' or 'Delete' in text:
         delete_requisite(message, requisite)
         return
     elif text == 'Назад' or 'Back' in text:
@@ -763,13 +818,24 @@ def select_requisite_check(message, requisite):
 
 
 def delete_requisite(message, requisite):
-    bot_text = f"вы собираетесь удалить реквизиты:\n\
-\n\
+    lang = read_user_language(message.chat.id)
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+
+    if lang == 'ru':
+        bot_text = f"Вы собираетесь удалить реквизиты:\n\
+    \n\
 Название: {requisite.name}\n\
 Значение: {requisite.value}"
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    btn1 = types.KeyboardButton(text='Да, удалить')
-    btn2 = types.KeyboardButton(text='Нет')
+        btn1 = types.KeyboardButton(text='Да, удалить')
+        btn2 = types.KeyboardButton(text='Нет')
+    else:
+        bot_text = f"You are going to delete your requisites:\n\
+            \n\
+Name: {requisite.name}\n\
+Value: {requisite.value}"
+        btn1 = types.KeyboardButton(text='Yes, delete')
+        btn2 = types.KeyboardButton(text='No')
+
     markup.row(btn1, btn2)
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
     bot.register_next_step_handler(msg, delete_requisite_check, requisite)
@@ -777,13 +843,19 @@ def delete_requisite(message, requisite):
 
 def delete_requisite_check(message, requisite):
     text = message.text
-    if text == 'Да, удалить':
+    lang = read_user_language(message.chat.id)
+
+    if text == 'Да, удалить' or 'Yes' in text:
         delete_requisites_user(requisite.requisites_id)
-        bot.send_message(message.chat.id, "Реквизит удалён")
+        if lang == 'ru':
+            bot.send_message(message.chat.id, "Реквизит удалён")
+        else:
+            bot.send_message(message.chat.id, "Requisite was deleted")
+
         bot.clear_step_handler(message)
         requisites_wizard(message)
         return
-    elif text == 'Нет':
+    elif text == 'Нет' or 'No' in text:
         requisites_wizard(message)
         return
     elif "/start" in text:
@@ -797,7 +869,12 @@ def delete_requisite_check(message, requisite):
 
 
 def add_requisite_name(message, edit_id=0):
-    bot_text = 'Введите название реквизита (например "Карта Сбербанка", "Счет в SKB" или "PayPal")'
+    lang = read_user_language(message.chat.id)
+    if lang == "ru":
+        bot_text = 'Введите название реквизита (например "Карта Сбербанка", "Счет в SKB" или "PayPal")'
+    else:
+        bot_text = 'Enter the name of the requisites (for example, "Sberbank Card", "SKB account" or "PayPal")'
+
     markup = types.ReplyKeyboardRemove(selective=False)
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
     bot.register_next_step_handler(msg, add_requisite_value, edit_id)
@@ -806,7 +883,12 @@ def add_requisite_name(message, edit_id=0):
 
 def add_requisite_value(message, edit_id=0):
     requisite_name = message.text
-    bot_text = 'Введите только номер счета, карты или идентификатор (чтобы его легче было скопировать)'
+    lang = read_user_language(message.chat.id)
+    if lang == "ru":
+        bot_text = 'Введите только номер счета, карты или идентификатор (чтобы его легче было скопировать)'
+    else:
+        bot_text = 'Enter only the account number, card number, or ID (to make it easier to copy)'
+
     markup = types.ReplyKeyboardRemove(selective=False)
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
     bot.register_next_step_handler(msg, pre_save_requisite, requisite_name, edit_id)
@@ -815,14 +897,26 @@ def add_requisite_value(message, edit_id=0):
 
 def pre_save_requisite(message, requisite_name, edit_id=0):
     requisite_value = message.text
-    bot_text = f'Название: {requisite_name}\n\
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+
+    lang = read_user_language(message.chat.id)
+    if lang == "ru":
+        bot_text = f'Название: {requisite_name}\n\
 Значение: {requisite_value}\n\
 Данные введены верно?'
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    btn1 = types.KeyboardButton(text='Нет')
-    btn2 = types.KeyboardButton(text='Да')
-    btn3 = types.KeyboardButton(text='Да, сделать реквизитами по умолчанию')
-    btn4 = types.KeyboardButton(text='Отмена')
+        btn1 = types.KeyboardButton(text='Нет')
+        btn2 = types.KeyboardButton(text='Да')
+        btn3 = types.KeyboardButton(text='Да, сделать реквизитами по умолчанию')
+        btn4 = types.KeyboardButton(text='Отмена')
+    else:
+        bot_text = f'Name: {requisite_name}\n\
+Value: {requisite_value}\n\
+The data is correct?'
+        btn1 = types.KeyboardButton(text='No')
+        btn2 = types.KeyboardButton(text='Yes')
+        btn3 = types.KeyboardButton(text='Yes, make it the default requisites')
+        btn4 = types.KeyboardButton(text='Cancel')
+
     markup.row(btn1, btn2)
     markup.row(btn3)
     markup.row(btn4)
@@ -846,33 +940,44 @@ def pre_save_requisite_check(message, requisite_name, requisite_value, edit_id=0
     bot.delete_message(message.chat.id, message.message_id)
     text = message.text
     to_req_settings = read_requisites_user(message.chat.id)
-    if text == 'Нет':
+    lang = read_user_language(message.chat.id)
+    if text == 'Нет' or 'No' in text:
         add_requisite_name(message)
         return
-    elif text == 'Да':
+    elif text == 'Да' or text == 'Yes':
         if edit_id != 0:
             update_requisites_user(edit_id, requisite_name, requisite_value)
         else:
             create_requisites_user(telegram_id=message.chat.id, name=requisite_name, value=requisite_value)
-        bot.send_message(message.chat.id, 'Реквизиты сохранены')
+
+        if lang == "ru":
+            bot.send_message(message.chat.id, 'Реквизиты сохранены')
+        else:
+            bot.send_message(message.chat.id, 'Requisites saved')
+
         if not to_req_settings:
             global_menu(message)
             return
         requisites_wizard(message)
         return
-    elif text == 'Да, сделать реквизитами по умолчанию':
+    elif text == 'Да, сделать реквизитами по умолчанию' or 'make it' in text:
         unmark_default_requisites(message.chat.id)
         if edit_id != 0:
             update_requisites_user(edit_id, requisite_name, requisite_value, True)
         else:
             create_requisites_user(message.chat.id, requisite_name, requisite_value, True)
-        bot.send_message(message.chat.id, 'Реквизиты сохранены')
+
+        if lang == "ru":
+            bot.send_message(message.chat.id, 'Реквизиты сохранены')
+        else:
+            bot.send_message(message.chat.id, 'Requisites saved')
+
         if not to_req_settings:
             global_menu(message)
             return
         requisites_wizard(message)
         return
-    elif text == 'Отмена':
+    elif text == 'Отмена' or 'Cancel' in text:
         if not to_req_settings:
             add_requisite_name(message)
             return
