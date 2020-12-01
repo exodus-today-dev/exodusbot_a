@@ -5377,7 +5377,10 @@ def message_handler_notifications(message):
               "Все вопросы можно задать в нашем чате поддержки: https://t.me/Exodus_Help\n\n" \
               "Команда разработчиков.*"
     for id in list_id_for_message:
-        bot.send_message(id, message, parse_mode='markdown')
+        try:
+            bot.send_message(id, message, parse_mode='markdown')
+        except:
+            continue
     return
 
 
