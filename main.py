@@ -1526,9 +1526,9 @@ def generate_user_info_text(user, self_id=''):
     lang = read_user_language(telegram_id)
     if lang == "ru":
         if user.link == '' or user.link == None:
-            user_info_text = f'{first_name} {last_name} {status} / {GLOBE} <a href="{link}">Позвать</a> / {CREDIT_CARD} {req_name} <a href="{req_value}">{req_value}</a>\n'
+            user_info_text = f'{first_name} {last_name} {status} / {GLOBE} <a href="{link}">Помочь</a> / {CREDIT_CARD} {req_name} <a href="{req_value}">{req_value}</a>\n'
         else:
-            user_info_text = f'{first_name} {last_name} {status} / {GLOBE} <a href="{link}">Позвать</a> / {SPEECH_BALOON} {user.link} / {CREDIT_CARD} {req_name} <a href="{req_value}">{req_value}</a>\n'
+            user_info_text = f'{first_name} {last_name} {status} / {GLOBE} <a href="{link}">Помочь</a> / {SPEECH_BALOON} {user.link} / {CREDIT_CARD} {req_name} <a href="{req_value}">{req_value}</a>\n'
     else:
         if user.link == '' or user.link == None:
             user_info_text = f'{first_name} {last_name} {status} / {GLOBE} <a href="{link}">Get help</a> / {CREDIT_CARD} {req_name} <a href="{req_value}">{req_value}</a>\n'
