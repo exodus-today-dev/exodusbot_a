@@ -250,6 +250,13 @@ TEXT_CASE = \
 TEXT_SUM_DIGIT = {'ru': 'Сумма должна быть только в виде цифр.',
                   'en': 'The amount should only be in the form of numbers.'}
 
+INPUT_NUMBER_USER = {
+    'ru':
+        'Введите номер Участника, чтобы посмотреть подробную информацию:',
+    'en':
+        'Enter the Member number to view more information:'
+}
+
 
 def get_status(text):
     if text == "green":
