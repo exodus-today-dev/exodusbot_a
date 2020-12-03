@@ -250,6 +250,12 @@ TEXT_CASE = \
 TEXT_SUM_DIGIT = {'ru': 'Сумма должна быть только в виде цифр.',
                   'en': 'The amount should only be in the form of numbers.'}
 
+TEXT_NUMBER_DIGIT = {'ru': 'Номер должен быть в виде числа:',
+                  'en': 'The number must be in the form of a digit:'}
+
+TEXT_NOT_FIND = {'ru': 'Введённый номер не соовпадает с существующими',
+                  'en': 'The entered number does not match the existing ones'}
+
 INPUT_NUMBER_USER = {
     'ru':
         'Введите номер Участника, чтобы посмотреть подробную информацию:',
