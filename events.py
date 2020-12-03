@@ -91,19 +91,13 @@ def notice_of_intent(event_id):
 
     bot_text = f"{intent.create_date.strftime('%d %B %Y')}\n\
 {user.first_name} {user.last_name} {status_from}  {RIGHT_ARROW} {intent.payment}{HEART_RED}\n\
-Вы - {status}\n\
+You - {status}\n\
 ({left_sum}{HEART_RED} / {right_sum}{HELP} {LEFT_ARROW} {users_count} {PEOPLES})"
 
     bot.send_message(event.to_id, bot_text)
 
     list_needy_id = get_my_socium(event.to_id)
     list_needy_id.discard(event.from_id)
-
-#     bot_text_for_all = f"{intent.create_date.strftime('%d %B %Y')}\n\
-# {user.first_name} {user.last_name} {status_from}  {RIGHT_ARROW}  {HEART_RED} {user_needy.first_name} {user_needy.last_name} на сумму: {intent.payment}\n\n\
-# {user_needy.first_name} {user_needy.last_name} - {status}\n\
-# {left_sum}/{right_sum}\n\
-# Помогают: {users_count}"
 
     bot_text_for_all = f"{user.first_name} {user.last_name} {status_from}  {RIGHT_ARROW}  {intent.payment}{HEART_RED} {user_needy.first_name} {user_needy.last_name} {status}\n\
 ({left_sum}{HEART_RED} / {right_sum}{HELP} {LEFT_ARROW} {users_count} {PEOPLES})"
