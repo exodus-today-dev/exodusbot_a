@@ -1045,17 +1045,7 @@ def transactions_menu(message):
         for pay in intention:
             me_obligation = me_obligation + pay.payment
 
-    status = get_status(user.status)
-    bot_text = f"Органайзер {status}"
-    #     bot_text = f"Статус: {status}\n\
-    # \n\
-    # {HEART_RED}: \n\
-    # {PLUS}: {me_intent} {user.currency}\n\
-    # {MINUS}: {my_intent} {user.currency}\n\
-    # \n\
-    # {HANDSHAKE}: \n\
-    # {PLUS}: {me_obligation} {user.currency}\n\
-    # {MINUS}: {my_obligation} {user.currency}\n"
+    lang = read_user_language(message.chat.id)
 
     history_intention_from = read_history_intention(from_id=user_id)
     history_intention_to = read_history_intention(to_id=user_id)
@@ -1091,10 +1081,12 @@ def transactions_menu(message):
     btn5 = types.KeyboardButton(
         text=f'{to_count}/{sum_to}{LIKE}{RIGHT_ARROW}{MAN}{RIGHT_ARROW}{from_count}/{sum_from}{LIKE}')
 
-    lang = read_user_language(message.chat.id)
+    status = get_status(user.status)
     if lang =="ru":
+        bot_text = f"Органайзер {status}"
         btn6 = types.KeyboardButton(text='Главное меню')
     else:
+        bot_text = f"Organiser {status}"
         btn6 = types.KeyboardButton(text='Global menu')
 
     markup.row(btn1, btn2)
@@ -1138,27 +1130,52 @@ def history_intention(message):
     history_intention_from = read_history_intention(from_id=user_id)
     history_intention_to = read_history_intention(to_id=user_id)
 
-    if history_intention_from.count() != 0:
-        # from_count = history_intention_from.count()
-        text_from = ''
-        for intention in history_intention_from:
-            user_from = read_exodus_user(intention.to_id)
-            text_from += f'{intention.create_date.date().strftime("%d-%m-%Y")}     {intention.payment}{LIKE} вы {RIGHT_ARROW} {user_from.first_name} {user_from.last_name}\n'
-    else:
-        text_from = 'За все время исполнили вы - 0'
+    lang = read_user_language(user_id)
+    if lang == 'ru':
+        if history_intention_from.count() != 0:
+            # from_count = history_intention_from.count()
+            text_from = ''
+            for intention in history_intention_from:
+                user_from = read_exodus_user(intention.to_id)
+                text_from += f'{intention.create_date.date().strftime("%d-%m-%Y")}     {intention.payment}{LIKE} вы {RIGHT_ARROW} {user_from.first_name} {user_from.last_name}\n'
+        else:
+            text_from = 'За все время исполнили вы - 0'
 
-    if history_intention_to.count() != 0:
-        # to_count = history_intention_to.count()
-        text_to = ''
-        for intention in history_intention_to:
-            user_to = read_exodus_user(intention.from_id)
-            text_to += f'{intention.create_date.date().strftime("%d-%m-%Y")}     {intention.payment}{LIKE} {user_to.first_name} {user_to.last_name} {RIGHT_ARROW} вам\n'
-    else:
-        text_to = 'За все время исполнили в вашу пользу - 0'
+        if history_intention_to.count() != 0:
+            # to_count = history_intention_to.count()
+            text_to = ''
+            for intention in history_intention_to:
+                user_to = read_exodus_user(intention.from_id)
+                text_to += f'{intention.create_date.date().strftime("%d-%m-%Y")}     {intention.payment}{LIKE} {user_to.first_name} {user_to.last_name} {RIGHT_ARROW} вам\n'
+        else:
+            text_to = 'За все время исполнили в вашу пользу - 0'
 
-    bot_text = f'Ваша история исполненных обязательств:\n\
+        bot_text = f'Ваша история исполненных обязательств:\n\
 {text_to}\n\n\
 {text_from}'
+    else:
+        if history_intention_from.count() != 0:
+            # from_count = history_intention_from.count()
+            text_from = ''
+            for intention in history_intention_from:
+                user_from = read_exodus_user(intention.to_id)
+                text_from += f'{intention.create_date.date().strftime("%d-%m-%Y")}     {intention.payment}{LIKE} you {RIGHT_ARROW} {user_from.first_name} {user_from.last_name}\n'
+        else:
+            text_from = 'For all the time you have performed - 0'
+
+        if history_intention_to.count() != 0:
+            # to_count = history_intention_to.count()
+            text_to = ''
+            for intention in history_intention_to:
+                user_to = read_exodus_user(intention.from_id)
+                text_to += f'{intention.create_date.date().strftime("%d-%m-%Y")}     {intention.payment}{LIKE} {user_to.first_name} {user_to.last_name} {RIGHT_ARROW} to you\n'
+        else:
+            text_to = 'For all the time performed in your favor - 0'
+
+        bot_text = f'Your history of fulfilled obligations:\n\
+{text_to}\n\n\
+{text_from}'
+
     bot.send_message(message.chat.id, bot_text)
     transactions_menu(message)
     return
@@ -4841,11 +4858,18 @@ def edit_orange_final(message, new_sum):
 
 def green_red_wizard(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    lang = read_user_language(message.chat.id)
     btn1 = types.KeyboardButton(text=GREEN_BALL)
     btn2 = types.KeyboardButton(text=RED_BALL)
-    btn3 = types.KeyboardButton(text='Назад')
+    if lang == 'ru':
+        btn3 = types.KeyboardButton(text='Назад')
+        bot_text = 'Выберите новый статус'
+    else:
+        btn3 = types.KeyboardButton(text='Back')
+        bot_text = 'Select a new status'
+
     markup.row(btn1, btn2, btn3)
-    msg = bot.send_message(message.chat.id, 'Выберите новый статус', reply_markup=markup)
+    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
     bot.register_next_step_handler(msg, green_red_check)
 
 
@@ -4867,24 +4891,41 @@ def green_red_check(message):
 
 def green_edit_wizard(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    btn1 = types.KeyboardButton(text='Сохранить')
-    btn2 = types.KeyboardButton(text='Отмена')
-    markup.row(btn1, btn2)
-    msg = bot.send_message(message.chat.id, f'Вы собираетесь сменить статус на {GREEN_BALL}\n\
+    lang = read_user_language(message.chat.id)
+    if lang == 'ru':
+        btn1 = types.KeyboardButton(text='Сохранить')
+        btn2 = types.KeyboardButton(text='Отмена')
+        markup.row(btn1, btn2)
+        msg = bot.send_message(message.chat.id, f'Вы собираетесь сменить статус на {GREEN_BALL}\n\
 Пожалуйста подтвердите смену статуса:\n\
 \n\
 Если ваш статус был {ORANGE_BALL} или {RED_BALL}, все {HEART_RED} участников в Вашу пользу будут автоматически удалены.\n\
 \n\
 Все {HANDSHAKE} участников в Вашу пользу останутся в силе. Посмотреть все {HANDSHAKE} можно в разделе главного меню "Органайзер"',
                            reply_markup=markup)
+    else:
+        btn1 = types.KeyboardButton(text='Save')
+        btn2 = types.KeyboardButton(text='Cancel')
+        markup.row(btn1, btn2)
+        msg = bot.send_message(message.chat.id, f'You are going to change your status to {GREEN_BALL}\n\
+Please confirm the status change:\n\
+\n\
+If your status was {ORANGE_BALL} or {RED_BALL}, all {HEART_RED} members in Your favor will be automatically deleted.\n\
+\n\
+All {HANDSHAKE} participants in Your favor will remain valid. You can view all {HANDSHAKE} in the "organizer" section of the main menu"',
+                       reply_markup=markup)
     bot.register_next_step_handler(msg, green_edit_wizard_check)
 
 
 def green_edit_wizard_check(message):
     bot.delete_message(message.chat.id, message.message_id)
     text = message.text
-    if text == 'Сохранить':
-        bot.send_message(message.chat.id, 'Статус сохранён')
+    if text == 'Сохранить' or 'Save' in text:
+        lang = read_user_language(message.chat.id)
+        if lang == 'ru':
+            bot.send_message(message.chat.id, 'Статус сохранён')
+        else:
+            bot.send_message(message.chat.id, 'The status of the saved')
 
         # создаем список с теми, у кого мы в списке help_array
         try:
@@ -4902,8 +4943,14 @@ def green_edit_wizard_check(message):
         list_needy_id.discard(message.chat.id)
         for row in list_needy_id:
             try:
-                bot.send_message(row,
+                lang = read_user_language(row)
+                if lang == 'ru':
+                    bot.send_message(row,
                                  '{} {} сменил статус на {}'.format(telegram_name.first_name, telegram_name.last_name,
+                                                                    GREEN_BALL))
+                else:
+                    bot.send_message(row,
+                                 '{} {} changed the status to {}'.format(telegram_name.first_name, telegram_name.last_name,
                                                                     GREEN_BALL))
                 # закрываем намерения и event
                 intention = read_intention(from_id=row, to_id=message.chat.id).all()
@@ -4933,8 +4980,13 @@ def green_edit_wizard_check(message):
         update_exodus_user(telegram_id=message.chat.id, status='green', min_payments=0, max_payments=0)
 
         global_menu(message)
-    elif text == 'Отмена':
-        bot.send_message(message.chat.id, 'Статус не сохранён')
+    elif text == 'Отмена' or 'Cancel' in text:
+        lang = read_user_language(message.chat.id)
+        if lang == 'ru':
+            bot.send_message(message.chat.id, 'Статус не сохранён')
+        else:
+            bot.send_message(message.chat.id, 'Status is not saved')
+
         global_menu(message)
     elif "/start" in text:
         welcome_base(message)
@@ -5840,15 +5892,14 @@ def unfreeze_intentions(user):
 @bot.message_handler(func=lambda message: str(message.text).lower() == 'messagepeople')
 def message_handler_notifications(message):
     list_id_for_message = read_all_exodus_user()
-    message = "*Уважаемые участники тестирования бота Эксодус. Большое спасибо вам за обратную связь!\n\n" \
-              "Мы завершили тестирование и готовим бота к запуску в рабочем режиме в течении недели. \n\n" \
-              "Тестовая база данных будет обнулена и потребуется новая регистрация. \n\n" \
-              "О моменте перезагрузки мы сообщим дополнительно. \n\n" \
-              "Все вопросы можно задать в нашем чате поддержки: https://t.me/Exodus_Help\n\n" \
-              "Команда разработчиков.*"
+    mes = "*Уважаемые пользователи бота Эксодус. Как мы и предупреждали - сегодня производим обнуление базы бота и его перезапуск.\n\n\
+Вам понадобится заново перерегистрироваться, внести свои данные и заново установить отношения намерений взаимопомощи с участниками сети.\n\n\
+Просим прощения за это обновление и связанное с ним неудобство.\n\n\
+Для перезапуска наберите команду \n/start*"
+
     for id in list_id_for_message:
         try:
-            bot.send_message(id, message, parse_mode='markdown')
+            bot.send_message(id, mes, parse_mode='markdown')
         except:
             continue
     return
