@@ -33,12 +33,21 @@ def create_future_intention(event):
 def invitation_help_orange(event_id):
     event = read_event(event_id)
     user = read_exodus_user(event.to_id)
-    bot_text = f"Уведомление о запросе на ежемесячную помощь для {user.first_name} {user.last_name}"
-    # print('Отправлено-orange-{}-{}-{}'.format(event_id, event.from_id, event.to_id))
+    lang = read_user_language(event.from_id)
     keyboard = types.InlineKeyboardMarkup()
-    row = []
-    row.append(types.InlineKeyboardButton('Подробнее', callback_data='orange_invitation-{}-{}'.format(
-        user.telegram_id, event_id)))
+
+    if lang == 'ru':
+        bot_text = f"Уведомление о запросе на ежемесячную помощь для {user.first_name} {user.last_name}"
+        # print('Отправлено-orange-{}-{}-{}'.format(event_id, event.from_id, event.to_id))
+        row = []
+        row.append(types.InlineKeyboardButton('Подробнее', callback_data='orange_invitation-{}-{}'.format(
+            user.telegram_id, event_id)))
+    else:
+        bot_text = f"Notification of a request for monthly assistance for {user.first_name} {user.last_name}"
+        # print('Отправлено-orange-{}-{}-{}'.format(event_id, event.from_id, event.to_id))
+        row = []
+        row.append(types.InlineKeyboardButton('More detailed', callback_data='orange_invitation-{}-{}'.format(
+            user.telegram_id, event_id)))
     keyboard.row(*row)
     bot.send_message(event.from_id, bot_text, reply_markup=keyboard)
     return True
@@ -47,12 +56,22 @@ def invitation_help_orange(event_id):
 def invitation_help_red(event_id):
     event = read_event(event_id)
     user = read_exodus_user(event.to_id)
-    bot_text = f"Запрос на экстренную помощь для {user.first_name} {user.last_name}"
-    # print('Отправлено-red-{}-{}-{}'.format(event_id, event.from_id, event.to_id))
+    lang = read_user_language(event.from_id)
     keyboard = types.InlineKeyboardMarkup()
-    row = []
-    row.append(types.InlineKeyboardButton('Подробнее', callback_data='red_invitation-{}-{}'.format(
-        user.telegram_id, event_id)))
+
+    if lang == 'ru':
+        bot_text = f"Запрос на экстренную помощь для {user.first_name} {user.last_name}"
+        # print('Отправлено-red-{}-{}-{}'.format(event_id, event.from_id, event.to_id))
+        row = []
+        row.append(types.InlineKeyboardButton('Подробнее', callback_data='red_invitation-{}-{}'.format(
+            user.telegram_id, event_id)))
+    else:
+        bot_text = f"Request for emergency assistance for {user.first_name} {user.last_name}"
+        # print('Отправлено-red-{}-{}-{}'.format(event_id, event.from_id, event.to_id))
+        row = []
+        row.append(types.InlineKeyboardButton('More detailed', callback_data='red_invitation-{}-{}'.format(
+            user.telegram_id, event_id)))
+
     keyboard.row(*row)
     bot.send_message(event.from_id, bot_text, reply_markup=keyboard)
     return True
@@ -64,8 +83,7 @@ def notice_of_intent(event_id):
     event = read_event(event_id)
     user = read_exodus_user(telegram_id=event.from_id)
     user_needy = read_exodus_user(telegram_id=event.to_id)
-    intent = read_intention(event.from_id, event.to_id, 1)[
-        -1]  # берем последний элемент из списка, чтобы обеспечить корреткность событий
+    intent = read_intention(event.from_id, event.to_id, 1)[-1]  # берем последний элемент из списка, чтобы обеспечить корреткность событий
     # print('Отправлено-{}'.format(event_id))
 
     try:
@@ -88,8 +106,14 @@ def notice_of_intent(event_id):
             users_count = len(set(ring.help_array_orange))
         except:
             users_count = 0
-
-    bot_text = f"{intent.create_date.strftime('%d %B %Y')}\n\
+    lang = read_user_language(event.to_id)
+    if lang == 'ru':
+        bot_text = f"{intent.create_date.strftime('%d %B %Y')}\n\
+{user.first_name} {user.last_name} {status_from}  {RIGHT_ARROW} {intent.payment}{HEART_RED}\n\
+Вы - {status}\n\
+({left_sum}{HEART_RED} / {right_sum}{HELP} {LEFT_ARROW} {users_count} {PEOPLES})"
+    else:
+        bot_text = f"{intent.create_date.strftime('%d %B %Y')}\n\
 {user.first_name} {user.last_name} {status_from}  {RIGHT_ARROW} {intent.payment}{HEART_RED}\n\
 You - {status}\n\
 ({left_sum}{HEART_RED} / {right_sum}{HELP} {LEFT_ARROW} {users_count} {PEOPLES})"
@@ -121,38 +145,61 @@ def obligation_sended_notice(event_id):
 
     user_to = read_exodus_user(telegram_id=intention.to_id)
     requisites = read_requisites_user(user_to.telegram_id)
-    if requisites == []:
-        req_name = 'не указан'
-        req_value = 'не указан'
-    else:
-        req_name = requisites[0].name
-        req_value = requisites[0].value
-
     sum = intent.payment
     currency = intent.currency
 
-    # requisites = read_requisites_by_user_id(telegram_id=event.to_id)
-    # requisites_name = requisites.name
-    # requisites_value = requisites.value
+    lang = read_user_language(event.to_id)
+    if lang == 'ru':
+        if requisites == []:
+            req_name = 'спрость лично'
+            req_value = ''
+        else:
+            req_name = requisites[0].name
+            req_value = requisites[0].value
+        message = '{first_name} {last_name} {status_from} {RIGHT_ARROW} ' \
+                  '{HANDSHAKE} на сумму {sum}.\n\n' \
+                  'Пожалуйста, проверьте Ваши реквизиты {req_name} {req_value} и ' \
+                  'подтвердите получение:'.format(first_name=first_name,
+                                                  last_name=last_name,
+                                                  status_from=status_from, RIGHT_ARROW=RIGHT_ARROW,
+                                                  HANDSHAKE=HANDSHAKE,
+                                                  sum=sum, currency=currency,
+                                                  req_name=req_name,
+                                                  req_value=req_value)
 
-    message = '{first_name} {last_name} {status_from} {RIGHT_ARROW} ' \
-              '{HANDSHAKE} на сумму {sum}.\n\n' \
-              'Пожалуйста, проверьте Ваши реквизиты {req_name} {req_value} и ' \
-              'подтвердите получение:'.format(first_name=first_name,
-                                              last_name=last_name,
-                                              status_from=status_from, RIGHT_ARROW=RIGHT_ARROW,
-                                              HANDSHAKE=HANDSHAKE,
-                                              sum=sum, currency=currency,
-                                              req_name=req_name,
-                                              req_value=req_value)
+        keyboard = types.InlineKeyboardMarkup()
+        row = []
+        row.append(types.InlineKeyboardButton('Напомнить позже',
+                                              callback_data='remind_later_{}'.format(event.event_id)))
+        row.append(types.InlineKeyboardButton('Да, я получил',
+                                              callback_data='send_confirmation_{}'. \
+                                              format(event.event_id)))
+    else:
+        if requisites == []:
+            req_name = 'ask in person'
+            req_value = ''
+        else:
+            req_name = requisites[0].name
+            req_value = requisites[0].value
+        message = '{first_name} {last_name} {status_from} {RIGHT_ARROW} ' \
+                  '{HANDSHAKE} for the sum {sum}.\n\n' \
+                  'Please check your Bank details {req_name} {req_value} and ' \
+                  'acknowledge receipt:'.format(first_name=first_name,
+                                                  last_name=last_name,
+                                                  status_from=status_from, RIGHT_ARROW=RIGHT_ARROW,
+                                                  HANDSHAKE=HANDSHAKE,
+                                                  sum=sum, currency=currency,
+                                                  req_name=req_name,
+                                                  req_value=req_value)
 
-    keyboard = types.InlineKeyboardMarkup()
-    row = []
-    row.append(types.InlineKeyboardButton('Напомнить позже',
-                                          callback_data='remind_later_{}'.format(event.event_id)))
-    row.append(types.InlineKeyboardButton('Да, я получил',
-                                          callback_data='send_confirmation_{}'. \
-                                          format(event.event_id)))
+        keyboard = types.InlineKeyboardMarkup()
+        row = []
+        row.append(types.InlineKeyboardButton('Remind me later',
+                                              callback_data='remind_later_{}'.format(event.event_id)))
+        row.append(types.InlineKeyboardButton('Yes, I received',
+                                              callback_data='send_confirmation_{}'. \
+                                              format(event.event_id)))
+
     keyboard.row(*row)
 
     bot.send_message(event.to_id, message, reply_markup=keyboard)
@@ -171,9 +218,16 @@ def obligation_recieved_notice(event_id):
     right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
 
     # confirmation_of_an_obligation(event.from_id, user.first_name, event.current_payments, event.currency)
-    bot_text = f"{user.first_name} {user.last_name} подтвердил, что ваше {HANDSHAKE} на сумму {event.current_payments} {event.currency} исполнено.\n\n\
+    lang = read_user_language(event.from_id)
+    if lang == 'ru':
+        bot_text = f"{user.first_name} {user.last_name} подтвердил, что ваше {HANDSHAKE} на сумму {event.current_payments} {event.currency} исполнено.\n\n\
 {user.first_name} {user.last_name} - {status}\n\
 ({left_sum} {HEART_RED} / {right_sum} {HELP})"
+    else:
+        bot_text = f"{user.first_name} {user.last_name} confirmed that your {HANDSHAKE} for the sum {event.current_payments} {event.currency} executed.\n\n\
+{user.first_name} {user.last_name} - {status}\n\
+({left_sum} {HEART_RED} / {right_sum} {HELP})"
+
     bot.send_message(event.from_id, bot_text)
     # update_event(event_id, True)
 
@@ -184,27 +238,49 @@ def reminder_for_6_10(event_id):
 
     user = read_exodus_user(telegram_id=event.from_id)
     first_name = user.first_name
+    lang = read_user_language(event.from_id)
+    if lang == 'ru':
+        message = 'Требуется ваше действие!' \
+                  '{first_name} исполнил ' \
+                  '{HANDSHAKE} на сумму {sum} {currency}.' \
+                  'Это произошло болеее 5 дней назад, но вы так и не подтвердили получение средств.\n\n' \
+                  'Пожалуйста, проверьте Ваши реквизиты и ' \
+                  'подтвердите получение:'.format(first_name=first_name, HANDSHAKE=HANDSHAKE,
+                                                  sum=event.current_payments, currency=event.currency)
 
-    message = 'Требуется ваше действие!' \
-              '{first_name} исполнил ' \
-              '{HANDSHAKE} на сумму {sum} {currency}.' \
-              'Это произошло болеее 5 дней назад, но вы так и не подтвердили получение средств.\n\n' \
-              'Пожалуйста, проверьте Ваши реквизиты и ' \
-              'подтвердите получение:'.format(first_name=first_name, HANDSHAKE=HANDSHAKE,
-                                              sum=event.current_payments, currency=event.currency)
+        keyboard = types.InlineKeyboardMarkup()
+        row = []
+        row.append(types.InlineKeyboardButton('Напомнить позже',
+                                              callback_data='6_10_remind_later_{}'.format(event.event_id)))
 
-    keyboard = types.InlineKeyboardMarkup()
-    row = []
-    row.append(types.InlineKeyboardButton('Напомнить позже',
-                                          callback_data='6_10_remind_later_{}'.format(event.event_id)))
+        row.append(types.InlineKeyboardButton('Да, я получил',
+                                              callback_data='6_10_send_confirmation_{}'. \
+                                              format(event.event_id)))
 
-    row.append(types.InlineKeyboardButton('Да, я получил',
-                                          callback_data='6_10_send_confirmation_{}'. \
-                                          format(event.event_id)))
+        row.append(types.InlineKeyboardButton('Нет, я не получил',
+                                              callback_data='6_10_no_send_confirmation_{}'. \
+                                              format(event.event_id)))
+    else:
+        message = 'Your action is required!' \
+                    '{first_name} has executed ' \
+                    '{HANDSHAKE} for the amount {sum} {currency}.' \
+                    'This happened more than 5 days ago, but you have not confirmed the receipt of funds.\n\n' \
+                    'Please check your Bank details and ' \
+                    'acknowledge receipt:'.format(first_name=first_name, HANDSHAKE=HANDSHAKE,
+                                                  sum=event.current_payments, currency=event.currency)
 
-    row.append(types.InlineKeyboardButton('Нет, я не получил',
-                                          callback_data='6_10_no_send_confirmation_{}'. \
-                                          format(event.event_id)))
+        keyboard = types.InlineKeyboardMarkup()
+        row = []
+        row.append(types.InlineKeyboardButton('Remind me later',
+                                              callback_data='6_10_remind_later_{}'.format(event.event_id)))
+
+        row.append(types.InlineKeyboardButton('Yes, I received',
+                                              callback_data='6_10_send_confirmation_{}'. \
+                                              format(event.event_id)))
+
+        row.append(types.InlineKeyboardButton('No, I didnt get it',
+                                              callback_data='6_10_no_send_confirmation_{}'. \
+                                              format(event.event_id)))
 
     keyboard.row(*row)
 
@@ -216,10 +292,18 @@ def obligation_money_requested_notice(event_id):
     # 6.3
     event = read_event(event_id)
     # user = read_exodus_user(event.intention.to_id)
-    message = f"Запрос на исполнение {HANDSHAKE}"
+    lang = read_user_language(event.from_id)
     keyboard = types.InlineKeyboardMarkup()
-    row = [types.InlineKeyboardButton('Подробнее',
-                                      callback_data='obligation_money_requested-{}'.format(event_id))]
+
+    if lang == 'ru':
+        message = f"Запрос на исполнение {HANDSHAKE}"
+        row = [types.InlineKeyboardButton('Подробнее',
+                                          callback_data='obligation_money_requested-{}'.format(event_id))]
+    else:
+        message = f"Request for execution {HANDSHAKE}"
+        row = [types.InlineKeyboardButton('More detailed',
+                                          callback_data='obligation_money_requested-{}'.format(event_id))]
+
     keyboard.row(*row)
     bot.send_message(event.from_id, message, reply_markup=keyboard)
     return
@@ -231,11 +315,20 @@ def reminder(event_id, direction=None):
 
     keyboard = types.InlineKeyboardMarkup()
     row = []
-    row.append(types.InlineKeyboardButton('Прочитать',
+    lang = read_user_language(event.from_id)
+    if lang == 'ru':
+        row.append(types.InlineKeyboardButton('Прочитать',
                                           callback_data='reminder_{}'.format(event_id)))
+    else:
+        row.append(types.InlineKeyboardButton('Read',
+                                              callback_data='reminder_{}'.format(event_id)))
     keyboard.row(*row)
     if direction == 'out':
-        message = "Для вас есть уведомление:"
+        if lang == 'ru':
+            message = "Для вас есть уведомление:"
+        else:
+            message = "There is a notification for you:"
+
         bot.send_message(event.from_id, message, reply_markup=keyboard)
     elif direction == 'in':
         intention = read_intention_by_id(event.to_id)
