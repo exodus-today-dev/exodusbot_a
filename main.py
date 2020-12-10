@@ -2872,7 +2872,9 @@ def obligation_for_needy(message, reminder_call, intention_id):
             req_name = requisites[0].name
             req_value = requisites[0].value
         bot_text = f"У Вас {HANDSHAKE} перед участником {user_to.first_name} {user_to.last_name} {status} на сумму {intention.payment} {intention.currency}\n\
-Деньги можно отправить на реквизиты:"
+Деньги можно отправить на реквизиты:\n"\
+f"{req_name}\n"\
+f"{req_value}"
         btn2 = types.KeyboardButton(text='Да, я отправил деньги')
         btn3 = types.KeyboardButton(text='Напомнить позже')
     else:
@@ -2883,15 +2885,13 @@ def obligation_for_needy(message, reminder_call, intention_id):
             req_name = requisites[0].name
             req_value = requisites[0].value
         bot_text = f"You have {HANDSHAKE} in front of the {user_to.first_name} {user_to.last_name} {status} for the amount of {intention.payment} {intention.currency}\n\
-You can send money to requisites:"
+You can send money to requisites:\n"\
+f"{req_name}\n"\
+f"{req_value}"
         btn2 = types.KeyboardButton(text='Yes, I sent the money')
         btn3 = types.KeyboardButton(text='Remind me later')
 
     markup.row(btn2, btn3)
-    bot.send_message(message.chat.id, bot_text, reply_markup=markup)
-
-    bot.send_message(message.chat.id, f"{req_name}")
-    bot_text = f"{req_value}"
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
 
     # Может тут добавить добавление в словарь на всякий случай
@@ -2942,8 +2942,8 @@ def obligation_sent_confirm(message):
         else:
             req_name = requisites[0].name
             req_value = requisites[0].value
-        bot_text = f"Пожалуйста подтвердите, что вы отправили {intention.payment} {intention.currency}\
-Участнику {user_to.first_name} {user_to.last_name} на реквизиты {req_name} {req_value}:"
+        bot_text = f"Пожалуйста подтвердите, что вы отправили {intention.payment} {intention.currency} \n\
+Участнику {user_to.first_name} {user_to.last_name} на реквизиты \n{req_name} {req_value}:"
         btn1 = types.KeyboardButton(text='Да')
         btn2 = types.KeyboardButton(text='Нет')
     else:
