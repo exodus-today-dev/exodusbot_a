@@ -277,7 +277,7 @@ def get_status(text):
 
 
 def exception_message(message):
-    lang = read_user_language(message.chat.id).language
+    lang = read_user_language(message.chat.id)
     if lang == "ru":
         msg = "Пошло что-то не так. Попробуйте снова!"
     else:
