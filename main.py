@@ -688,6 +688,15 @@ def edit_link_check(message):
     user_id = message.chat.id
     lang = read_user_language(user_id)
 
+    if len(link) > 240:
+        if lang == 'ru':
+            msg = bot.send_message(user_id, "Длина текста не должна превышать 240 символов!\nПопробуйте снова.")
+        else:
+            msg = bot.send_message(user_id, "The text must not exceed 240 characters in length!\nTry again.")
+
+        bot.register_next_step_handler(msg, edit_link_check)
+        return
+
     if link == 'Назад' or 'Back' in link:
         configuration_menu(message)
         return
