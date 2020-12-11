@@ -42,18 +42,6 @@ def is_digit(string):
             return False
 
 
-def is_digit_number(string):
-    if string.isdigit():
-        if int(string) == abs(int(string)):
-            return True
-    else:
-        try:
-            if float(string):
-                if float(string) == abs(float(string)):
-                    return True
-        except ValueError:
-            return False
-
 def make_hash(text):
     hash = text.encode().hex()
     return hash
@@ -2424,11 +2412,11 @@ def for_other_wizard_intention_check(message):
     if intention_number == 'Назад' or intention_number == 'Back':
         for_other_wizard(message)
         return
-    if not is_digit_number(intention_number):
+    if not intention_number.isdigit():
         if lang == 'ru':
-            msg = bot.send_message(message.chat.id, 'Номер должен быть в виде числа:')
+            msg = bot.send_message(message.chat.id, TEXT_NUMBER_DIGIT["ru"])
         else:
-            msg = bot.send_message(message.chat.id, 'The number must be in the form of a number:')
+            msg = bot.send_message(message.chat.id, TEXT_NUMBER_DIGIT["en"])
 
         bot.register_next_step_handler(msg, for_other_wizard_intention_check)
         return
