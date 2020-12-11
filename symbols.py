@@ -37,11 +37,11 @@ START_TEXT = \
         "ru":
             "Бот Эксодус - \n\
 организация децентрализованной сетевой взаимопомощи.\n\n\
-О чем вы хотите узнать?",
+Выберите пояснение к использованию бота в меню",
         "en":
             "Bot Exodus - \n\
 organization of decentralized network mutual assistance.\n\n\
-What do you want to know?"
+Select an explanation for using the bot from the menu"
     }
 
 TEXT_INSTRUCTIONS = \

@@ -558,7 +558,7 @@ def configuration_menu(message, text=None):
         bot_text = text
     else:
         bot_text = generate_user_info_text(user)
-    msg = bot.send_message(message.chat.id, bot_text, parse_mode="html", reply_markup=markup)
+    msg = bot.send_message(message.chat.id, bot_text, parse_mode="html", disable_web_page_preview=True, reply_markup=markup)
     bot.register_next_step_handler(msg, configuration_check)
 
 
@@ -669,7 +669,7 @@ def edit_link_menu(message):
             link = 'не задана'
         else:
             link = user.link
-        bot_text = 'Текущая ссылка: {}\nВведите новую ссылку на чат'.format(link)
+        bot_text = 'Текущая ссылка и описание: {}\nВведите кратко текстом: цель сбора и ссылку на подробное описание'.format(link)
     else:
         btn1 = types.KeyboardButton(text='Back')
         markup.row(btn1)
@@ -677,9 +677,9 @@ def edit_link_menu(message):
             link = 'not set'
         else:
             link = user.link
-        bot_text = 'The current reference is: {}\nInsert a new link to the chat'.format(link)
+        bot_text = 'Current link and description: {}\nEnter a short text: the purpose of the collection and a link to a detailed description'.format(link)
 
-    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
+    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup, disable_web_page_preview=True)
     bot.register_next_step_handler(msg, edit_link_check)
 
 
@@ -693,12 +693,12 @@ def edit_link_check(message):
         return
 
     if lang == 'ru':
-        bot_text = 'Ваша новая ссылка на чат:\n{}'.format(link)
+        bot_text = 'Ваша новая ссылка и описание:\n{}'.format(link)
     else:
-        bot_text = 'Your new link to the chat:\n{}'.format(link)
+        bot_text = 'Your new link and description:\n{}'.format(link)
 
     update_exodus_user(user_id, link=link)
-    bot.send_message(user_id, bot_text)
+    bot.send_message(user_id, bot_text, disable_web_page_preview=True)
     configuration_menu(message)
 
 
@@ -1861,7 +1861,7 @@ def members_list_in_network_check(message, member_id, direction, g_menu):
             user = read_exodus_user_by_exodus_id(selected_id)
             telegram_id = user.telegram_id
             user_info_text = generate_user_info_text(user, message.chat.id)
-            bot.send_message(message.chat.id, user_info_text, parse_mode='html')
+            bot.send_message(message.chat.id, user_info_text, parse_mode='html', disable_web_page_preview=True)
             selected_member_action_menu(message, telegram_id)
 
         except:
@@ -1936,7 +1936,7 @@ def check_other_socium(message, member_id):
             list_my_socium = get_my_socium(member_id)
             if telegram_id in list_my_socium:
                 user_info_text = generate_user_info_text(user, message.chat.id)
-                bot.send_message(message.chat.id, user_info_text, parse_mode='html')
+                bot.send_message(message.chat.id, user_info_text, parse_mode='html', disable_web_page_preview=True)
                 selected_member_action_menu(message, telegram_id)
             else:
                 if lang == 'ru':
@@ -2025,7 +2025,7 @@ def check_my_socium(message, list_exodus_id_my_socium):
                 user = read_exodus_user_by_exodus_id(selected_id)
                 telegram_id = user.telegram_id
                 user_info_text = generate_user_info_text(user, message.chat.id)
-                bot.send_message(message.chat.id, user_info_text, parse_mode='html')
+                bot.send_message(message.chat.id, user_info_text, parse_mode='html', disable_web_page_preview=True)
                 selected_member_action_menu(message, telegram_id)
         except:
             bot.send_message(message.chat.id, exception_message(message))
@@ -4173,7 +4173,7 @@ def start_orange_invitation(message, user_to, event_id=None, ref=None):
 
     markup.row(btn2, btn3)
     markup.row(btn1, btn4)
-    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup, parse_mode="html")
+    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup, disable_web_page_preview=True, parse_mode="html")
     temp_dict[
         message.chat.id] = user  # TODO ---------- убрать этот костыль, так как при большом кол-во пользователей будет съедать память
     temp_dict[
@@ -4418,7 +4418,6 @@ def start_red_invitation(message, user_to, event_id=None, ref=None):
     delta = d1 - d0
     days_end = user.days - delta.days
 
-
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 
     if lang == 'ru':
@@ -4436,7 +4435,7 @@ def start_red_invitation(message, user_to, event_id=None, ref=None):
 
     markup.row(btn2, btn3)
     markup.row(btn1, btn4)
-    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup, parse_mode="html")
+    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup, disable_web_page_preview=True, parse_mode="html")
     temp_dict[
         message.chat.id] = user  # TODO ---------- убрать этот костыль, так как при большом кол-во пользователей будет съедать память
     temp_dict[
