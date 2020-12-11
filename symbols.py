@@ -247,8 +247,8 @@ TEXT_CASE = \
             "In procesing..."
     }
 
-TEXT_SUM_DIGIT = {'ru': 'Сумма должна быть только в виде цифр.',
-                  'en': 'The amount should only be in the form of numbers.'}
+TEXT_SUM_DIGIT = {'ru': 'Сумма должна быть только в виде цифр и больше 0',
+                  'en': 'The amount must only be in digits and must be greater than 0'}
 
 TEXT_NUMBER_DIGIT = {'ru': 'Номер должен быть в виде числа:',
                   'en': 'The number must be in the form of a digit:'}

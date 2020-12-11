@@ -28,6 +28,22 @@ transaction = {}
 # проверка на то, что строка - это число и с плавающей точкой тоже
 def is_digit(string):
     if string.isdigit():
+        if int(string) > 0:
+            if int(string) == abs(int(string)):
+                return True
+        else:
+            return False
+    else:
+        try:
+            if float(string):
+                if float(string) == abs(float(string)):
+                    return True
+        except ValueError:
+            return False
+
+
+def is_digit_number(string):
+    if string.isdigit():
         if int(string) == abs(int(string)):
             return True
     else:
@@ -37,7 +53,6 @@ def is_digit(string):
                     return True
         except ValueError:
             return False
-
 
 def make_hash(text):
     hash = text.encode().hex()
@@ -2409,7 +2424,7 @@ def for_other_wizard_intention_check(message):
     if intention_number == 'Назад' or intention_number == 'Back':
         for_other_wizard(message)
         return
-    if not is_digit(intention_number):
+    if not is_digit_number(intention_number):
         if lang == 'ru':
             msg = bot.send_message(message.chat.id, 'Номер должен быть в виде числа:')
         else:
@@ -4233,13 +4248,15 @@ def orange_invitation_wizard(message, user_to, event_id=None):
     lang = read_user_language(message.chat.id)
     if lang == "ru":
         btn1 = types.KeyboardButton(text='Назад')
+        markup.row(btn1)
         msg = bot.send_message(message.chat.id, 'Введите сумму помощи в {}:'.format(user.currency),
                                reply_markup=markup)
     else:
         btn1 = types.KeyboardButton(text='Back')
+        markup.row(btn1)
         msg = bot.send_message(message.chat.id, 'Enter the amount of assistance in {}:'.format(user.currency),
                                reply_markup=markup)
-    markup.row(btn1)
+
     bot.register_next_step_handler(msg, orange_invitation_wizard_check, event_id)
 
 
