@@ -2,6 +2,7 @@ API_TOKEN = ''
 
 DEBUG = True
 
+DATABASE_URL = 'postgresql+psycopg2://user:password@host/dbname'
 
 WEBHOOK_HOST = 'exodusbot.ioi.pp.ua'  # '<ip/host where the bot is running>'
 WEBHOOK_PORT = 8443  # 443, 80, 88 or 8443 (port need to be 'open')
