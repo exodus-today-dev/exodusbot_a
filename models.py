@@ -157,7 +157,7 @@ def read_user_language(user_id):
     if user:
         return session.query(User_Language).filter_by(user_id=user_id).first().language
     else:
-        create_user_language(user_id, "ru")
+        create_user_language(user_id, "en")
         return session.query(User_Language).filter_by(user_id=user_id).first().language
 
 
