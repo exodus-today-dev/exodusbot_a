@@ -211,6 +211,7 @@ def global_menu(message, dont_show_status=True):
 def global_check(message):
     """2.0.1"""
     text = message.text
+    lang = read_user_language(message.chat.id)
     # if text == 'Мой статус':
     #     status_menu(message)
     if 'Органайзер' in text or "Organiser" in text:
@@ -226,13 +227,19 @@ def global_check(message):
     elif 'Помочь' in text or 'Get' in text:
         call_people_menu(message)
     elif f'{MAN} {RIGHT_ARROW} 0' in text:
-        bot.send_message(message.chat.id, f'В пользу других нет записей')
+        if lang == 'ru':
+            bot.send_message(message.chat.id, f'В пользу других нет записей')
+        else:
+            bot.send_message(message.chat.id, f'There are no entries in favor of others')
         return
     elif f'{MAN} {RIGHT_ARROW}' in text:
         members_list_in_network_menu(message, message.chat.id, 'out')
         return
     elif f'0 {PEOPLES} {RIGHT_ARROW}' in text:
-        bot.send_message(message.chat.id, f'В Вашу пользу нет записей')
+        if lang == 'ru':
+            bot.send_message(message.chat.id, f'В Вашу пользу нет записей')
+        else:
+            bot.send_message(message.chat.id, f'There are no records in Your favor')
         return
     elif f'{PEOPLES} {RIGHT_ARROW}' in text:
         members_list_in_network_menu(message, message.chat.id, 'in')
@@ -440,7 +447,7 @@ def instruction_menu(message, text):
         btn2 = types.KeyboardButton(text='Menu description')
         btn4 = types.KeyboardButton(text='How to start using it')
         btn5 = types.KeyboardButton(text='Possible cases')
-        btn6 = types.KeyboardButton(text='Global menu')
+        btn6 = types.KeyboardButton(text='Menu')
 
     markup.row(btn1, btn2, btn3)
     markup.row(btn4, btn5, btn6)
@@ -474,7 +481,7 @@ def check_instruction_menu(message):
         text = TEXT_CASE
         instruction_menu(message, text)
         return
-    elif text == 'Global menu':
+    elif text == 'Menu':
         global_menu(message)
         return
 
@@ -539,17 +546,17 @@ def configuration_menu(message, text=None):
     if lang == "ru":
         btn1 = types.KeyboardButton(text=f'{status} Статус')
         btn3 = types.KeyboardButton(text=f'{CREDIT_CARD} Реквизиты')
-        btn2 = types.KeyboardButton(text=f'{SPEECH_BALOON} Изменить ссылку на чат')
+        btn2 = types.KeyboardButton(text=f'{SPEECH_BALOON} Обо мне')
         btn4 = types.KeyboardButton(text='Главное меню')
         btn5 = types.KeyboardButton(text=f'{FOOTPRINTS} Выйти из бота')
-        btn6 = types.KeyboardButton(text=f'Изменить язык')
+        btn6 = types.KeyboardButton(text=f'{GLOBE_NEW} RU{RIGHT_ARROW}ENG')
     else:
         btn1 = types.KeyboardButton(text=f'{status} Status')
-        btn3 = types.KeyboardButton(text=f'{CREDIT_CARD} Requisites')
-        btn2 = types.KeyboardButton(text=f'{SPEECH_BALOON} Change the chat link')
-        btn4 = types.KeyboardButton(text='Global menu')
-        btn5 = types.KeyboardButton(text=f'{FOOTPRINTS} Log out of the bot')
-        btn6 = types.KeyboardButton(text=f'Change language')
+        btn3 = types.KeyboardButton(text=f'{CREDIT_CARD} Pay details')
+        btn2 = types.KeyboardButton(text=f'{SPEECH_BALOON} About me')
+        btn4 = types.KeyboardButton(text='Menu')
+        btn5 = types.KeyboardButton(text=f'{FOOTPRINTS} Log out')
+        btn6 = types.KeyboardButton(text=f'{GLOBE_NEW} ENG{RIGHT_ARROW}RU')
 
     markup.row(btn1, btn2, btn3)
     markup.row(btn5, btn6, btn4)
@@ -557,7 +564,7 @@ def configuration_menu(message, text=None):
     if text:
         bot_text = text
     else:
-        bot_text = generate_user_info_text(user)
+        bot_text = generate_user_info_text(user, lang)
     msg = bot.send_message(message.chat.id, bot_text, parse_mode="html", disable_web_page_preview=True, reply_markup=markup)
     bot.register_next_step_handler(msg, configuration_check)
 
@@ -573,17 +580,17 @@ def configuration_check(message):
     if 'Статус' in text or 'Status' in text:
         status_menu(message)
         return
-    elif 'Реквизиты' in text or 'Requisites' in text:
+    elif 'Реквизиты' in text or 'Pay details' in text:
         requisites_wizard(message)
         return
-    elif 'Изменить ссылку' in text or 'Change the chat link' in text:
+    elif 'Обо' in text or 'About' in text:
         edit_link_menu(message)
         return
     elif text == 'Настройки уведомлений':
         bot.send_message(message.chat.id, 'Настройки уведомлений')  # TODO
         global_menu(message)
         return
-    elif 'Главное меню' in text or 'Global menu' in text:
+    elif 'Главное меню' in text or 'Menu' in text:
         global_menu(message)
         return
     elif "Выйти" in text or 'Log out' in text:
@@ -613,11 +620,11 @@ def configuration_check(message):
                                reply_markup=markup)
         bot.register_next_step_handler(msg, config_wizzard_currency)
         return
-    elif "Изменить язык" in text:
+    elif f"RU{RIGHT_ARROW}ENG" in text:
         update_user_language(message.chat.id, "en")
         configuration_menu(message, text='Change language to english!')
         return
-    elif "Change" in text:
+    elif f"ENG{RIGHT_ARROW}RU" in text:
         update_user_language(message.chat.id, "ru")
         configuration_menu(message, text='Вы изменили язык на русский!')
         return
@@ -688,11 +695,11 @@ def edit_link_check(message):
     user_id = message.chat.id
     lang = read_user_language(user_id)
 
-    if len(link) > 240:
+    if len(link) > 180:
         if lang == 'ru':
-            msg = bot.send_message(user_id, "Длина текста не должна превышать 240 символов!\nПопробуйте снова.")
+            msg = bot.send_message(user_id, "Длина текста не должна превышать 180 символов!\nПопробуйте снова.")
         else:
-            msg = bot.send_message(user_id, "The text must not exceed 240 characters in length!\nTry again.")
+            msg = bot.send_message(user_id, "The text must not exceed 180 characters in length!\nTry again.")
 
         bot.register_next_step_handler(msg, edit_link_check)
         return
@@ -736,7 +743,7 @@ def requisites_wizard(message):
         markup.row(btn3, btn4)
         msg = bot.send_message(user_id, 'Выберите реквизиты для редактирования:', reply_markup=markup)
     else:
-        btn3 = types.KeyboardButton('Add requisites')
+        btn3 = types.KeyboardButton('Add pay details')
         btn4 = types.KeyboardButton('Back')
         markup.row(btn3, btn4)
         msg = bot.send_message(user_id, 'Select the requisites to edit:', reply_markup=markup)
@@ -761,7 +768,7 @@ def requisites_wizard_check(message):
     if text in tmp_list:
         select_requisite(message)
         return
-    elif text == 'Add requisites' or 'Добавить реквизиты' in text:
+    elif text == 'Add pay details' or 'Добавить реквизиты' in text:
         add_requisite_name(message)
         return
     elif text == 'Назад' or 'Back' in text:
@@ -784,7 +791,7 @@ def select_requisite(message):
         if lang == "ru":
             bot.send_message(message.chat.id, 'Реквизиты по умолчанию:')
         else:
-            bot.send_message(message.chat.id, 'Requisites is default:')
+            bot.send_message(message.chat.id, 'Pay details is default:')
         text = text[:-15]
     requisite = read_requisites_name(message.chat.id, text)
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -800,7 +807,7 @@ def select_requisite(message):
         text_bot = f"Name: {requisite.name}\n\
 Value: {requisite.value}"
         btn1 = types.KeyboardButton(text='Edit data')
-        btn2 = types.KeyboardButton(text='Make it the default requisites')
+        btn2 = types.KeyboardButton(text='Make it the default pay details')
         btn3 = types.KeyboardButton(text='Delete')
         btn4 = types.KeyboardButton(text='Back')
 
@@ -824,7 +831,7 @@ def select_requisite_check(message, requisite):
         if lang == 'ru':
             bot.send_message(message.chat.id, 'Реквизиты сохранены')
         else:
-            bot.send_message(message.chat.id, 'Requisites saved')
+            bot.send_message(message.chat.id, 'Pay details saved')
 
         requisites_wizard(message)
         return
@@ -941,7 +948,7 @@ Value: {requisite_value}\n\
 The data is correct?'
         btn1 = types.KeyboardButton(text='No')
         btn2 = types.KeyboardButton(text='Yes')
-        btn3 = types.KeyboardButton(text='Yes, make it the default requisites')
+        btn3 = types.KeyboardButton(text='Yes, make it the default pay details')
         btn4 = types.KeyboardButton(text='Cancel')
 
     markup.row(btn1, btn2)
@@ -980,7 +987,7 @@ def pre_save_requisite_check(message, requisite_name, requisite_value, edit_id=0
         if lang == "ru":
             bot.send_message(message.chat.id, 'Реквизиты сохранены')
         else:
-            bot.send_message(message.chat.id, 'Requisites saved')
+            bot.send_message(message.chat.id, 'Pay details saved')
 
         if not to_req_settings:
             global_menu(message)
@@ -997,7 +1004,7 @@ def pre_save_requisite_check(message, requisite_name, requisite_value, edit_id=0
         if lang == "ru":
             bot.send_message(message.chat.id, 'Реквизиты сохранены')
         else:
-            bot.send_message(message.chat.id, 'Requisites saved')
+            bot.send_message(message.chat.id, 'Pay details saved')
 
         if not to_req_settings:
             global_menu(message)
@@ -1099,7 +1106,7 @@ def transactions_menu(message):
         btn6 = types.KeyboardButton(text='Главное меню')
     else:
         bot_text = f"Organiser {status}"
-        btn6 = types.KeyboardButton(text='Global menu')
+        btn6 = types.KeyboardButton(text='Menu')
 
     markup.row(btn1, btn2)
     markup.row(btn5, btn6)
@@ -1125,7 +1132,7 @@ def transactions_check(message):
     elif f'{LIKE}' in text:
         history_intention(message)
         return
-    elif 'Global menu' in text or 'Главное меню'in text:
+    elif 'Menu' in text or 'Главное меню'in text:
         global_menu(message)
         return
     elif "/start" in text:
@@ -1224,7 +1231,7 @@ def members_menu(message, meta_txt=None):
         btn7 = types.KeyboardButton(text='Расширить сеть')
         bot_text = "Участники:"
     else:
-        btn5 = types.KeyboardButton(text='Global menu')
+        btn5 = types.KeyboardButton(text='Menu')
         btn6 = types.KeyboardButton(text=f'My network {PEOPLES} {len_my_socium}')
         btn7 = types.KeyboardButton(text='Expand your network')
         bot_text = "Participants:"
@@ -1573,7 +1580,7 @@ def generate_user_info_preview(user_id):
     return user_info_preview
 
 
-def generate_user_info_text(user, self_id=''):
+def generate_user_info_text(user, lang, self_id=''):
     """ 5.2 """
 
     # ref = user.ref
@@ -1667,7 +1674,7 @@ def generate_user_info_text(user, self_id=''):
     left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
     right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
 
-    lang = read_user_language(telegram_id)
+    #lang = read_user_language(telegram_id)
     if lang == "ru":
         if requisites == []:
             req_name = 'спросить лично'
@@ -1679,7 +1686,7 @@ def generate_user_info_text(user, self_id=''):
         if user.link == '' or user.link == None:
             user_info_text = f'{first_name} {last_name} {status} / {GLOBE} <a href="{link}">Помочь</a> / {CREDIT_CARD} {req_name} <a href="{req_value}">{req_value}</a>\n'
         else:
-            user_info_text = f'{first_name} {last_name} {status} / {GLOBE} <a href="{link}">Помочь</a> / {SPEECH_BALOON} {user.link} / {CREDIT_CARD} {req_name} <a href="{req_value}">{req_value}</a>\n'
+            user_info_text = f'{first_name} {last_name} {status} / {GLOBE} <a href="{link}">Помочь</a> / {SPEECH_BALOON}обо мне: {user.link} / {CREDIT_CARD} {req_name} <a href="{req_value}">{req_value}</a>\n'
     else:
         if requisites == []:
             req_name = 'ask in person'
@@ -1691,13 +1698,17 @@ def generate_user_info_text(user, self_id=''):
         if user.link == '' or user.link == None:
             user_info_text = f'{first_name} {last_name} {status} / {GLOBE} <a href="{link}">Get help</a> / {CREDIT_CARD} {req_name} <a href="{req_value}">{req_value}</a>\n'
         else:
-            user_info_text = f'{first_name} {last_name} {status} / {GLOBE} <a href="{link}">Get help</a> / {SPEECH_BALOON} {user.link} / {CREDIT_CARD} {req_name} <a href="{req_value}">{req_value}</a>\n'
+            user_info_text = f'{first_name} {last_name} {status} / {GLOBE} <a href="{link}">Get help</a> / {SPEECH_BALOON}about me: {user.link} / {CREDIT_CARD} {req_name} <a href="{req_value}">{req_value}</a>\n'
 
     if user.status == 'green':
         if user.link == '' or user.link == None:
             user_info_text = f'{first_name} {last_name} {status}\n'
         else:
-            user_info_text = f'{first_name} {last_name} {status} / {SPEECH_BALOON} {user.link}\n'
+            if lang == "ru":
+                user_info_text = f'{first_name} {last_name} {status} / {SPEECH_BALOON}обо мне: {user.link}\n'
+            else:
+                user_info_text = f'{first_name} {last_name} {status} / {SPEECH_BALOON}about me: {user.link}\n'
+
         user_info_text += f'{MAN} {RIGHT_ARROW} {transactions_out_count} {PEOPLES}: {intentions_out_sum} {HEART_RED} / {obligations_out_sum} {HANDSHAKE}'
 
     elif user.status == 'orange':
@@ -1784,7 +1795,7 @@ def selected_member_action_menu(message, member_id):
         btn6 = types.KeyboardButton(text=f'Помочь {first_name}')
         bot_text = '\nВыберите пункт меню'
     else:
-        btn4 = types.KeyboardButton(text='Global menu')
+        btn4 = types.KeyboardButton(text='Menu')
         btn5 = types.KeyboardButton(text=f'Network {PEOPLES} {first_name}')
         btn6 = types.KeyboardButton(text=f'Help {first_name}')
         bot_text = '\nSelect menu item'
@@ -1812,7 +1823,7 @@ def selected_member_action_check(message, member_id):  # bookmark
         return
     elif f'{first_name} {RIGHT_ARROW}' in text:
         members_list_in_network_menu(message, member_id, 'out', False)
-    elif text == 'Global menu' or 'Главное меню' in text:
+    elif text == 'Menu' or 'Главное меню' in text:
         global_menu(message)
     elif 'Сеть' in text or 'Network' in text:
         show_other_socium(message, member_id)
@@ -1869,7 +1880,8 @@ def members_list_in_network_check(message, member_id, direction, g_menu):
             selected_id = int(text)
             user = read_exodus_user_by_exodus_id(selected_id)
             telegram_id = user.telegram_id
-            user_info_text = generate_user_info_text(user, message.chat.id)
+            lang = read_user_language(message.chat.id)
+            user_info_text = generate_user_info_text(user, lang, message.chat.id)
             bot.send_message(message.chat.id, user_info_text, parse_mode='html', disable_web_page_preview=True)
             selected_member_action_menu(message, telegram_id)
 
@@ -1944,7 +1956,7 @@ def check_other_socium(message, member_id):
 
             list_my_socium = get_my_socium(member_id)
             if telegram_id in list_my_socium:
-                user_info_text = generate_user_info_text(user, message.chat.id)
+                user_info_text = generate_user_info_text(user, lang, message.chat.id)
                 bot.send_message(message.chat.id, user_info_text, parse_mode='html', disable_web_page_preview=True)
                 selected_member_action_menu(message, telegram_id)
             else:
@@ -2010,6 +2022,8 @@ def show_my_socium(message):
 def check_my_socium(message, list_exodus_id_my_socium):
     text = message.text
     bot.delete_message(message.chat.id, message.message_id)
+    lang = read_user_language(message.chat.id)
+
     if 'Назад' in text or 'Back' in text:
         members_menu(message)
         return
@@ -2022,7 +2036,6 @@ def check_my_socium(message, list_exodus_id_my_socium):
 
             selected_id = int(text)
             if selected_id not in list_exodus_id_my_socium:
-                lang = read_user_language(message.chat.id)
                 if lang == "ru":
                     bot.send_message(message.chat.id, "*Этого пользователя нет в вашей сети. Введите корректный номер*",
                                  parse_mode="Markdown")
@@ -2033,7 +2046,7 @@ def check_my_socium(message, list_exodus_id_my_socium):
             else:
                 user = read_exodus_user_by_exodus_id(selected_id)
                 telegram_id = user.telegram_id
-                user_info_text = generate_user_info_text(user, message.chat.id)
+                user_info_text = generate_user_info_text(user, lang, message.chat.id)
                 bot.send_message(message.chat.id, user_info_text, parse_mode='html', disable_web_page_preview=True)
                 selected_member_action_menu(message, telegram_id)
         except:
@@ -2201,7 +2214,7 @@ def members_check(message):
     # elif 'Запросы помощи' in text:
     #     show_help_requisites(message)
     #     return
-    if text == 'Главное меню' or text == "Global menu":
+    if text == 'Главное меню' or text == "Menu":
         global_menu(message)
         return
 
@@ -2487,7 +2500,7 @@ For the sum {payment} {currency}'.format(HEART_RED=HEART_RED,
         btn2 = types.KeyboardButton(text='Change')
         btn3 = types.KeyboardButton(text='Remind me later')
         btn4 = types.KeyboardButton(text=f'Cancel {HEART_RED}')
-        btn5 = types.KeyboardButton(text='Global menu')
+        btn5 = types.KeyboardButton(text='Menu')
     markup.row(btn1, btn2, btn4)
     if show_back:
         if lang == 'ru':
@@ -2520,7 +2533,7 @@ def intention_for_needy_check(message, intention_id):
     elif HEART_RED in text:
         cancel_intention(message, intention_id)
         return
-    elif 'Главное меню' in text or 'Global menu' in text:
+    elif 'Главное меню' in text or 'Menu' in text:
         global_menu(message)
         return
     elif 'Назад' in text or 'Back' in text:
@@ -3151,7 +3164,7 @@ def all_check_int_obl_plus(message):
         else:
             btn1 = types.KeyboardButton(text=f'Ask {HEART_RED} {RIGHT_ARROW} {HANDSHAKE}')
             btn2 = types.KeyboardButton(text='Back')
-            btn3 = types.KeyboardButton(text='Global menu')
+            btn3 = types.KeyboardButton(text='Menu')
 
         markup.row(btn1, btn2, btn3)
         msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
@@ -3407,7 +3420,7 @@ def for_me_obligation(message, reminder_call, intention_id):
         btn1 = types.KeyboardButton(text='Request for execution')
         btn2 = types.KeyboardButton(text='Store')
         btn3 = types.KeyboardButton(text='Remind me later')
-        btn4 = types.KeyboardButton(text='Global menu')
+        btn4 = types.KeyboardButton(text='Menu')
 
     markup.row(btn1, btn2)
     markup.row(btn3, btn4)
@@ -4166,19 +4179,20 @@ def start_orange_invitation(message, user_to, event_id=None, ref=None):
             users_count = 0
 
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    btn1 = types.KeyboardButton(text=f'{users_count}{PEOPLES} {RIGHT_ARROW} {user.first_name}')
 
     if lang == 'ru':
-        bot_text = generate_user_info_text(user) + '\nВы можете помочь этому участнику?'
-        btn1 = types.KeyboardButton(text='Показать участников ({})'.format(users_count))
+        bot_text = generate_user_info_text(user, lang) + '\nВы можете помочь этому участнику?'
+        #btn1 = types.KeyboardButton(text='Показать участников ({})'.format(users_count))
         btn2 = types.KeyboardButton(text='Нет')
         btn3 = types.KeyboardButton(text='Да')
         btn4 = types.KeyboardButton(text='Главное меню')
     else:
-        bot_text = generate_user_info_text(user) + '\nCan you help this participant?'
-        btn1 = types.KeyboardButton(text='Show participants ({})'.format(users_count))
+        bot_text = generate_user_info_text(user, lang) + '\nCan you help this participant?'
+        #btn1 = types.KeyboardButton(text='Show participants ({})'.format(users_count))
         btn2 = types.KeyboardButton(text='No')
         btn3 = types.KeyboardButton(text='Yes')
-        btn4 = types.KeyboardButton(text='Global menu')
+        btn4 = types.KeyboardButton(text='Menu')
 
     markup.row(btn2, btn3)
     markup.row(btn1, btn4)
@@ -4196,7 +4210,8 @@ def orange_invitation_check(message, event_id=None, ref=None):
     user_to = temp_dict[
         message.chat.id]  # TODO ---------- убрать этот костыль, так как при большом кол-во пользователей будет съедать память
     text = message.text
-    if text[0:19] == 'Показать участников' or 'Show' in text:
+
+    if f'{PEOPLES} {RIGHT_ARROW}' in text:
         show_all_members(message, user_to)
     elif text == 'Нет' or 'No' in text:
         if event_id is None:
@@ -4428,19 +4443,18 @@ def start_red_invitation(message, user_to, event_id=None, ref=None):
     days_end = user.days - delta.days
 
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    btn1 = types.KeyboardButton(text=f'{users_count}{PEOPLES} {RIGHT_ARROW} {user.first_name}')
 
     if lang == 'ru':
-        bot_text = generate_user_info_text(user) + '\nВы можете помочь этому участнику?'
-        btn1 = types.KeyboardButton(text='Показать участников ({})'.format(users_count))
+        bot_text = generate_user_info_text(user, lang) + '\nВы можете помочь этому участнику?'
         btn2 = types.KeyboardButton(text='Нет')
         btn3 = types.KeyboardButton(text='Да')
         btn4 = types.KeyboardButton(text='Главное меню')
     else:
-        bot_text = generate_user_info_text(user) + '\nCan you help this participant?'
-        btn1 = types.KeyboardButton(text='Show participants ({})'.format(users_count))
+        bot_text = generate_user_info_text(user, lang) + '\nCan you help this participant?'
         btn2 = types.KeyboardButton(text='No')
         btn3 = types.KeyboardButton(text='Yes')
-        btn4 = types.KeyboardButton(text='Global menu')
+        btn4 = types.KeyboardButton(text='Menu')
 
     markup.row(btn2, btn3)
     markup.row(btn1, btn4)
@@ -4458,7 +4472,7 @@ def red_invitation_check(message, event_id=None, ref=None):
     user_to = temp_dict[
         message.chat.id]  # TODO ---------- убрать этот костыль, так как при большом кол-во пользователей будет съедать память
     text = message.text
-    if text[0:19] == 'Показать участников' or 'Show' in text:
+    if f'{PEOPLES} {RIGHT_ARROW}' in text:
         show_all_members(message, user_to)
     elif text == 'Нет' or 'No' in text:
         if event_id is None:
