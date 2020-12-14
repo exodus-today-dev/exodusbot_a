@@ -3199,7 +3199,7 @@ def new_check_intention_send(message, intention):
 
         for_my_wizard(message)
         return
-    elif 'Главное' in text or 'Global' in text:
+    elif 'Главное' in text or 'Menu' in text:
         global_menu(message)
         return
     else:
@@ -3442,7 +3442,7 @@ def for_me_obligation_check(message, obligation_id):
     elif text == 'Напомнить позже' or 'Remind' in text:
         remind_later(message, event_status=None, reminder_type='reminder_in', intention_id=obligation_id, to_menu=True)
         return
-    elif text == 'Главное меню' or 'Global' in text:
+    elif text == 'Главное меню' or 'Menu' in text:
         global_menu(message)
         return
     elif "/start" in text:
@@ -4502,7 +4502,7 @@ def red_invitation_check(message, event_id=None, ref=None):
                                message.chat.username, status="green", ref=ref)
         red_invitation_wizard(message, user_to, event_id)
 
-    elif 'Главное меню' in text or 'Global' in text:
+    elif 'Главное меню' in text or 'Menu' in text:
         global_menu(message)
 
     elif "/start" in text:
