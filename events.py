@@ -83,7 +83,9 @@ def notice_of_intent(event_id):
     event = read_event(event_id)
     user = read_exodus_user(telegram_id=event.from_id)
     user_needy = read_exodus_user(telegram_id=event.to_id)
-    intent = read_intention(event.from_id, event.to_id, 1)[-1]  # берем последний элемент из списка, чтобы обеспечить корреткность событий
+    # intent = read_intention(event.from_id, event.to_id, 1)[-1]  # берем последний элемент из списка, чтобы обеспечить корреткность событий
+    intent = read_intention_by_event_id(event_id) # берем последний элемент из списка, чтобы обеспечить корреткность событий
+
     # print('Отправлено-{}'.format(event_id))
 
     try:
@@ -315,7 +317,7 @@ def reminder(event_id, direction=None):
 
     keyboard = types.InlineKeyboardMarkup()
     row = []
-    lang = read_user_language(event.from_id)
+    lang = read_user_language(event.to_id)
     if lang == 'ru':
         row.append(types.InlineKeyboardButton('Прочитать',
                                           callback_data='reminder_{}'.format(event_id)))
