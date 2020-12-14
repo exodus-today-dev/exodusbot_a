@@ -452,7 +452,7 @@ def instruction_menu(message, text):
     markup.row(btn1, btn2, btn3)
     markup.row(btn4, btn5, btn6)
 
-    msg = bot.send_message(message.chat.id, bot_text, parse_mode="markdown", reply_markup=markup)
+    msg = bot.send_message(message.chat.id, bot_text, parse_mode="html", reply_markup=markup)
     # with open('./static_files/test_03d.mp4',"rb") as misc:
     #     f=misc.read()
     # bot.send_video(message.chat.id, f)

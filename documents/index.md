@@ -59,5 +59,9 @@ __Система позволяет проявлять отношения меж
 - [requisites](tables/requisites.md)
 - [circle](tables/circle.md)
 
----
-- [Глоссарий](glossary/glossary.md)
+## FAQ
+- [Про бота](faq/about_bot.md)
+- [Как начать пользоваться]
+- [Условные обозначения]
+- [Описание меню]
+- [Возможные кейсы]
