@@ -2968,7 +2968,7 @@ def obligation_sent_confirm(message):
             req_name = requisites[0].name
             req_value = requisites[0].value
         bot_text = f"Пожалуйста подтвердите, что вы отправили {intention.payment} {intention.currency} \n\
-Участнику {user_to.first_name} {user_to.last_name} на реквизиты \n{req_name} {req_value}:"
+Участнику {user_to.first_name} {user_to.last_name} на реквизиты \n{req_name} {req_value}"
         btn1 = types.KeyboardButton(text='Да')
         btn2 = types.KeyboardButton(text='Нет')
     else:
@@ -2978,8 +2978,8 @@ def obligation_sent_confirm(message):
         else:
             req_name = requisites[0].name
             req_value = requisites[0].value
-        bot_text = f"Please confirm that you have sent {intention.payment} {intention.currency}\
-Participant {user_to.first_name} {user_to.last_name} to requisites {req_name} {req_value}:"
+        bot_text = f"Please confirm that you have sent {intention.payment} {intention.currency} \n\
+Participant {user_to.first_name} {user_to.last_name} to requisites {req_name} {req_value}"
         btn1 = types.KeyboardButton(text='Yes')
         btn2 = types.KeyboardButton(text='No')
 

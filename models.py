@@ -562,6 +562,10 @@ def read_intention_by_id(intention_id):
     return intention
 
 
+def read_intention_by_event_id(event_id):
+    intention = session.query(Intention).filter_by(event_id=event_id).first()
+    return intention
+
 def update_intention(intention_id, status=None, payment=None):
     intention = session.query(Intention).filter_by(intention_id=intention_id).first()
     if status is not None:
@@ -577,7 +581,7 @@ def update_intention(intention_id, status=None, payment=None):
 
 
 def update_intention_from_all_params(from_id, to_id, payment, status):
-    intention = session.query(Intention).filter_by(from_id=from_id, to_id=to_id, payment=payment).all()[-1]
+    intention = session.query(Intention).filter_by(from_id=from_id, to_id=to_id, payment=payment, status=12).first()
     old_status = intention.status
     if old_status is not None and old_status != 13:
         intention.status = status
