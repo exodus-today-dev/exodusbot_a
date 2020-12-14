@@ -452,7 +452,7 @@ def instruction_menu(message, text):
     markup.row(btn1, btn2, btn3)
     markup.row(btn4, btn5, btn6)
 
-    msg = bot.send_message(message.chat.id, bot_text, parse_mode="markdown", reply_markup=markup)
+    msg = bot.send_message(message.chat.id, bot_text, parse_mode="html", reply_markup=markup)
     # with open('./static_files/test_03d.mp4',"rb") as misc:
     #     f=misc.read()
     # bot.send_video(message.chat.id, f)
@@ -3199,7 +3199,7 @@ def new_check_intention_send(message, intention):
 
         for_my_wizard(message)
         return
-    elif 'Главное' in text or 'Global' in text:
+    elif 'Главное' in text or 'Menu' in text:
         global_menu(message)
         return
     else:
@@ -3442,7 +3442,7 @@ def for_me_obligation_check(message, obligation_id):
     elif text == 'Напомнить позже' or 'Remind' in text:
         remind_later(message, event_status=None, reminder_type='reminder_in', intention_id=obligation_id, to_menu=True)
         return
-    elif text == 'Главное меню' or 'Global' in text:
+    elif text == 'Главное меню' or 'Menu' in text:
         global_menu(message)
         return
     elif "/start" in text:
@@ -4241,7 +4241,7 @@ def orange_invitation_check(message, event_id=None, ref=None):
                                message.chat.username, status="green", ref=ref)
         orange_invitation_wizard(message, user_to, event_id)
 
-    elif 'Главное меню' in text or 'Global' in text:
+    elif 'Главное меню' in text or 'Menu' in text:
         global_menu(message)
 
     elif "/start" in text:
@@ -4502,7 +4502,7 @@ def red_invitation_check(message, event_id=None, ref=None):
                                message.chat.username, status="green", ref=ref)
         red_invitation_wizard(message, user_to, event_id)
 
-    elif 'Главное меню' in text or 'Global' in text:
+    elif 'Главное меню' in text or 'Menu' in text:
         global_menu(message)
 
     elif "/start" in text:
