@@ -4241,7 +4241,7 @@ def orange_invitation_check(message, event_id=None, ref=None):
                                message.chat.username, status="green", ref=ref)
         orange_invitation_wizard(message, user_to, event_id)
 
-    elif 'Главное меню' in text or 'Global' in text:
+    elif 'Главное меню' in text or 'Menu' in text:
         global_menu(message)
 
     elif "/start" in text:
