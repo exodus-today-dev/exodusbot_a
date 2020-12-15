@@ -36,13 +36,19 @@ AMERICAN = '\U0001F1F8'  # American flag
 START_TEXT = \
     {
         "ru":
-            "Бот Эксодус - \n\
-организация децентрализованной сетевой взаимопомощи.\n\n\
-Выберите пояснение к использованию бота в меню",
+"""
+Бот Эксодус - это способ организации децентрализованной адресной взаимопомощи.
+Через это выявляются и формируются сети доверия участников.
+
+Выберите пояснение к использованию бота.
+""",
         "en":
-            "Bot Exodus - \n\
-organization of decentralized network mutual assistance.\n\n\
-Select an explanation for using the bot from the menu"
+"""
+Exodus bot is a way to organize decentralized targeted mutual assistance.
+through this, networks of trust of participants are identified and formed.
+
+Select an explanation for using the bot.
+"""
     }
 
 TEXT_INSTRUCTIONS = \

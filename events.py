@@ -122,7 +122,11 @@ You - {status}\n\
 
     bot.send_message(event.to_id, bot_text)
 
-    list_needy_id = get_my_socium(event.to_id)
+    # создаем список с теми, кто помогает event.to_id
+    try:
+        list_needy_id = set(read_rings_help(event.to_id).help_array_all)
+    except:
+        list_needy_id = set()
     list_needy_id.discard(event.from_id)
 
     bot_text_for_all = f"{user.first_name} {user.last_name} {status_from}  {RIGHT_ARROW}  {intent.payment}{HEART_RED} {user_needy.first_name} {user_needy.last_name} {status}\n\
