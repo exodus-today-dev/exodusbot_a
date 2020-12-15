@@ -807,6 +807,24 @@ def get_my_socium(telegram_id):
     return list_needy_id
 
 
+# создаем список с моей маленькой сетью
+def get_my_socium_small(telegram_id):
+    # создаем список с теми, кто помогает мне
+    try:
+        list_needy_id = set(read_rings_help(telegram_id).help_array_all)
+    except:
+        list_needy_id = set()
+    list_send_notify = read_rings_help_in_help_array_all(telegram_id)
+    # добавляем в список тех, кому помогаю я
+    for row in list_send_notify:
+        list_needy_id.add(row.needy_id)
+
+    # удаляем себя из списка
+    list_needy_id.discard(telegram_id)
+
+    return list_needy_id
+
+
 def freez_events(to_id):
     session.query(Events).filter_by(to_id=to_id, status_code=NEW_ORANGE_STATUS).update(
         {'status_code': NEW_ORANGE_STATUS_F})

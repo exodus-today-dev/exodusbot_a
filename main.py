@@ -386,17 +386,21 @@ def call_people_menu(message):
                                                          callback_data="show_people_link_" + str(id_help)))
 
         status = user.status
+
+        link = create_link(message.chat.id, id_help)
+
         if status == "orange":
-            string_name = f'\n<a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} {left_sum} {HEART_RED} / {right_sum} {HELP}'
+            string_name = f'\n<a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} / {GLOBE} <a href="{link}">Помочь</a> \n{left_sum} {HEART_RED} / {right_sum} {HELP}'
         elif "red" in status:
-            string_name = f'\n<a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} {right_sum} {HELP}'
+            string_name = f'\n<a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} / {GLOBE} <a href="{link}">Помочь</a> \n{right_sum} {HELP}'
         else:
             continue
 
         keyboard_inline[i].add(btn_inline[i])
 
         bot.send_message(message.chat.id, string_name, parse_mode="html", disable_web_page_preview=True,
-                         reply_markup=keyboard_inline[i])
+                         reply_markup=keyboard_inline[i])        
+        #bot.send_message(message.chat.id, string_name, parse_mode="html", disable_web_page_preview=True)
 
     bot.register_next_step_handler(msg, show_people_link)
 
@@ -595,12 +599,20 @@ def configuration_check(message):
         return
     elif "Выйти" in text or 'Log out' in text:
         # quit_user_from_exodus(message.chat.id)
+        lang = read_user_language(message.chat.id)
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        btn1 = types.KeyboardButton(text='Да, удалить профиль')
-        btn2 = types.KeyboardButton(text='Нет, я остаюсь')
-        markup.row(btn1, btn2)
-        msg = bot.send_message(message.chat.id, 'Вы собираетесь выйти из бота и удалить свой профиль?',
-                               reply_markup=markup)  # TODO
+        if lang == 'ru':
+            btn1 = types.KeyboardButton(text='Да, удалить профиль')
+            btn2 = types.KeyboardButton(text='Нет, я остаюсь')
+            markup.row(btn1, btn2)
+            msg = bot.send_message(message.chat.id, 'Вы собираетесь выйти из бота и удалить свой профиль?',
+                                   reply_markup=markup)
+        else:
+            btn1 = types.KeyboardButton(text='Yes, delete the profile')
+            btn2 = types.KeyboardButton(text='No, I`m staying')
+            markup.row(btn1, btn2)
+            msg = bot.send_message(message.chat.id, 'Are you going to log out of the bot and delete your profile?',
+                                   reply_markup=markup)
         bot.register_next_step_handler(msg, check_quit_bot)
         return
     elif text == 'Валюта':
@@ -635,21 +647,33 @@ def configuration_check(message):
 
 def check_quit_bot(message):
     text = message.text
-    bot.delete_message(message.chat.id, message.message_id)
-    my_socium = get_my_socium(message.chat.id)
-    if "Да" in text:
-        user = read_exodus_user(message.chat.id)
+    user_id = message.chat.id
+    bot.delete_message(user_id, message.message_id)
+    lang = read_user_language(user_id)
+    if "Да" in text or 'Yes' in text:
+        user = read_exodus_user(user_id)
         first_name = user.first_name
         last_name = user.last_name
-        quit_user_from_exodus(message.chat.id)
+        quit_user_from_exodus(user_id)
         # удаляем клавиатуру и остаемся в том же меню
-        bot.send_message(message.chat.id, 'Вы удалили свой профиль.', reply_markup=types.ReplyKeyboardRemove())
+        if lang == 'ru':
+            bot.send_message(user_id, 'Вы удалили свой профиль.', reply_markup=types.ReplyKeyboardRemove())
+        else:
+            bot.send_message(user_id, 'You have deleted your profile.', reply_markup=types.ReplyKeyboardRemove())
+
+        my_socium = get_my_socium_small(user_id)
         for id in my_socium:
-            bot.send_message(id, '{} {} удалил свой профиль.'.format(first_name, last_name))
-        # global_menu(message)
+            lang_id = read_user_language(id)
+            if lang_id == 'ru':
+                bot.send_message(id, '{} {} удалил свой профиль.'.format(first_name, last_name))
+            else:
+                bot.send_message(id, '{} {} deleted your profile.'.format(first_name, last_name))
         return
-    elif "Нет" in text:
-        bot.send_message(message.chat.id, 'Спасибо, что остаетесь с нами!')
+    elif "Нет" in text or 'No' in text:
+        if lang == 'ru':
+            bot.send_message(user_id, 'Спасибо, что остаетесь!')
+        else:
+            bot.send_message(user_id, 'Thank you for staying!')
         configuration_menu(message)
         return
     elif text == 'Главное меню':
@@ -659,7 +683,7 @@ def check_quit_bot(message):
         welcome_base(message)
         return
     else:
-        msg = bot.send_message(message.chat.id, exception_message(message))
+        msg = bot.send_message(user_id, exception_message(message))
         bot.register_next_step_handler(msg, configuration_menu)
 
 
@@ -1301,17 +1325,18 @@ def print_list_check_intentions_member_id(message, member_id):
         left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
         right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
 
+        link = create_link(row.from_id, row.from_id)
         status = user.status
         if status == 'green':
             string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {GREEN_BALL}'
         elif status == "orange":
-            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} {left_sum} {HEART_RED} / {right_sum} {HELP}'
+            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} / {GLOBE} <a href="{link}">Помочь</a>\n{left_sum} {HEART_RED} / {right_sum} {HELP}'
         elif "red" in status:
             d0 = user.start_date
             d1 = date.today()
             delta = d1 - d0
             days_end = user.days - delta.days
-            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} {right_sum} {HELP} / {days_end} дней'
+            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} / {GLOBE} <a href="{link}">Помочь</a>\n{right_sum} {HELP} / {days_end} дней'
         if row.status == 1:
             string_name += f' {RIGHT_ARROW} {row.payment} {HEART_RED}'
         elif row.status == 11 or row.status == 12:
@@ -1371,17 +1396,18 @@ def print_members_list_in_network(message, member_id, direction):
         left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
         right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
 
+        link = create_link(row, row)
         status = user.status
         if status == 'green':
             string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {GREEN_BALL}'
         elif status == "orange":
-            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} {left_sum} {HEART_RED} / {right_sum} {HELP}'
+            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} / {GLOBE} <a href="{link}">Помочь</a>\n{left_sum} {HEART_RED} / {right_sum} {HELP}'
         elif "red" in status:
             d0 = user.start_date
             d1 = date.today()
             delta = d1 - d0
             days_end = user.days - delta.days
-            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} {right_sum} {HELP} / {days_end} дней'
+            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} / {GLOBE} <a href="{link}">Помочь</a>\n{right_sum} {HELP} / {days_end} дней'
 
     # сообщение в телеграмме не может быть длиннее 4096 символов. 14 юзеров - это 400 символов.
     # нужно привязать пагинацию
@@ -1910,17 +1936,18 @@ def show_other_socium(message, user_id):
         left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
         right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
 
+        link = create_link(id_help, id_help)
         status = user.status
         if status == 'green':
             string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {GREEN_BALL}'
         elif status == "orange":
-            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} {left_sum} {HEART_RED} / {right_sum} {HELP}'
+            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} / {GLOBE} <a href="{link}">Помочь</a>\n{left_sum} {HEART_RED} / {right_sum} {HELP}'
         elif "red" in status:
             d0 = user.start_date
             d1 = date.today()
             delta = d1 - d0
             days_end = user.days - delta.days
-            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} {right_sum} {HELP} / {days_end} дней'
+            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} / {GLOBE} <a href="{link}">Помочь</a>\n{right_sum} {HELP} / {days_end} дней'
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 
     lang = read_user_language(message.chat.id)
@@ -1991,17 +2018,18 @@ def show_my_socium(message):
         left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
         right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
 
+        link = create_link(id_help, id_help)
         status = user.status
         if status == 'green':
             string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {GREEN_BALL}'
         elif status == "orange":
-            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} {left_sum} {HEART_RED} / {right_sum} {HELP}'
+            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} / {GLOBE} <a href="{link}">Помочь</a>\n{left_sum} {HEART_RED} / {right_sum} {HELP}'
         elif "red" in status:
             d0 = user.start_date
             d1 = date.today()
             delta = d1 - d0
             days_end = user.days - delta.days
-            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} {right_sum} {HELP} / {days_end} дней'
+            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} / {GLOBE} <a href="{link}">Помочь</a>\n{right_sum} {HELP} / {days_end} дней'
         list_exodus_id_my_socium.append(user.exodus_id)
 
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -2520,7 +2548,7 @@ def intention_for_needy_check(message, intention_id):
     # 6.7
     text = message.text
     bot.delete_message(message.chat.id, message.message_id)
-    if  HANDSHAKE in text:
+    if HANDSHAKE in text:
         intention_to_obligation(message, intention_id)
         return
     elif text == 'Изменить' or 'Change' in text:
@@ -2606,9 +2634,13 @@ Wait for notification."
 
     bot.send_message(message.chat.id, bot_text)
 
-    # рассылка уведомлений моему кругу о том, что я начал кому то помогать, кроме того, кто запросил
-    list_needy_id = get_my_socium(intention.to_id)
+    # рассылка уведомлений создаем список с теми, кто помогает, что я начал кому то помогать, кроме того, кто запросил
+    try:
+        list_needy_id = set(read_rings_help(intention.to_id).help_array_all)
+    except:
+        list_needy_id = set()
     list_needy_id.discard(message.chat.id)
+    list_needy_id.discard(intention.to_id)
 
     if lang == 'ru':
         bot_text_for_all = f"{user_from.first_name} {user_from.last_name} перевел свое {HEART_RED} в {HANDSHAKE} участнику {user_to.first_name} {user_to.last_name} на сумму: {intention.payment} {intention.currency}\n\
@@ -2763,8 +2795,13 @@ def cancel_intention_check(message, intention_id):
         bot.send_message(intention.to_id, text_for_needy)
 
         # рассылка уведомлений
-        list_needy_id = get_my_socium(message.chat.id)
+        # list_needy_id = get_my_socium(message.chat.id)
+        try:
+            list_needy_id = set(read_rings_help(intention.to_id).help_array_all)
+        except:
+            list_needy_id = set()
         list_needy_id.discard(intention.to_id)
+        list_needy_id.discard(message.chat.id)
 
         # удаление из оранжевого статуса и всего круга
         delete_from_orange_help_array(intention.to_id, message.chat.id)
@@ -4028,9 +4065,9 @@ def members_menu_profile_link(message, member_id, name_return_func=""):
 
     lang = read_user_language(user_id)
     if lang == 'ru':
-        bot_text += "\nСсылка на обсуждение \U0001F4E2"
+        bot_text += "\nИнфо:"
     else:
-        bot_text += "\nA link to the discussion \U0001F4E2"
+        bot_text += "\nInfo:"
 
     if user.link == '' or user.link == None:
         bot_text += "\n"  # ссылка на обсуждение
@@ -4039,9 +4076,9 @@ def members_menu_profile_link(message, member_id, name_return_func=""):
     if user.status != 'green':
         link = create_link(user.telegram_id, user.telegram_id)
         if lang == 'ru':
-            bot_text += f"\nСсылка для помощи \U0001F4E9\n{link}"
+            bot_text += f"\n{GLOBE}Помочь\n{link}"
         else:
-            bot_text += f"\nHelp link \U0001F4E9\n{link}"
+            bot_text += f"\n{GLOBE}Help link\n{link}"
 
     bot.send_message(user_id, bot_text)  # общий текст
     if 'selected_member_action_check' in name_return_func:
@@ -4100,7 +4137,7 @@ def welcome_base(message):
     if referral[0] != '':
         user_from = read_exodus_user(referral[0])
         user_to = read_exodus_user(referral[1])
-        if user_from.status == 'green':
+        if user_to.status == 'green':
             start_without_invitation(message, ref=user_from.telegram_id)
             return
 
@@ -4584,8 +4621,14 @@ def red_invitation_wizard_check(message, event_id=None):  # ------------------ T
         create_intention(message.chat.id, user.telegram_id, invitation_sum, user.currency, status=11, event_id=event_id)
 
     # рассылка уведомлений моему кругу о том, что я начал кому то помогать, кроме того, кто запросил
-    list_needy_id = get_my_socium(message.chat.id)
+    # list_needy_id = get_my_socium(message.chat.id)
+    try:
+        list_needy_id = set(read_rings_help(user.telegram_id).help_array_all)
+    except:
+        list_needy_id = set()
     list_needy_id.discard(user.telegram_id)
+    list_needy_id.discard(message.chat.id)
+
     user_from = read_exodus_user(telegram_id=message.chat.id)
     status_from = get_status(user_from.status)
 
@@ -4682,7 +4725,12 @@ Your status: {status} \n\
 
             for row in list_needy_id:
                 try:
-                    bot.send_message(row, '{} {} {} {}'.format(user.first_name, user.last_name, RIGHT_ARROW, ORANGE_BALL))
+                    lang_row = read_user_language(row)
+                    if lang_row == 'ru':
+                        bot.send_message(row, '{} {} вернулся к {}'.format(user.first_name, user.last_name, ORANGE_BALL))
+                    else:
+                        bot.send_message(row, '{} {} returned to {}'.format(user.first_name, user.last_name, ORANGE_BALL))
+
                 except:
                     continue
 
@@ -4692,7 +4740,12 @@ Your status: {status} \n\
             right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
 
             # сообщение Вам, что вы вернулись автоматически
-            text = f"You {RIGHT_ARROW} {ORANGE_BALL}\n({left_sum}{HEART_RED} / {right_sum}{HELP})"
+            lang_user_id = read_user_language(user_id)
+            if lang_user_id == 'ru':
+                text = f"Вы вернулись к {ORANGE_BALL}\n({left_sum}{HEART_RED} / {right_sum}{HELP})"
+            else:
+                text = f"You're back to {ORANGE_BALL}\n({left_sum}{HEART_RED} / {right_sum}{HELP})"
+
             bot.send_message(user_id, text)
 
             global_menu(message)
@@ -4712,7 +4765,11 @@ Your status: {status} \n\
 
             for row in list_needy_id:
                 try:
-                    bot.send_message(row, '{} {} {} {}'.format(user.first_name, user.last_name, RIGHT_ARROW, GREEN_BALL))
+                    lang_row = read_user_language(row)
+                    if lang_row == 'ru':
+                        bot.send_message(row, '{} {} вернулся к {}'.format(user.first_name, user.last_name, GREEN_BALL))
+                    else:
+                        bot.send_message(row, '{} {} returned to {}'.format(user.first_name, user.last_name, GREEN_BALL))
                     # закрываем намерения и event
                     intention = read_intention(from_id=row, to_id=user_id).all()
                     for id in intention:
@@ -4738,7 +4795,11 @@ Your status: {status} \n\
             update_exodus_user(telegram_id=user_id, status='green', min_payments=0, max_payments=0)
 
             # сообщение Вам, что вы вернулись автоматически
-            text = f"You {RIGHT_ARROW} {GREEN_BALL}"
+            lang_user_id = read_user_language(user_id)
+            if lang_user_id == 'ru':
+                text = f"Вы вернулись к {GREEN_BALL}"
+            else:
+                text = f"You're back to {GREEN_BALL}"
             bot.send_message(user_id, text)
 
             global_menu(message)
