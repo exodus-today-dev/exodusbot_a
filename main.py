@@ -4263,7 +4263,7 @@ def orange_invitation_check(message, event_id=None, ref=None):
                          currency=None,
                          users=0,
                          to_id=user_to.telegram_id,
-                         sent=False,
+                         sent=True,
                          reminder_date=date.today(),
                          status_code=NEW_ORANGE_STATUS)
         exists = session.query(Exodus_Users).filter_by(telegram_id=message.chat.id).first()
