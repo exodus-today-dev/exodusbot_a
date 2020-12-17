@@ -3437,23 +3437,31 @@ def for_me_obligation(message, reminder_call, intention_id):
     right_sum = user_to.max_payments - already_payments_oblig if user_to.max_payments - already_payments_oblig > 0 else 0
     status_from = get_status(user_from.status)
 
+    lang = read_user_language(message.chat.id)
+
     bot_text = f"{user_from.first_name} {user_from.last_name} {status_from} {RIGHT_ARROW} {HANDSHAKE} {intention.payment}\n"
-    if "red" in user_to.status:
-        bot_text += f"You: {status} \n\
-({right_sum}{HELP})"
-    else:
-        bot_text += f"You: {status} \n\
-({left_sum}{HEART_RED} / {right_sum}{HELP})"
+
 
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 
-    lang = read_user_language(message.chat.id)
     if lang == 'ru':
+        if "red" in user_to.status:
+            bot_text += f"Вы - {status} \n\
+({right_sum}{HELP})"
+        else:
+            bot_text += f"Вы - {status} \n\
+({left_sum}{HEART_RED} / {right_sum}{HELP})"
         btn1 = types.KeyboardButton(text='Запрос на исполнение')
         btn2 = types.KeyboardButton(text='Хранить')
         btn3 = types.KeyboardButton(text='Напомнить позже')
         btn4 = types.KeyboardButton(text='Главное меню')
     else:
+        if "red" in user_to.status:
+            bot_text += f"You - {status} \n\
+({right_sum}{HELP})"
+        else:
+            bot_text += f"You - {status} \n\
+({left_sum}{HEART_RED} / {right_sum}{HELP})"
         btn1 = types.KeyboardButton(text='Request for execution')
         btn2 = types.KeyboardButton(text='Store')
         btn3 = types.KeyboardButton(text='Remind me later')
