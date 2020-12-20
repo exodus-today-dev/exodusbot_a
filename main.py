@@ -2937,7 +2937,7 @@ def obligation_for_needy(message, reminder_call, intention_id):
 Деньги можно отправить на реквизиты:\n"\
 f"{req_name}\n"\
 f"{req_value}"
-        btn2 = types.KeyboardButton(text='Да, я отправил деньги')
+        btn2 = types.KeyboardButton(text='Да, я исполнил обязательство')
         btn3 = types.KeyboardButton(text='Напомнить позже')
     else:
         if requisites == []:
@@ -2950,7 +2950,7 @@ f"{req_value}"
 You can send money to requisites:\n"\
 f"{req_name}\n"\
 f"{req_value}"
-        btn2 = types.KeyboardButton(text='Yes, I sent the money')
+        btn2 = types.KeyboardButton(text='Yes, i have completed my obligation')
         btn3 = types.KeyboardButton(text='Remind me later')
 
     markup.row(btn2, btn3)
@@ -2966,7 +2966,7 @@ f"{req_value}"
 def obligation_for_needy_check(message, intention_id):
     # 6.3
     text = message.text
-    if text == 'Да, я отправил деньги' or 'Yes' in text:
+    if text == 'Да, я исполнил обязательство' or 'Yes' in text:
         obligation_sent_confirm(message)
         return
     elif text == 'Напомнить позже' or 'Remind' in text:

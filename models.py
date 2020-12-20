@@ -566,6 +566,7 @@ def read_intention_by_event_id(event_id):
     intention = session.query(Intention).filter_by(event_id=event_id).first()
     return intention
 
+
 def update_intention(intention_id, status=None, payment=None):
     intention = session.query(Intention).filter_by(intention_id=intention_id).first()
     if status is not None:
@@ -582,14 +583,12 @@ def update_intention(intention_id, status=None, payment=None):
 
 def update_intention_from_all_params(from_id, to_id, payment, status):
     intention = session.query(Intention).filter_by(from_id=from_id, to_id=to_id, payment=payment, status=12).first()
-    old_status = intention.status
-    if old_status is not None and old_status != 13:
+    if intention is not None:
         intention.status = status
         session.commit()
         if read_history_intention_from_all_params(from_id, to_id, payment, intention.intention_id) is None:
             create_history_intention(from_id, to_id, payment, intention.intention_id)
     session.commit()
-
 
 
 def read_intention_for_user(from_id=None, to_id=None, statuses=None):
