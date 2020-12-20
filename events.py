@@ -321,23 +321,33 @@ def reminder(event_id, direction=None):
 
     keyboard = types.InlineKeyboardMarkup()
     row = []
-    lang = read_user_language(event.to_id)
-    if lang == 'ru':
-        row.append(types.InlineKeyboardButton('Прочитать',
-                                          callback_data='reminder_{}'.format(event_id)))
-    else:
-        row.append(types.InlineKeyboardButton('Read',
-                                              callback_data='reminder_{}'.format(event_id)))
-    keyboard.row(*row)
+
     if direction == 'out':
+        lang = read_user_language(event.from_id)
+        if lang == 'ru':
+            row.append(types.InlineKeyboardButton('Прочитать',
+                                                  callback_data='reminder_{}'.format(event_id)))
+        else:
+            row.append(types.InlineKeyboardButton('Read',
+                                                  callback_data='reminder_{}'.format(event_id)))
+        keyboard.row(*row)
         if lang == 'ru':
             message = "Для вас есть уведомление:"
         else:
             message = "There is a notification for you:"
-
         bot.send_message(event.from_id, message, reply_markup=keyboard)
+
     elif direction == 'in':
         intention = read_intention_by_id(event.to_id)
+
+        lang = read_user_language(intention.to_id)
+        if lang == 'ru':
+            row.append(types.InlineKeyboardButton('Прочитать',
+                                                  callback_data='reminder_{}'.format(event_id)))
+        else:
+            row.append(types.InlineKeyboardButton('Read',
+                                                  callback_data='reminder_{}'.format(event_id)))
+        keyboard.row(*row)
         user_from = read_exodus_user(intention.from_id)
         user_from_status = get_status(user_from.status)
         message = f"{user_from.first_name} {user_from.last_name} {user_from_status} {RIGHT_ARROW} {intention.payment} {HANDSHAKE}"
