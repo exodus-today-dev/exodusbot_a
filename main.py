@@ -63,7 +63,7 @@ def create_link(from_id, to_id):
 
 
 def create_csv_file(user_id):
-    return
+    pass
 
 
 def get_left_days():
