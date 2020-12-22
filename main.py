@@ -1112,16 +1112,13 @@ def transactions_menu(message):
 
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(
-        text=f'{me_intent_count}{HEART_RED} / {me_obligation_count}{HANDSHAKE} {RIGHT_ARROW} {MAN}')
+        #text=f'{me_intent_count}{HEART_RED} / {me_obligation_count}{HANDSHAKE} {RIGHT_ARROW} {MAN}')
+        text=f'{PEOPLES} {RIGHT_ARROW} {MAN} \n{me_intent_count}/{int(me_intent)}{HEART_RED} | {me_obligation_count}/{int(me_obligation)}{HANDSHAKE}')
     btn2 = types.KeyboardButton(
-        text=f'{MAN} {RIGHT_ARROW} {my_intent_count}{HEART_RED} / {my_obligation_count}{HANDSHAKE}')
-    #    btn3 = types.KeyboardButton(text='За всё время')
-    # btn1 = types.KeyboardButton(text=f'{HEART_RED}{MAN}{RIGHT_ARROW}{my_intent_count}{PEOPLES}')
-    # btn2 = types.KeyboardButton(text=f'{HEART_RED}{me_intent_count}{PEOPLES}{RIGHT_ARROW}{MAN}')
-    # btn3 = types.KeyboardButton(text=f'{HANDSHAKE}{MAN}{RIGHT_ARROW}{my_obligation_count}{PEOPLES}')
-    # btn4 = types.KeyboardButton(text=f'{HANDSHAKE}{me_obligation_count}{PEOPLES}{RIGHT_ARROW}{MAN}')
+        #text=f'{MAN} {RIGHT_ARROW} {my_intent_count}{HEART_RED} / {my_obligation_count}{HANDSHAKE}')
+        text=f'{MAN} {RIGHT_ARROW} {PEOPLES} \n{my_intent_count}/{int(my_intent)}{HEART_RED} | {my_obligation_count}/{int(my_obligation)}{HANDSHAKE}')
     btn5 = types.KeyboardButton(
-        text=f'{to_count}/{sum_to}{LIKE}{RIGHT_ARROW}{MAN}{RIGHT_ARROW}{from_count}/{sum_from}{LIKE}')
+        text=f'{to_count}/{int(sum_to)}{LIKE}{RIGHT_ARROW}{MAN}{RIGHT_ARROW}{from_count}/{int(sum_from)}{LIKE}')
 
     status = get_status(user.status)
     if lang =="ru":
