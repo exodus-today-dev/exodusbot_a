@@ -7,3 +7,7 @@ deploy_to_production:
     - chmod 400 prod.pem
     - ssh ubuntu@$PROD_HOST -o StrictHostKeyChecking=no -i prod.pem 'bash -s' < deploy/update-code.sh
     - rm prod.pem $PROD_PEM_FILE
+    - cp $PROD_PEM_FILE_TEST prod.pem
+    - chmod 400 prod.pem
+    - ssh ubuntu@$PROD_HOST_TEST -o StrictHostKeyChecking=no -i prod.pem 'bash -s' < deploy/update-code.sh
+    - rm prod.pem $PROD_PEM_FILE_TEST

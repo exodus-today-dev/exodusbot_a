@@ -21,23 +21,30 @@ __Система позволяет проявлять отношения меж
 
 Таким образом можно видеть общую ситуацию сборов в сети, находить другие объекты поддержки, этим расширяя и делая более мощной свою сеть поддержки. Малыми вкладами многих обеспечивается кругооборот добровольной и взаимовыгодной поддержки.
 
+Вышеизложенная система была реализована в виде телеграм бота. Данная версия получилась не самой оптимальной и слабо расширяемой. С возможными недостатками системы и способами их устранения  можно ознакомиться [здесь](bad_and_feature.md) 
 
-## Действия пользователя
+# Действия пользователя
 
+### Заполнение профиля
 - [Смена статуса](actions/change_status.md)
-- [Просмотр своего круга](actions/show_circle.md)
 - [Смена реквизитов](actions/change_requisites.md)
 - [Создание и изменение ссылки на чат с обсуждением](actions/change_chat_link.md)
 - [Изменение языка](actions/change_language.md)
-- [Создание ссылки-приглашения](actions/create_invite.md)
+
+### Действия в органайзере
 - [Создание намерения](actions/create_intent.md)
 - [Перевод намерения в обязательство](actions/creation_of_obligation.md)
 - [Перевод денег](actions/money_transfer.md)
 - [Подтверждение перевода](actions/confirmation_of_transfer.md)
+
+### Действия в главном меню
+- [Просмотр участников и расширение сети](actions/show_circle.md)
+- [Создание ссылки-приглашения](actions/create_invite.md)
 - [Получение справки](actions/faq.md)
+- [Чат поддержки](actions/support_chat.md)
 
-## Оповещения
 
+# Оповещения
 - [О смене статуса пользователя в круге](notifications/status_changed.md)
 - [О создании намерения в сторону пользователя](notifications/intention_created.md)
 - [О переводе намерения в обязательство](notifications/obligation_created.md)
@@ -45,8 +52,8 @@ __Система позволяет проявлять отношения меж
 - [Обязательство выполнено/переводе денег](notifications/money_transferred.md)
 - [Деньги получены](notifications/money_received.md)
 
-## Таблицы базы данных
 
+# Таблицы базы данных
 - [users](tables/users.md)
 - [events](tables/events.md)
 - [statuses](tables/statuses.md)
@@ -54,7 +61,8 @@ __Система позволяет проявлять отношения меж
 - [requisites](tables/requisites.md)
 - [circle](tables/circle.md)
 
-## FAQ
+
+# FAQ
 - [Про бота](faq/about_bot.md)
 - [Как начать пользоваться](faq/how_start.md)
 - [Условные обозначения](faq/conventions.md)
