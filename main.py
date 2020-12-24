@@ -161,9 +161,11 @@ def global_menu(message, dont_show_status=True):
     not_executed_from = read_event_to_id_status(message.chat.id, "obligation_sended")
     not_executed_to = read_event_from_id_status(message.chat.id, "obligation_sended")
 
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    btn1 = types.KeyboardButton(text='Администратор')
+
     lang = read_user_language(message.chat.id)
     if lang == "ru":
-        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         btn2 = types.KeyboardButton(text=f'{SPIRAL_CALENDAR} Органайзер')
         btn3 = types.KeyboardButton(text=f'{MAN}{status_button} Профиль')
         btn4 = types.KeyboardButton(text=f'{PEOPLES} Участники')
@@ -180,12 +182,14 @@ def global_menu(message, dont_show_status=True):
         markup.row(btn4, btn8, btn6)
         markup.row(btn2, btn10, btn7)
 
+        if message.chat.id == config.ADMIN_ID:
+            markup.row(btn1)
+
         if not dont_show_status:
             bot.send_message(message.chat.id, 'Ваш статус: {}'.format(status))
         bot.send_message(message.chat.id, 'Меню:', reply_markup=markup)
 
     else:
-        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         btn2 = types.KeyboardButton(text=f'{SPIRAL_CALENDAR} Organiser')
         btn3 = types.KeyboardButton(text=f'{MAN}{status_button} Profile')
         btn4 = types.KeyboardButton(text=f'{PEOPLES} Participants')
@@ -201,6 +205,8 @@ def global_menu(message, dont_show_status=True):
         markup.row(btn3, btn9, btn5)
         markup.row(btn4, btn8, btn6)
         markup.row(btn2, btn10, btn7)
+        if message.chat.id == config.ADMIN_ID:
+            markup.row(btn1)
 
         if not dont_show_status:
             bot.send_message(message.chat.id, 'Your status: {}'.format(status))
@@ -249,15 +255,94 @@ def global_check(message):
     elif f'{RIGHT_ARROW}{MAN}{RIGHT_ARROW}' in text:
         not_approve_intention_12(message)
         return
-    # elif f'0 {SPEAK_HEAD} {HELP}' in text:
-    #     bot.send_message(message.chat.id, 'Никто помощь пока не запрашивал')
-    #     return
+    elif 'Админ' in text:
+        admin_view(message)
+        return
     # elif f'{SPEAK_HEAD} {HELP}' in text:
     #     show_help_requisites(message)
     #     return
 
 
 # -------------------------------------------------------------------
+def admin_view(message):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    count_users = session.query(Exodus_Users).count()
+    btn1 = types.KeyboardButton(text='Список пользователей бота')
+    btn2 = types.KeyboardButton(text='Отправить уведомление всем')
+    btn3 = types.KeyboardButton(text='Главное меню')
+    markup.row(btn1, btn2, btn3)
+    msg = bot.send_message(message.chat.id, f'Количество пользователей бота: {count_users}', reply_markup=markup)
+
+    bot.register_next_step_handler(msg, check_admin_view)
+
+
+def check_admin_view(message):
+    text = message.text
+    bot.delete_message(message.chat.id, message.message_id)
+
+    if 'меню' in text:
+        global_menu(message)
+        return
+    elif 'Отправить' in text:
+
+        bot.send_message(message.chat.id, "Базовый текст для отправки:")
+        mes = "Уважаемые пользователи бота Эксодус. Как мы и предупреждали - сегодня производим обнуление базы бота и его перезапуск.\n\n\
+Вам понадобится заново перерегистрироваться, внести свои данные и заново установить отношения намерений взаимопомощи с участниками сети.\n\n\
+Просим прощения за это обновление и связанное с ним неудобство.\n\n\
+Для перезапуска наберите команду \n/start"
+        bot.send_message(message.chat.id, mes)
+        msg = bot.send_message(message.chat.id, "Введите текст для отправки пользователям:", reply_markup=types.ReplyKeyboardRemove())
+        bot.register_next_step_handler(msg, message_handler_notifications)
+
+    elif 'Список' in text:
+        list_user = session.query(Exodus_Users).all()
+        str_users = ''
+        for index, user in enumerate(list_user):
+            str_users += f'{index+1}. {user.first_name} {user.last_name}\n'
+        bot.send_message(message.chat.id, str_users)
+        admin_view(message)
+        return
+
+
+def message_handler_notifications(message):
+    text = message.text
+    bot.delete_message(message.chat.id, message.message_id)
+    bot.send_message(message.chat.id, 'Вы ввели текст для отправки:')
+    bot.send_message(message.chat.id, text)
+
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    btn1 = types.KeyboardButton(text='Да, отправить')
+    btn2 = types.KeyboardButton(text='Нет, изменить')
+    btn3 = types.KeyboardButton(text='Главное меню')
+    markup.row(btn1, btn2, btn3)
+
+    msg = bot.send_message(message.chat.id, "Подтвердите отправку", reply_markup=markup)
+    bot.register_next_step_handler(msg, check_message_handler_notifications, text)
+
+
+def check_message_handler_notifications(message, text_mes):
+    text = message.text
+    bot.delete_message(message.chat.id, message.message_id)
+
+    if 'Да' in text:
+        list_id_for_message = read_all_exodus_user()
+        for id in list_id_for_message:
+            try:
+                bot.send_message(id, text_mes)
+            except:
+                continue
+        bot.send_message(message.chat.id, "Успешно отправлено")
+        admin_view(message)
+        return
+    elif 'Нет' in text:
+        bot.send_message(message.chat.id, "Отправка отменена")
+        admin_view(message)
+        return
+    elif 'меню' in text:
+        global_menu(message)
+        return
+
+
 def not_approve_intention_12(message):
     user_id = message.chat.id
     not_executed_from = read_event_to_id_status(user_id, "obligation_sended")
@@ -6139,22 +6224,6 @@ def unfreeze_intentions(user):
 
 
 # -------------------------------------------
-
-@bot.message_handler(func=lambda message: str(message.text).lower() == 'messagepeople')
-def message_handler_notifications(message):
-    list_id_for_message = read_all_exodus_user()
-    mes = "*Уважаемые пользователи бота Эксодус. Как мы и предупреждали - сегодня производим обнуление базы бота и его перезапуск.\n\n\
-Вам понадобится заново перерегистрироваться, внести свои данные и заново установить отношения намерений взаимопомощи с участниками сети.\n\n\
-Просим прощения за это обновление и связанное с ним неудобство.\n\n\
-Для перезапуска наберите команду \n/start*"
-
-    for id in list_id_for_message:
-        try:
-            bot.send_message(id, mes, parse_mode='markdown')
-        except:
-            continue
-    return
-
 
 @bot.callback_query_handler(func=lambda call: call.data[:17] == 'show_people_link_')
 def help_link_generate_menu(call):
