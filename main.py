@@ -1261,7 +1261,7 @@ def history_intention(message):
             text_from = ''
             for intention in history_intention_from:
                 user_from = read_exodus_user(intention.to_id)
-                text_from += f'{intention.create_date.date().strftime("%d-%m-%Y")}     {intention.payment}{LIKE} вы {RIGHT_ARROW} {user_from.first_name} {user_from.last_name}\n'
+                text_from += f'{intention.create_date.date().strftime("%d-%m-%Y")}     {intention.payment}{intention.currency} вы {RIGHT_ARROW} {user_from.first_name} {user_from.last_name}\n'
         else:
             text_from = 'За все время исполнили вы - 0'
 
@@ -1270,7 +1270,7 @@ def history_intention(message):
             text_to = ''
             for intention in history_intention_to:
                 user_to = read_exodus_user(intention.from_id)
-                text_to += f'{intention.create_date.date().strftime("%d-%m-%Y")}     {intention.payment}{LIKE} {user_to.first_name} {user_to.last_name} {RIGHT_ARROW} вам\n'
+                text_to += f'{intention.create_date.date().strftime("%d-%m-%Y")}     {intention.payment}{intention.currency} {user_to.first_name} {user_to.last_name} {RIGHT_ARROW} вам\n'
         else:
             text_to = 'За все время исполнили в вашу пользу - 0'
 
@@ -1283,7 +1283,7 @@ def history_intention(message):
             text_from = ''
             for intention in history_intention_from:
                 user_from = read_exodus_user(intention.to_id)
-                text_from += f'{intention.create_date.date().strftime("%d-%m-%Y")}     {intention.payment}{LIKE} you {RIGHT_ARROW} {user_from.first_name} {user_from.last_name}\n'
+                text_from += f'{intention.create_date.date().strftime("%d-%m-%Y")}     {intention.payment}{intention.currency} you {RIGHT_ARROW} {user_from.first_name} {user_from.last_name}\n'
         else:
             text_from = 'For all the time you have performed - 0'
 
@@ -1292,7 +1292,7 @@ def history_intention(message):
             text_to = ''
             for intention in history_intention_to:
                 user_to = read_exodus_user(intention.from_id)
-                text_to += f'{intention.create_date.date().strftime("%d-%m-%Y")}     {intention.payment}{LIKE} {user_to.first_name} {user_to.last_name} {RIGHT_ARROW} to you\n'
+                text_to += f'{intention.create_date.date().strftime("%d-%m-%Y")}     {intention.payment}{intention.currency} {user_to.first_name} {user_to.last_name} {RIGHT_ARROW} to you\n'
         else:
             text_to = 'For all the time performed in your favor - 0'
 
