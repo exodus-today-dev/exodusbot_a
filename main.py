@@ -784,7 +784,7 @@ def edit_link_menu(message):
             link = 'не задана'
         else:
             link = user.link
-        bot_text = 'Текущая ссылка и описание: {}\nВведите кратко текстом: цель сбора и ссылку на подробное описание'.format(link)
+        bot_text = 'Текущая ссылка и описание: {}\nВведите текст'.format(link)
     else:
         btn1 = types.KeyboardButton(text='Back')
         markup.row(btn1)
@@ -792,7 +792,7 @@ def edit_link_menu(message):
             link = 'not set'
         else:
             link = user.link
-        bot_text = 'Current link and description: {}\nEnter a short text: the purpose of the collection and a link to a detailed description'.format(link)
+        bot_text = 'Current link and description: {}\nEnter the text'.format(link)
 
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup, disable_web_page_preview=True)
     bot.register_next_step_handler(msg, edit_link_check)
@@ -4924,7 +4924,7 @@ def orange_status_wizard(message):
 
     lang = read_user_language(message.chat.id)
     if lang =="ru":
-        bot_text = f'{ORANGE_BALL} {MONEY_BAG} {user.max_payments}, ежемесячно'
+        bot_text = f'{ORANGE_BALL} {MONEY_BAG} {int(user.max_payments)}, ежемесячно'
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         btn1 = types.KeyboardButton(text=f'Изменить данные {MONEY_BAG}')
         btn2 = types.KeyboardButton(text='Изменить статус')
