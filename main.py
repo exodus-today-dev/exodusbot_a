@@ -424,7 +424,7 @@ def check_not_approve_intention_12(message):
             global_menu(message)
         except:
             msg = bot.send_message(message.chat.id, exception_message(message))
-            bot.register_next_step_handler(msg, not_approve_intention_12)
+            bot.register_next_step_handler(msg, check_not_approve_intention_12)
         return
     return
 
@@ -6270,7 +6270,7 @@ def obligation_money_requested_notice_call(call):
 # 6.4
 @bot.callback_query_handler(func=lambda call: True)
 def process_callback(call):
-    bot.delete_message(call.message.chat.id, call.message.message_id)
+    #bot.delete_message(call.message.chat.id, call.message.message_id)
     if call.data[0:13] == 'remind_later_':
         event_id = call.data[13:]
         reminder_date = date.today() + timedelta(days=1)
