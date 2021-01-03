@@ -113,12 +113,12 @@ def notice_of_intent(event_id):
         bot_text = f"{intent.create_date.strftime('%d %B %Y')}\n\
 {user.first_name} {user.last_name} {status_from}  {RIGHT_ARROW} {intent.payment}{HEART_RED}\n\
 Вы - {status}\n\
-({left_sum}{HEART_RED} / {right_sum}{HELP} {LEFT_ARROW} {users_count} {PEOPLES})"
+({int(left_sum)}{HEART_RED} / {int(right_sum)}{HELP} {LEFT_ARROW} {users_count} {PEOPLES})"
     else:
         bot_text = f"{intent.create_date.strftime('%d %B %Y')}\n\
 {user.first_name} {user.last_name} {status_from}  {RIGHT_ARROW} {intent.payment}{HEART_RED}\n\
 You - {status}\n\
-({left_sum}{HEART_RED} / {right_sum}{HELP} {LEFT_ARROW} {users_count} {PEOPLES})"
+({int(left_sum)}{HEART_RED} / {int(right_sum)}{HELP} {LEFT_ARROW} {users_count} {PEOPLES})"
 
     bot.send_message(event.to_id, bot_text)
 
@@ -130,7 +130,7 @@ You - {status}\n\
     list_needy_id.discard(event.from_id)
 
     bot_text_for_all = f"{user.first_name} {user.last_name} {status_from}  {RIGHT_ARROW}  {intent.payment}{HEART_RED} {user_needy.first_name} {user_needy.last_name} {status}\n\
-({left_sum}{HEART_RED} / {right_sum}{HELP} {LEFT_ARROW} {users_count} {PEOPLES})"
+({int(left_sum)}{HEART_RED} / {int(right_sum)}{HELP} {LEFT_ARROW} {users_count} {PEOPLES})"
 
     for id in list_needy_id:
         bot.send_message(id, bot_text_for_all)
@@ -228,11 +228,11 @@ def obligation_recieved_notice(event_id):
     if lang == 'ru':
         bot_text = f"{user.first_name} {user.last_name} подтвердил, что ваше {HANDSHAKE} на сумму {event.current_payments} {event.currency} исполнено.\n\n\
 {user.first_name} {user.last_name} - {status}\n\
-({left_sum} {HEART_RED} / {right_sum} {HELP})"
+({int(left_sum)} {HEART_RED} / {int(right_sum)} {HELP})"
     else:
         bot_text = f"{user.first_name} {user.last_name} confirmed that your {HANDSHAKE} for the sum {event.current_payments} {event.currency} executed.\n\n\
 {user.first_name} {user.last_name} - {status}\n\
-({left_sum} {HEART_RED} / {right_sum} {HELP})"
+({int(left_sum)} {HEART_RED} / {int(right_sum)} {HELP})"
 
     bot.send_message(event.from_id, bot_text)
     # update_event(event_id, True)

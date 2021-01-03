@@ -109,7 +109,7 @@ def global_menu(message, dont_show_status=True):
             already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
             left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
             right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
-            status = f'{ORANGE_BALL}\n({left_sum}{HEART_RED} / {right_sum}{HELP})\n' + f"\nВ моей сети: {len(list_my_socium)}\n"
+            status = f'{ORANGE_BALL}\n({int(left_sum)}{HEART_RED} / {int(right_sum)}{HELP})\n' + f"\nВ моей сети: {len(list_my_socium)}\n"
             status += text_req
             status += "\n\nСсылка на обсуждение \U0001F4E2"
             if user.link == '' or user.link == None:
@@ -123,7 +123,7 @@ def global_menu(message, dont_show_status=True):
             already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
             left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
             right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
-            status = f'{RED_BALL}\n({right_sum}{HELP})\n' + f"\nВ моей сети: {len(list_my_socium)}\n"
+            status = f'{RED_BALL}\n({int(right_sum)}{HELP})\n' + f"\nВ моей сети: {len(list_my_socium)}\n"
             status += text_req
             status += "\n\nСсылка на обсуждение \U0001F4E2"
             if user.link == '' or user.link == None:
@@ -474,9 +474,9 @@ def call_people_menu(message):
         link = create_link(message.chat.id, id_help)
 
         if status == "orange":
-            string_name = f'\n<a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} / {GLOBE} <a href="{link}">Помочь</a> \n{left_sum} {HEART_RED} / {right_sum} {HELP}'
+            string_name = f'\n<a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} / {GLOBE} <a href="{link}">Помочь</a> \n{int(left_sum)} {HEART_RED} / {int(right_sum)} {HELP}'
         elif "red" in status:
-            string_name = f'\n<a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} / {GLOBE} <a href="{link}">Помочь</a> \n{right_sum} {HELP}'
+            string_name = f'\n<a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} / {GLOBE} <a href="{link}">Помочь</a> \n{int(right_sum)} {HELP}'
         else:
             continue
 
@@ -1411,13 +1411,13 @@ def print_list_check_intentions_member_id(message, member_id):
         if status == 'green':
             string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {GREEN_BALL}'
         elif status == "orange":
-            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} / {GLOBE} <a href="{link}">Помочь</a>\n{left_sum} {HEART_RED} / {right_sum} {HELP}'
+            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} / {GLOBE} <a href="{link}">Помочь</a>\n{int(left_sum)} {HEART_RED} / {int(right_sum)} {HELP}'
         elif "red" in status:
             d0 = user.start_date
             d1 = date.today()
             delta = d1 - d0
             days_end = user.days - delta.days
-            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} / {GLOBE} <a href="{link}">Помочь</a>\n{right_sum} {HELP} / {days_end} дней'
+            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} / {GLOBE} <a href="{link}">Помочь</a>\n{int(right_sum)} {HELP} / {days_end} дней'
         if row.status == 1:
             string_name += f' {RIGHT_ARROW} {row.payment} {HEART_RED}'
         elif row.status == 11 or row.status == 12:
@@ -1482,13 +1482,13 @@ def print_members_list_in_network(message, member_id, direction):
         if status == 'green':
             string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {GREEN_BALL}'
         elif status == "orange":
-            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} / {GLOBE} <a href="{link}">Помочь</a>\n{left_sum} {HEART_RED} / {right_sum} {HELP}'
+            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} / {GLOBE} <a href="{link}">Помочь</a>\n{int(left_sum)} {HEART_RED} / {int(right_sum)} {HELP}'
         elif "red" in status:
             d0 = user.start_date
             d1 = date.today()
             delta = d1 - d0
             days_end = user.days - delta.days
-            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} / {GLOBE} <a href="{link}">Помочь</a>\n{right_sum} {HELP} / {days_end} дней'
+            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} / {GLOBE} <a href="{link}">Помочь</a>\n{int(right_sum)} {HELP} / {days_end} дней'
 
     # сообщение в телеграмме не может быть длиннее 4096 символов. 14 юзеров - это 400 символов.
     # нужно привязать пагинацию
@@ -1624,7 +1624,7 @@ def generate_status_info_text(user):
     # already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
     right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
 
-    to_collect_text = '  сколько ещё нужно собрать: {}'.format(right_sum)
+    to_collect_text = '  сколько ещё нужно собрать: {}'.format(int(right_sum))
 
     if 'red' in user.status:
         days = timedelta(days=user.days)
@@ -1679,7 +1679,7 @@ def generate_user_info_preview(user_id):
         first_name=first_name, last_name=last_name,
         status=status, currency=currency, int_in=intentions_in_sum,
         obl_in=obligations_in_sum, exe_in=executed_in_sum,
-        int_out=intentions_out_sum, obl_out=obligations_out_sum,
+        int_out=int(intentions_out_sum), obl_out=int(obligations_out_sum),
         exe_out=executed_out_sum, tr_in=transactions_in_count,
         tr_out=transactions_out_count, HEART_RED=HEART_RED, HANDSHAKE=HANDSHAKE,
         PLUS=PLUS, MINUS=MINUS)
@@ -1816,11 +1816,11 @@ def generate_user_info_text(user, lang, self_id=''):
             else:
                 user_info_text = f'{first_name} {last_name} {status} / {SPEECH_BALOON}about me: {user.link}\n'
 
-        user_info_text += f'{MAN} {RIGHT_ARROW} {transactions_out_count} {PEOPLES}: {intentions_out_sum} {HEART_RED} / {obligations_out_sum} {HANDSHAKE}'
+        user_info_text += f'{MAN} {RIGHT_ARROW} {transactions_out_count} {PEOPLES}: {int(intentions_out_sum)} {HEART_RED} / {int(obligations_out_sum)} {HANDSHAKE}'
 
     elif user.status == 'orange':
-        user_info_text += f'{transactions_in_count} {PEOPLES} {RIGHT_ARROW} {MAN} ({left_sum} {HEART_RED} / {right_sum} {HELP})\n'
-        user_info_text += f'{MAN} {RIGHT_ARROW} {transactions_out_count} {PEOPLES}: {intentions_out_sum} {HEART_RED} / {obligations_out_sum} {HANDSHAKE}'
+        user_info_text += f'{transactions_in_count} {PEOPLES} {RIGHT_ARROW} {MAN} ({int(left_sum)} {HEART_RED} / {int(right_sum)} {HELP})\n'
+        user_info_text += f'{MAN} {RIGHT_ARROW} {transactions_out_count} {PEOPLES}: {int(intentions_out_sum)} {HEART_RED} / {int(obligations_out_sum)} {HANDSHAKE}'
 
     elif 'red' in user.status:
         d0 = user.start_date
@@ -1828,9 +1828,9 @@ def generate_user_info_text(user, lang, self_id=''):
         delta = d1 - d0
         days_end = user.days - delta.days
         if lang == "ru":
-            user_info_text += f'{transactions_in_count} {PEOPLES} {RIGHT_ARROW} {MAN} ({right_sum} {HELP} / {days_end} дней)\n'
+            user_info_text += f'{transactions_in_count} {PEOPLES} {RIGHT_ARROW} {MAN} ({int(right_sum)} {HELP} / {days_end} дней)\n'
         else:
-            user_info_text += f'{transactions_in_count} {PEOPLES} {RIGHT_ARROW} {MAN} ({right_sum} {HELP} / {days_end} days)\n'
+            user_info_text += f'{transactions_in_count} {PEOPLES} {RIGHT_ARROW} {MAN} ({int(right_sum)} {HELP} / {days_end} days)\n'
 
     return user_info_text
 
@@ -2022,13 +2022,13 @@ def show_other_socium(message, user_id):
         if status == 'green':
             string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {GREEN_BALL}'
         elif status == "orange":
-            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} / {GLOBE} <a href="{link}">Помочь</a>\n{left_sum} {HEART_RED} / {right_sum} {HELP}'
+            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} / {GLOBE} <a href="{link}">Помочь</a>\n{int(left_sum)} {HEART_RED} / {int(right_sum)} {HELP}'
         elif "red" in status:
             d0 = user.start_date
             d1 = date.today()
             delta = d1 - d0
             days_end = user.days - delta.days
-            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} / {GLOBE} <a href="{link}">Помочь</a>\n{right_sum} {HELP} / {days_end} дней'
+            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} / {GLOBE} <a href="{link}">Помочь</a>\n{int(right_sum)} {HELP} / {days_end} дней'
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 
     lang = read_user_language(message.chat.id)
@@ -2104,13 +2104,13 @@ def show_my_socium(message):
         if status == 'green':
             string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {GREEN_BALL}'
         elif status == "orange":
-            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} / {GLOBE} <a href="{link}">Помочь</a>\n{left_sum} {HEART_RED} / {right_sum} {HELP}'
+            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} / {GLOBE} <a href="{link}">Помочь</a>\n{int(left_sum)} {HEART_RED} / {int(right_sum)} {HELP}'
         elif "red" in status:
             d0 = user.start_date
             d1 = date.today()
             delta = d1 - d0
             days_end = user.days - delta.days
-            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} / {GLOBE} <a href="{link}">Помочь</a>\n{right_sum} {HELP} / {days_end} дней'
+            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} / {GLOBE} <a href="{link}">Помочь</a>\n{int(right_sum)} {HELP} / {days_end} дней'
         list_exodus_id_my_socium.append(user.exodus_id)
 
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -2204,8 +2204,8 @@ def expand_my_socium(message):
             right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
 
             string_name = string_name + '\n{}. {} {} {}  {}/{}'.format(i + 1, user.first_name, user.last_name,
-                                                                       get_status(user.status), str(left_sum) + HEART_RED,
-                                                                       str(right_sum) + HELP)
+                                                                       get_status(user.status), str(int(left_sum)) + HEART_RED,
+                                                                       str(int(right_sum)) + HELP)
 
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 
@@ -2260,8 +2260,8 @@ def check_expand_my_socium(message, list_expand_socium):
                                                                                                                  user.first_name,
                                                                                                                  user.last_name,
                                                                                                                  ORANGE_BALL,
-                                                                                                                 left_sum,
-                                                                                                                 right_sum,
+                                                                                                                 int(left_sum),
+                                                                                                                 int(right_sum),
                                                                                                                  user.currency,
                                                                                                                  all_users)
 
@@ -2278,8 +2278,8 @@ def check_expand_my_socium(message, list_expand_socium):
                                                                                                                  user.first_name,
                                                                                                                  user.last_name,
                                                                                                                  ORANGE_BALL,
-                                                                                                                 left_sum,
-                                                                                                                 right_sum,
+                                                                                                                 int(left_sum),
+                                                                                                                 int(right_sum),
                                                                                                                  user.currency,
                                                                                                                  all_users)
 
@@ -2705,12 +2705,12 @@ def intention_to_obligation(message, intention_id):
     if lang == 'ru':
         bot_text = f"Вы {HEART_RED}  {RIGHT_ARROW}  {HANDSHAKE} {intention.payment}  {RIGHT_ARROW}  {user_to.first_name} {user_to.last_name}\n\
 {user_to.first_name} {user_to.last_name} {status_to}\n\
-({left_sum}{HEART_RED} / {right_sum}{HELP} {LEFT_ARROW} {users_count} {PEOPLES})\n\
+({int(left_sum)}{HEART_RED} / {int(right_sum)}{HELP} {LEFT_ARROW} {users_count} {PEOPLES})\n\
 Ждите уведомления."
     else:
         bot_text = f"You {HEART_RED}  {RIGHT_ARROW}  {HANDSHAKE} {intention.payment}  {RIGHT_ARROW}  {user_to.first_name} {user_to.last_name}\n\
 {user_to.first_name} {user_to.last_name} {status_to}\n\
-({left_sum}{HEART_RED} / {right_sum}{HELP} {LEFT_ARROW} {users_count} {PEOPLES})\n\
+({int(left_sum)}{HEART_RED} / {int(right_sum)}{HELP} {LEFT_ARROW} {users_count} {PEOPLES})\n\
 Wait for notification."
 
     bot.send_message(message.chat.id, bot_text)
@@ -2726,11 +2726,11 @@ Wait for notification."
     if lang == 'ru':
         bot_text_for_all = f"{user_from.first_name} {user_from.last_name} перевел свое {HEART_RED} в {HANDSHAKE} участнику {user_to.first_name} {user_to.last_name} на сумму: {intention.payment} {intention.currency}\n\
 {user_to.first_name} {user_to.last_name} {status_to}\n\
-({left_sum}{HEART_RED} / {right_sum}{HELP} {LEFT_ARROW} {users_count} {PEOPLES})"
+({int(left_sum)}{HEART_RED} / {int(right_sum)}{HELP} {LEFT_ARROW} {users_count} {PEOPLES})"
     else:
         bot_text_for_all = f"{user_from.first_name} {user_from.last_name} moved {HEART_RED} to {HANDSHAKE} {user_to.first_name} {user_to.last_name} for the amount: {intention.payment} {intention.currency}\n\
 {user_to.first_name} {user_to.last_name} {status_to}\n\
-({left_sum}{HEART_RED} / {right_sum}{HELP} {LEFT_ARROW} {users_count} {PEOPLES})"
+({int(left_sum)}{HEART_RED} / {int(right_sum)}{HELP} {LEFT_ARROW} {users_count} {PEOPLES})"
 
     for id in list_needy_id:
         bot.send_message(id, bot_text_for_all)
@@ -3528,10 +3528,10 @@ def for_me_obligation(message, reminder_call, intention_id):
     if lang == 'ru':
         if "red" in user_to.status:
             bot_text += f"Вы - {status} \n\
-({right_sum}{HELP})"
+({int(right_sum)}{HELP})"
         else:
             bot_text += f"Вы - {status} \n\
-({left_sum}{HEART_RED} / {right_sum}{HELP})"
+({int(left_sum)}{HEART_RED} / {int(right_sum)}{HELP})"
         btn1 = types.KeyboardButton(text='Запрос на исполнение')
         btn2 = types.KeyboardButton(text='Хранить')
         btn3 = types.KeyboardButton(text='Напомнить позже')
@@ -3539,10 +3539,10 @@ def for_me_obligation(message, reminder_call, intention_id):
     else:
         if "red" in user_to.status:
             bot_text += f"You - {status} \n\
-({right_sum}{HELP})"
+({int(right_sum)}{HELP})"
         else:
             bot_text += f"You - {status} \n\
-({left_sum}{HEART_RED} / {right_sum}{HELP})"
+({int(left_sum)}{HEART_RED} / {int(right_sum)}{HELP})"
         btn1 = types.KeyboardButton(text='Request for execution')
         btn2 = types.KeyboardButton(text='Store')
         btn3 = types.KeyboardButton(text='Remind me later')
@@ -4131,7 +4131,7 @@ def members_menu_profile_link(message, member_id, name_return_func=""):
             except:
                 all_users = 0
         bot_text = f'{MAN} {user.first_name} {user.last_name} {ORANGE_BALL} \n\
-{MONEY_BAG} {left_sum}/{right_sum} \n\
+{MONEY_BAG} {int(left_sum)}/{int(right_sum)} \n\
 {all_users}{PEOPLES}{RIGHT_ARROW}{user.first_name}'
 
     elif 'red' in user.status:
@@ -4146,7 +4146,7 @@ def members_menu_profile_link(message, member_id, name_return_func=""):
         d1 = date.today()
         delta = d1 - d0
         bot_text = f'{MAN} {user.first_name} {user.last_name} {RED_BALL} \n\
-{MONEY_BAG} {left_sum}/{right_sum} \n\
+{MONEY_BAG} {int(left_sum)}/{int(right_sum)} \n\
 {all_users}{PEOPLES}{RIGHT_ARROW}{user.first_name}'
 
     else:
@@ -4736,7 +4736,7 @@ def red_invitation_wizard_check(message, event_id=None):  # ------------------ T
     # рассылка уведомлений моему кругу о том, что я начал кому то помогать, кроме того, кто запросил
     bot_text_for_all = f"{user_from.first_name} {user_from.last_name}  {RIGHT_ARROW}  {HANDSHAKE} {invitation_sum} {user.first_name} {user.last_name}\n\
 {user.first_name} {user.last_name}: {status} \n\
-({right_sum}{HELP} - {days_end} days)"
+({int(right_sum)}{HELP} - {days_end} days)"
 
     for id in list_needy_id:
         bot.send_message(id, bot_text_for_all)
@@ -4746,11 +4746,11 @@ def red_invitation_wizard_check(message, event_id=None):  # ------------------ T
     if lang == 'ru':
         bot_text = f'Записано Ваше {HANDSHAKE} участнику {user.first_name} {user.last_name} на сумму {invitation_sum} {user.currency}\n\
 {user.first_name} {user.last_name}: {status} \n\
-({right_sum}{HELP} за {days_end} дней)'
+({int(right_sum)}{HELP} за {days_end} дней)'
     else:
         bot_text = f'Your {HANDSHAKE} has been recorded {user.first_name} {user.last_name} on sum {invitation_sum} {user.currency}\n\
 {user.first_name} {user.last_name}: {status} \n\
-({right_sum}{HELP} from {days_end} days)'
+({int(right_sum)}{HELP} from {days_end} days)'
     bot.send_message(message.chat.id, bot_text)
 
     # сообщение, получателю, что кто то записал обязательство в его пользу
@@ -4758,11 +4758,11 @@ def red_invitation_wizard_check(message, event_id=None):  # ------------------ T
     if lang_for_u == 'ru':
         text_for_u = f"{user_from.first_name} {user_from.last_name} {status_from}  {RIGHT_ARROW}  {HANDSHAKE} {invitation_sum}\n\
 Ваш статус: {status} \n\
-({right_sum}{HELP})"
+({int(right_sum)}{HELP})"
     else:
         text_for_u = f"{user_from.first_name} {user_from.last_name} {status_from}  {RIGHT_ARROW}  {HANDSHAKE} {invitation_sum}\n\
 Your status: {status} \n\
-({right_sum}{HELP})"
+({int(right_sum)}{HELP})"
     bot.send_message(user.telegram_id, text_for_u)
 
     link = user.link
@@ -4831,9 +4831,9 @@ Your status: {status} \n\
             # сообщение Вам, что вы вернулись автоматически
             lang_user_id = read_user_language(user_id)
             if lang_user_id == 'ru':
-                text = f"Вы вернулись к {ORANGE_BALL}\n({left_sum}{HEART_RED} / {right_sum}{HELP})"
+                text = f"Вы вернулись к {ORANGE_BALL}\n({int(left_sum)}{HEART_RED} / {int(right_sum)}{HELP})"
             else:
-                text = f"You're back to {ORANGE_BALL}\n({left_sum}{HEART_RED} / {right_sum}{HELP})"
+                text = f"You're back to {ORANGE_BALL}\n({int(left_sum)}{HEART_RED} / {int(right_sum)}{HELP})"
 
             bot.send_message(user_id, text)
 
@@ -6122,9 +6122,9 @@ def show_help_requisites(message):
         if status == 'green':
             bot_text = bot_text + f'\n{i}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {GREEN_BALL}'
         elif status == "orange":
-            bot_text = bot_text + f'\n{i}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} {left_sum} {HEART_RED} / {right_sum} {HELP}'
+            bot_text = bot_text + f'\n{i}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} {int(left_sum)} {HEART_RED} / {int(right_sum)} {HELP}'
         elif "red" in status:
-            bot_text = bot_text + f'\n{i}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} {right_sum} {HELP}'
+            bot_text = bot_text + f'\n{i}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} {int(right_sum)} {HELP}'
 
     if lang == 'ru':
         btn1 = types.KeyboardButton('Назад')
