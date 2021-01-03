@@ -203,7 +203,7 @@ def read_all_temp_intention(to_id):
 # region exodus_user
 # Create
 def create_exodus_user(telegram_id, first_name, last_name, username, ref='', link='', min_payments=0,
-                       current_payments=0, max_payments=0, currency='USD', status='', days=0, start_date=date.today()):
+                       current_payments=0, max_payments=0, currency='EUR', status='', days=0, start_date=date.today()):
     exodus_user = Exodus_Users(telegram_id=telegram_id,
                                first_name=first_name,
                                last_name=last_name,
@@ -659,7 +659,7 @@ def delete_intention_for_quit(telegram_id):
 
 
 # region history_intention
-def create_history_intention(from_id, to_id, payment, from_intention, currency="USD"):
+def create_history_intention(from_id, to_id, payment, from_intention, currency="EUR"):
     intention = HistoryIntention(from_id=from_id, to_id=to_id, payment=payment, currency=currency,
                                  create_date=datetime.now(), from_intention=from_intention)
 

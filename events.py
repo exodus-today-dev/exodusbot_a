@@ -26,7 +26,7 @@ def create_future_intention(event):
                  reminder_date=date.today(),
                  status_code=APPROVE_ORANGE_STATUS,
                  intention=Intention(from_id=event.from_id, to_id=event.to_id,
-                                     payment=event.current_payments, currency='USD', status=1,
+                                     payment=event.current_payments, currency='EUR', status=1,
                                      create_date=datetime.now()))
 
 
