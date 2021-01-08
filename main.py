@@ -6401,4 +6401,5 @@ else:
     from web_hook import run_with_web_hooks
 
     app = web.Application()
+
     run_with_web_hooks(app=app, bot=bot)
