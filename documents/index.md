@@ -28,7 +28,7 @@ __Система позволяет проявлять отношения меж
 
 ### Заполнение профиля
 - [Задание и смена статуса](actions/change_status.md)
-- [Создание и изменение ссылки на чат с обсуждением](actions/change_chat_link.md)
+- [Информация о пользователе](actions/change_chat_link.md)
 - [Задание и смена реквизитов](actions/change_requisites.md)
 - [Изменение языка](actions/change_language.md)
 - [Удалиться из бота]
