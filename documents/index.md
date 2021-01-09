@@ -35,19 +35,21 @@ __Система позволяет проявлять отношения меж
 
 ### Действия в органайзере
 **В пользу других участников сети**
+- [Просмотр актуальных намерений и обязательств](actions/show_int_obl.md)
 - [Создание намерения](actions/create_intent.md)
 - [Коррекция намерения](actions/correction_my_intention.md)
 - [Перевод намерения в обязательство](actions/creation_of_obligation.md)
 - [Исполнение обязательства](actions/money_transfer.md)
-- [Просмотр актуальных намерений и обязательств](actions/show_int_obl.md)
-- [Архив исполненных обязательств](actions/archive.md)
 
 **В свою пользу**
 - [Просмотр актуальных намерений и обязательств](actions/show_int_obl_for_me.md)
 - [Просьба о переводе намерения в обязательство](actions/request_for_transfer.md)
 - [Хранение обязательства](actions/save_obligation.md)
 - [Запрос на исполнение обязательства](actions/request_for_execution.md)
+
+**Архив обязательств**
 - [Архив исполненных обязательств](actions/archive_my.md)
+- [Архив не исполненных вовремя обязательств](actions/archive.md)
 
 ### Действия в главном меню
 - [Просмотр участников и расширение сети](actions/show_circle.md)
