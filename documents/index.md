@@ -39,11 +39,11 @@ __Система позволяет проявлять отношения меж
 - [Коррекция намерения](actions/correction_my_intention.md)
 - [Перевод намерения в обязательство](actions/creation_of_obligation.md)
 - [Исполнение обязательства](actions/money_transfer.md)
-- [Просмотр неисполненных намерений и обязательств](actions/show_int_obl.md)
+- [Просмотр актуальных намерений и обязательств](actions/show_int_obl.md)
 - [Архив исполненных обязательств](actions/archive.md)
 
 **В свою пользу**
-- [Просмотр неисполненных намерений и обязательств](actions/show_int_obl_for_me.md)
+- [Просмотр актуальных намерений и обязательств](actions/show_int_obl_for_me.md)
 - [Просьба о переводе намерения в обязательство](actions/request_for_transfer.md)
 - [Хранение обязательства](actions/save_obligation.md)
 - [Запрос на исполнение обязательства](actions/request_for_execution.md)
@@ -64,7 +64,7 @@ __Система позволяет проявлять отношения меж
 - [О создании намерения в сторону пользователя](notifications/intention_created.md)
 - [Просьба о переводе намерения в обязательство](notifications/request_for_translation.md)
 - [Уведомление о переводе намерения в обязательство](notifications/obligation_created.md)
-- [Просьба о исполнении обязательства](notifications/reminder_of_obligation.md)
+- [Просьба подтвердить исполнение обязательства](notifications/reminder_of_obligation.md)
 - [Уведомление об исполнении обязательства](notifications/money_transferred.md)
 - [Напоминание о необходимости подтвердить исполнение обязательства](notifications/reminder_to_confirm.md)
 - [О подтверждении исполнения обязательства получателем](notifications/money_received.md)
