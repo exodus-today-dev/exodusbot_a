@@ -37,7 +37,7 @@ __Система позволяет проявлять отношения меж
 **В пользу других участников сети**
 - [Просмотр актуальных намерений и обязательств](actions/show_int_obl.md)
 - [Создание намерения](actions/create_intent.md)
-- [Коррекция намерения](actions/correction_my_intention.md)
+- [Коррекция, отмена или исполнение намерения](actions/correction_my_intention.md)
 - [Перевод намерения в обязательство](actions/creation_of_obligation.md)
 - [Исполнение обязательства](actions/money_transfer.md)
 
