@@ -3,4 +3,4 @@
 После того, как получатель помощи [подтвердил исполнение обязательства](../actions/confirmation_of_transfer.md), отправитель получает соответствующее уведомление.
 
 ---
-> [Главная](../index.md) | [Исполнение обязательства](../actions/confirmation_of_transfer.md)
+> [Главная](../index.md) | [Подтверждение исполнения](../actions/confirmation_of_transfer.md)
