@@ -2022,13 +2022,13 @@ def show_other_socium(message, user_id):
         if status == 'green':
             string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {GREEN_BALL}'
         elif status == "orange":
-            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} / {GLOBE} <a href="{link}">Помочь</a>\n{int(left_sum)} {HEART_RED} / {int(right_sum)} {HELP}'
+            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} ({int(left_sum)} {HEART_RED} / {int(right_sum)} {HELP}) {GLOBE} <a href="{link}">Помочь</a>'
         elif "red" in status:
             d0 = user.start_date
             d1 = date.today()
             delta = d1 - d0
             days_end = user.days - delta.days
-            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} / {GLOBE} <a href="{link}">Помочь</a>\n{int(right_sum)} {HELP} / {days_end} дней'
+            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} ({int(right_sum)} {HELP} / {days_end} дней) {GLOBE} <a href="{link}">Помочь</a>'
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 
     lang = read_user_language(message.chat.id)
@@ -2104,13 +2104,13 @@ def show_my_socium(message):
         if status == 'green':
             string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {GREEN_BALL}'
         elif status == "orange":
-            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} / {GLOBE} <a href="{link}">Помочь</a>\n{int(left_sum)} {HEART_RED} / {int(right_sum)} {HELP}'
+            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} ({int(left_sum)} {HEART_RED} / {int(right_sum)} {HELP}) {GLOBE} <a href="{link}">Помочь</a>'
         elif "red" in status:
             d0 = user.start_date
             d1 = date.today()
             delta = d1 - d0
             days_end = user.days - delta.days
-            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} / {GLOBE} <a href="{link}">Помочь</a>\n{int(right_sum)} {HELP} / {days_end} дней'
+            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} ({int(right_sum)} {HELP} / {days_end} дней) {GLOBE} <a href="{link}">Помочь</a>'
         list_exodus_id_my_socium.append(user.exodus_id)
 
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -2403,7 +2403,7 @@ def for_other_wizard(message):
         bot_text = f"Вами записано {intentions_count} {HEART_RED} и {obligations_count} {HANDSHAKE}:\n\
 {bot_text_int}\n\n\
 {bot_text_obl}\n\n\
-Введите номер, чтобы посмотреть подробную информацию или изменить:"
+Введите номер Записи, чтобы посмотреть подробную информацию или изменить:"
         btn2 = types.KeyboardButton(text='Назад')
     else:
         bot_text = f"You recorded it {intentions_count} {HEART_RED} и {obligations_count} {HANDSHAKE}:\n\
@@ -2522,7 +2522,7 @@ remained {left_days} days:\n'.format(n=intent.intention_id,
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     if lang == 'ru':
         btn2 = types.KeyboardButton(text='Назад')
-        bot_text_out = 'Введите номер, чтобы посмотреть подробную информацию или изменить:'
+        bot_text_out = 'Введите номер Участника, чтобы посмотреть подробную информацию или изменить:'
 
     else:
         btn2 = types.KeyboardButton(text='Back')
@@ -2947,7 +2947,7 @@ remained {left_days} days:\n'.format(n=intent.intention_id,
 
     if lang == 'ru':
         btn2 = types.KeyboardButton(text='Назад')
-        bot_text_out = 'Введите номер, чтобы посмотреть подробную информацию или изменить:'
+        bot_text_out = 'Введите номер Участника, чтобы посмотреть подробную информацию или изменить:'
     else:
         btn2 = types.KeyboardButton(text='Back')
         bot_text_out = 'Enter the number to view detailed information or change it:'
@@ -3225,14 +3225,14 @@ def for_my_wizard(message):
         bot_text = f"В Вашу пользу {intentions_count} {HEART_RED} и {obligations_count} {HANDSHAKE}:\n\
 {bot_text_int}\n\n\
 {bot_text_obl}\n\n\
-Введите номер, чтобы посмотреть подробную информацию или изменить:"
+Введите номер Записи, чтобы посмотреть подробную информацию или изменить:"
         btn2 = types.KeyboardButton(text='Назад')
 
     else:
         bot_text = f"In your favor {intentions_count} {HEART_RED} and {obligations_count} {HANDSHAKE}:\n\
 {bot_text_int}\n\n\
 {bot_text_obl}\n\n\
-Enter the number to view detailed information or change it:"
+Enter the Record number to view detailed information or change it:"
         btn2 = types.KeyboardButton(text='Back')
 
     markup.row(btn2)
@@ -3379,7 +3379,7 @@ def for_my_wizard_intention(message):
     markup.row(btn2)
     bot.send_message(message.chat.id, bot_text, reply_markup=markup)
     if lang == 'ru':
-        bot_text = 'Введите номер, чтобы посмотреть подробную информацию или изменить:'
+        bot_text = 'Введите номер Записи, чтобы посмотреть подробную информацию или изменить:'
     else:
         bot_text = 'Enter the number to view detailed information or change it:'
 
@@ -3461,7 +3461,7 @@ def for_my_wizard_obligation(message):
     markup.row(btn2)
     bot.send_message(message.chat.id, bot_text, reply_markup=markup)
     if lang == 'ru':
-        bot_text = 'Введите номер, чтобы посмотреть подробную информацию или изменить:'
+        bot_text = 'Введите номер Записи, чтобы посмотреть подробную информацию или изменить:'
     else:
         bot_text = 'Enter the number to view detailed information or change it:'
 
@@ -3739,7 +3739,7 @@ def not_executed_wizard_to_me(message):
     if lang == 'ru':
         bot_text = f"Я не подтвердил {intentions.count()} {HANDSHAKE} в мою пользу:\n"
         btn2 = types.KeyboardButton(text='Назад')
-        bot_text_out = 'Введите номер, чтобы посмотреть подробную информацию или изменить:'
+        bot_text_out = 'Введите номер Записи, чтобы посмотреть подробную информацию или изменить:'
     else:
         bot_text = f"I didn't confirm {intentions.count()} {HANDSHAKE} in my favor:\n"
         btn2 = types.KeyboardButton(text='Back')
@@ -3949,7 +3949,7 @@ def not_executed_wizard_for_all(message):
     if lang == 'ru':
         bot_text = f"{intentions.count()} моих {HANDSHAKE} в пользу других не было подтверждено:\n"
         btn2 = types.KeyboardButton(text='Назад')
-        bot_text_out = 'Введите номер, чтобы посмотреть подробную информацию или изменить:'
+        bot_text_out = 'Введите номер Записи, чтобы посмотреть подробную информацию или изменить:'
 
     else:
         bot_text = f"{intentions.count()} my {HANDSHAKE} in favor of others was not confirmed:\n"
