@@ -2593,7 +2593,7 @@ def intention_for_needy(message, reminder_call, intention_id, show_back=False):
                                           currency=intention.currency)
         btn1 = types.KeyboardButton(text=f'В {HANDSHAKE}')
         btn2 = types.KeyboardButton(text='Изменить')
-        btn3 = types.KeyboardButton(text='Напомнить позже')
+        btn3 = types.KeyboardButton(text='Исполнить намерение')
         btn4 = types.KeyboardButton(text=f'Отменить {HEART_RED}')
         btn5 = types.KeyboardButton(text='Главное меню')
     else:
@@ -2607,7 +2607,7 @@ For the sum {payment} {currency}'.format(HEART_RED=HEART_RED,
                                               currency=intention.currency)
         btn1 = types.KeyboardButton(text=f'In {HANDSHAKE}')
         btn2 = types.KeyboardButton(text='Change')
-        btn3 = types.KeyboardButton(text='Remind me later')
+        btn3 = types.KeyboardButton(text='Fulfill the intention')
         btn4 = types.KeyboardButton(text=f'Cancel {HEART_RED}')
         btn5 = types.KeyboardButton(text='Menu')
     markup.row(btn1, btn2, btn4)
@@ -2635,9 +2635,10 @@ def intention_for_needy_check(message, intention_id):
     elif text == 'Изменить' or 'Change' in text:
         edit_intention(message)
         return
-    elif text == 'Напомнить позже' or 'Remind' in text:
-        remind_later(message, event_status='intention', reminder_type='reminder_out', intention_id=intention_id)
-        global_menu(message)
+    elif 'Исполнить' in text or 'Fulfill' in text:
+        obligation_sent_confirm(message, intention_id=intention_id)
+        #remind_later(message, event_status='intention', reminder_type='reminder_out', intention_id=intention_id)
+        #global_menu(message)
         return
     elif HEART_RED in text:
         cancel_intention(message, intention_id)
@@ -3068,13 +3069,15 @@ def obligation_for_needy_check(message, intention_id):
     return
 
 
-def obligation_sent_confirm(message):
-    bot.delete_message(message.chat.id, message.message_id)
-    intention_id = transaction[message.chat.id]
+def obligation_sent_confirm(message, intention_id=None):
+    if intention_id:
+        intention_id=intention_id
+    else:
+        bot.delete_message(message.chat.id, message.message_id)
+        intention_id = transaction[message.chat.id]
     intention = read_intention_by_id(intention_id)
     user_to = read_exodus_user(telegram_id=intention.to_id)
     requisites = read_requisites_user(user_to.telegram_id)
-
 
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     lang = read_user_language(message.chat.id)
@@ -3103,7 +3106,28 @@ Participant {user_to.first_name} {user_to.last_name} to requisites {req_name} {r
 
     markup.row(btn1, btn2)
     msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
-    bot.register_next_step_handler(msg, obligation_sent_confirm_check)
+    if intention_id:
+        bot.register_next_step_handler(msg, obligation_sent_confirm_check_fast, intention_id)
+    else:
+        bot.register_next_step_handler(msg, obligation_sent_confirm_check)
+    return
+
+
+def obligation_sent_confirm_check_fast(message, intention_id):
+    text = message.text
+    bot.delete_message(message.chat.id, message.message_id)
+    if text == 'Да' or 'Yes' in text:
+        obligation_sent_confirm_yes(message, intention_id=intention_id)
+        return
+    elif text == 'Нет' or 'No' in text:
+        for_other_wizard_intention(message)
+        return
+    elif "/start" in text:
+        welcome_base(message)
+        return
+    else:
+        msg = bot.send_message(message.chat.id, exception_message(message))
+        bot.register_next_step_handler(msg, for_other_wizard_intention)
     return
 
 
@@ -3125,9 +3149,29 @@ def obligation_sent_confirm_check(message):
     return
 
 
-def obligation_sent_confirm_yes(message):
-    intention_id = transaction[message.chat.id]
-    intention = read_intention_by_id(intention_id)
+def obligation_sent_confirm_yes(message, intention_id=None):
+    if intention_id:
+        intention_id = intention_id
+        intention = read_intention_by_id(intention_id)
+        # создаем событие для намерения на будущий месяц
+        create_event(from_id=message.chat.id,
+                     first_name=None,
+                     last_name=None,
+                     status='future_event',
+                     type='future_event',
+                     min_payments=None,
+                     current_payments=intention.payment,
+                     max_payments=None,
+                     currency=None,
+                     users=None,
+                     to_id=intention.to_id,
+                     reminder_date=datetime.now(),
+                     sent=False,
+                     status_code=FUTURE_EVENT)
+    else:
+        intention_id = transaction[message.chat.id]
+        intention = read_intention_by_id(intention_id)
+
     user_to = read_exodus_user(telegram_id=intention.to_id)
 
     lang = read_user_language(message.chat.id)
@@ -3141,8 +3185,6 @@ def obligation_sent_confirm_yes(message):
     bot.send_message(message.chat.id, bot_text)
     update_intention(intention_id=intention_id, status=12)
 
-    intention_id = transaction[message.chat.id]  # recode: intention_id as
-    intention = read_intention_by_id(intention_id)  # argument
     user = read_exodus_user(intention.to_id)
 
     intentions = read_intention(to_id=intention.to_id)
@@ -3522,7 +3564,6 @@ def for_me_obligation(message, reminder_call, intention_id):
 
     bot_text = f"{user_from.first_name} {user_from.last_name} {status_from} {RIGHT_ARROW} {HANDSHAKE} {intention.payment}\n"
 
-
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 
     if lang == 'ru':
@@ -3534,7 +3575,7 @@ def for_me_obligation(message, reminder_call, intention_id):
 ({int(left_sum)}{HEART_RED} / {int(right_sum)}{HELP})"
         btn1 = types.KeyboardButton(text='Запрос на исполнение')
         btn2 = types.KeyboardButton(text='Хранить')
-        btn3 = types.KeyboardButton(text='Напомнить позже')
+        btn3 = types.KeyboardButton(text='Простить обязательство')
         btn4 = types.KeyboardButton(text='Главное меню')
     else:
         if "red" in user_to.status:
@@ -3545,7 +3586,7 @@ def for_me_obligation(message, reminder_call, intention_id):
 ({int(left_sum)}{HEART_RED} / {int(right_sum)}{HELP})"
         btn1 = types.KeyboardButton(text='Request for execution')
         btn2 = types.KeyboardButton(text='Store')
-        btn3 = types.KeyboardButton(text='Remind me later')
+        btn3 = types.KeyboardButton(text='Forgive the obligation')
         btn4 = types.KeyboardButton(text='Menu')
 
     markup.row(btn1, btn2)
@@ -3565,8 +3606,9 @@ def for_me_obligation_check(message, obligation_id):
     elif text == 'Хранить' or 'Store' in text:
         keep_obligation(message, obligation_id)
         return
-    elif text == 'Напомнить позже' or 'Remind' in text:
-        remind_later(message, event_status=None, reminder_type='reminder_in', intention_id=obligation_id, to_menu=True)
+    elif 'Простить' in text or 'Forgive' in text:
+        #remind_later(message, event_status=None, reminder_type='reminder_in', intention_id=obligation_id, to_menu=True)
+        cancel_obligation(message, obligation_id)
         return
     elif text == 'Главное меню' or 'Menu' in text:
         global_menu(message)
@@ -3575,6 +3617,71 @@ def for_me_obligation_check(message, obligation_id):
         welcome_base(message)
         return
 
+    return
+
+
+def cancel_obligation(message, obligation_id):
+    #intention_id = transaction[message.chat.id]
+    intention = read_intention_by_id(obligation_id)
+    user_from = read_exodus_user(telegram_id=intention.from_id)
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+
+    lang = read_user_language(message.chat.id)
+    if lang == 'ru':
+        bot_text = f"Вы хотите простить {HANDSHAKE} участнику {user_from.first_name} {user_from.last_name} на {intention.payment} {intention.currency}?"
+        btn1 = types.KeyboardButton(text='Нет')
+        btn2 = types.KeyboardButton(text='Да')
+    else:
+        bot_text = f"You want to forgive {HANDSHAKE} participant {user_from.first_name} {user_from.last_name} on {intention.payment} {intention.currency}?"
+        btn1 = types.KeyboardButton(text='No')
+        btn2 = types.KeyboardButton(text='Yes')
+
+    markup.row(btn1, btn2)
+    msg = bot.send_message(message.chat.id, bot_text, reply_markup=markup)
+    bot.register_next_step_handler(msg, cancel_obligation_check, obligation_id)
+    return
+
+
+def cancel_obligation_check(message, obligation_id):
+    #intention_id = transaction[message.chat.id]
+    intention = read_intention_by_id(obligation_id)
+    user_to = read_exodus_user(telegram_id=intention.to_id)
+    lang = read_user_language(message.chat.id)
+    if lang == 'ru':
+        bot_text = f"{HANDSHAKE} перед участником {user_to.first_name} {user_to.last_name} на {intention.payment} {intention.currency} прощено."
+    else:
+        bot_text = f"{HANDSHAKE} before the participant {user_to.first_name} {user_to.last_name} on {intention.payment} {intention.currency} forgiven."
+
+    text = message.text
+    bot.delete_message(message.chat.id, message.message_id)
+    if text == 'Нет' or 'No' in text:
+        for_me_obligation(message, reminder_call=True, intention_id=obligation_id)
+        return
+    elif text == 'Да' or 'Yes' in text:
+        update_intention(obligation_id, status=0)
+        update_event_status_code(intention.event_id, CLOSED)
+        bot.send_message(intention.from_id, bot_text)
+
+        user_from = read_exodus_user(intention.from_id)
+
+        lang_to = read_user_language(intention.to_id)
+        if lang_to == 'ru':
+            text_for_needy = f'Вы простили {HANDSHAKE} участника {user_from.first_name} {user_from.last_name} на {intention.payment} {intention.currency}'
+        else:
+            text_for_needy = f'You have forgiven {HANDSHAKE} member {user_from.first_name} {user_from.last_name} on {intention.payment} {intention.currency}'
+
+        bot.send_message(message.chat.id, text_for_needy)
+
+        global_menu(message)
+        return
+
+    elif "/start" in text:
+        welcome_base(message)
+        return
+
+    else:
+        msg = bot.send_message(message.chat.id, exception_message(message))
+        bot.register_next_step_handler(msg, global_menu)
     return
 
 
