@@ -432,14 +432,9 @@ def check_not_approve_intention_12(message):
 def call_people_menu(message):
     list_my_socium = list(get_my_socium(message.chat.id))
     list_my_socium.append(message.chat.id)
-    len_my_socium = len(list_my_socium)
 
     keyboard_inline = []
     btn_inline = []
-
-    # for i in range(len_my_socium):
-    #     keyboard_inline.append(types.InlineKeyboardMarkup())
-    #     btn_inline.append(types.InlineKeyboardButton("Позвать", callback_data="show_people_link_"+str(list_my_socium[i])))
 
     user_id = message.chat.id
     lang = read_user_language(user_id)
@@ -473,12 +468,32 @@ def call_people_menu(message):
 
         link = create_link(message.chat.id, id_help)
 
+        add_text_id_help = ''
+        intention_to_id_help = session.query(Intention).filter_by(from_id=message.chat.id, to_id=id_help, status=1).first()
+        if intention_to_id_help:
+            add_text_id_help += f" ({MAN}{RIGHT_ARROW}{int(intention_to_id_help.payment)}{HEART_RED})"
+
+        intention_to_id_help = session.query(Intention).filter_by(from_id=message.chat.id, to_id=id_help, status=11).first()
+        if intention_to_id_help:
+            add_text_id_help += f" ({MAN}{RIGHT_ARROW}{int(intention_to_id_help.payment)}{HANDSHAKE})"
+
+        intention_to_id_help = session.query(Intention).filter_by(from_id=message.chat.id, to_id=id_help, status=12).first()
+        if intention_to_id_help:
+            add_text_id_help += f" ({MAN}{RIGHT_ARROW}{int(intention_to_id_help.payment)}{HANDSHAKE}{RIGHT_ARROW}{LIKE})"
+
+        intention_to_id_help = session.query(Intention).filter_by(from_id=message.chat.id, to_id=id_help, status=13).first()
+        if intention_to_id_help:
+            add_text_id_help += f" ({MAN}{RIGHT_ARROW}{int(intention_to_id_help.payment)}{LIKE})"
+
         if status == "orange":
-            string_name = f'\n<a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} / {GLOBE} <a href="{link}">Помочь</a> \n{int(left_sum)} {HEART_RED} / {int(right_sum)} {HELP}'
+            string_name = f'\n<a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} / {GLOBE} <a href="{link}">Помочь</a> \n({int(left_sum)} {HEART_RED} / {int(right_sum)} {HELP})'
         elif "red" in status:
-            string_name = f'\n<a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} / {GLOBE} <a href="{link}">Помочь</a> \n{int(right_sum)} {HELP}'
+            string_name = f'\n<a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} / {GLOBE} <a href="{link}">Помочь</a> \n({int(right_sum)} {HELP})'
         else:
             continue
+
+        # добавим свою помощь этому участнику(если она есть)
+        string_name += add_text_id_help
 
         keyboard_inline[i].add(btn_inline[i])
 
@@ -3074,7 +3089,7 @@ def obligation_sent_confirm(message, intention_id=None):
     if intention_id:
         intention_id=intention_id
     else:
-        bot.delete_message(message.chat.id, message.message_id)
+        #bot.delete_message(message.chat.id, message.message_id)
         intention_id = transaction[message.chat.id]
     intention = read_intention_by_id(intention_id)
     user_to = read_exodus_user(telegram_id=intention.to_id)
@@ -3370,7 +3385,7 @@ def new_check_intention_send(message, intention):
 
 def for_my_check(message):
     text = message.text
-    bot.delete_message(message.chat.id, message.message_id)
+    #bot.delete_message(message.chat.id, message.message_id)
     lang = read_user_language(message.chat.id)
 
     if text == f'{HEART_RED} (0)':
@@ -6347,7 +6362,7 @@ def help_link_generate_menu(call):
 @bot.callback_query_handler(func=lambda call: call.data[0:18] == 'orange_invitation-')
 def orange_invitation(call):
     global_menu(call.message)
-    bot.delete_message(call.message.chat.id, call.message.message_id)
+    #bot.delete_message(call.message.chat.id, call.message.message_id)
     user_id = call.data.split('-')[1]
     event_id = call.data.split('-')[2]
     # update_event_status_code(event_id, CLOSED)
@@ -6359,7 +6374,7 @@ def orange_invitation(call):
 def red_invitation(call):
     # print("call",call.message)
     global_menu(call.message)
-    bot.delete_message(call.message.chat.id, call.message.message_id)
+    #bot.delete_message(call.message.chat.id, call.message.message_id)
     user_id = call.data.split('-')[1]
     event_id = call.data.split('-')[2]
     start_red_invitation(call.message, user_id, event_id)
@@ -6368,7 +6383,7 @@ def red_invitation(call):
 
 @bot.callback_query_handler(func=lambda call: 'obligation_money_requested-' in call.data)
 def obligation_money_requested_notice_call(call):
-    bot.delete_message(call.message.chat.id, call.message.message_id)
+    #bot.delete_message(call.message.chat.id, call.message.message_id)
     event_id = call.data.split('-')[1]
     event = read_event(event_id)
     obligation_for_needy(call.message, reminder_call=True, intention_id=event.intention.intention_id)
