@@ -1479,16 +1479,17 @@ def print_members_list_in_network(message, member_id, direction):
 
         link = create_link(row, row)
         status = user.status
+
         if status == 'green':
             string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {GREEN_BALL}'
         elif status == "orange":
-            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} / {GLOBE} <a href="{link}">Помочь</a>\n{int(left_sum)} {HEART_RED} / {int(right_sum)} {HELP}'
+            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {ORANGE_BALL} ({int(left_sum)} {HEART_RED} / {int(right_sum)} {HELP}) {GLOBE} <a href="{link}">Помочь</a>'
         elif "red" in status:
             d0 = user.start_date
             d1 = date.today()
             delta = d1 - d0
             days_end = user.days - delta.days
-            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} / {GLOBE} <a href="{link}">Помочь</a>\n{int(right_sum)} {HELP} / {days_end} дней'
+            string_name = string_name + f'\n{user.exodus_id}. <a href="tg://user?id={user.telegram_id}">{user.first_name} {user.last_name}</a> {RED_BALL} ({int(right_sum)} {HELP} / {days_end} дней) {GLOBE} <a href="{link}">Помочь</a>'
 
     # сообщение в телеграмме не может быть длиннее 4096 символов. 14 юзеров - это 400 символов.
     # нужно привязать пагинацию
