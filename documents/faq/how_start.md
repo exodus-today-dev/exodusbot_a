@@ -45,4 +45,4 @@
 
 ---
 > [README](README.md) | [Описание бота взаимопомощи](../index.md)   
-> [Про бота](about_bot.md)| |[Условные обозначения](conventions.md)
+> [Про бота](about_bot.md)| [Условные обозначения](conventions.md)
