@@ -37,10 +37,8 @@
 - [Список участников, которые помогают пользователю](actions/list_other_people.md)
 - [Создание ссылки-приглашения о помощи себе или нуждающимся участникам своей сети](actions/create_invite.md)
 - [Напоминание или подтверждение исполнения обязательства](actions/confirmation_of_transfer.md)
-
 - [Получение справки о работе бота](actions/faq.md)
 - [Чат поддержки](actions/support_chat.md)
-
 
 ### Оповещения
 - [О смене статуса пользователя в круге](notifications/status_changed.md)
