@@ -26,11 +26,15 @@
 
 
 # Короткие видео о децентрализованной сети взаимопомощи по принципам парадигмы Эксодус
-- Видео 1  - про децентрализованную сеть как основу нового социального порядка в мире без насилия
-- Видео 2  - как проявить децентрализованную сеть доверия
-- Видео 3  - как пользоваться ботом взаимной помощи Эксодус
-- Видео 4  - про децентрализованную кассу взаимомощи
-- Видео 5  - про организацию социального проектирования
+На русском языке:   
+1)[Про децентрализованную сеть как основу нового социального порядка в мире без насилия](https://drive.google.com/file/d/1qlk6AV-r2ywEgcsxddwyWwKxT_WCpfh5/view?usp=sharing)  
+2) [Как проявить децентрализованную сеть доверия](https://drive.google.com/file/d/1CL4UOn-dvWdxQeMd-aTb9M7HiT9yxxWG/view?usp=sharing)  
+3) [Как пользоваться ботом взаимной помощи Эксодус](https://drive.google.com/file/d/1pMd-5XtQeUjW2XwpK5NT4RDlJVvS8Kal/view?usp=sharing)  
+4) [Про децентрализованную кассу взаимопомощи](https://drive.google.com/file/d/1W7nPC54nsTXAKdIWaPDH7TvsKGBTt0qS/view?usp=sharing)  
+5) [Про организацию социального проектирования](https://drive.google.com/file/d/1n0mZHLedjd0ustd6OapowIL7Jnhkasp-/view?usp=sharing)  
+
+На английском языке:
+[Video 1](https://drive.google.com/file/d/1NpC6xWolykvY05wudIjR4ntrCaM_mS0a/view?usp=sharing)  |  [Video 2](https://drive.google.com/file/d/1ExfgDfg2aWxVLAX9TzVWIUNuIJ1tG1Lk/view?usp=sharing) |  [Video 3](https://drive.google.com/file/d/1OSyTHOnTr-q6uG6l1Sl0DPd-tRWb9zlP/view?usp=sharing)   |   [Video 4](https://drive.google.com/file/d/1v7ZVZ-yb53iQvF4jRKuE-V4lKn0I0eX8/view?usp=sharing)   |  [Video 5](https://drive.google.com/file/d/16HNWoYPP4uKZVyKhxxwUmudDIKrC35XD/view?usp=sharing)
 
 # Exodus Bot
 
