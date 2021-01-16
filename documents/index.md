@@ -67,3 +67,5 @@
 - [Условные обозначения](faq/conventions.md)
 - [Описание меню](faq/menu.md)
 - [Возможные кейсы](faq/cases.md)
+
+[README](README.mb)
