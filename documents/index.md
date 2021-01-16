@@ -68,4 +68,4 @@
 - [Описание меню](faq/menu.md)
 - [Возможные кейсы](faq/cases.md)
 
-[README](README.mb)
+[README](README.md)
