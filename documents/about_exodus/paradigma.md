@@ -21,4 +21,4 @@
 
 [Видео-презентация парадигмы Эксодус](https://www.youtube.com/watch?v=-BiEHkxAxU8&feature=youtu.be)
 
-[README](README.md)  |   [Функции в боте взаимопомощи](../index.md) 
+[README](README.md)  |   [Описание бота взаимопомощи](../index.md) 
