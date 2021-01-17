@@ -37,15 +37,13 @@ START_TEXT = \
     {
         "ru":
 """
-Бот Эксодус - это способ организации децентрализованной адресной взаимопомощи.
-Через это выявляются и формируются сети доверия участников.
+Использование бота позволяет формировать список участников взаимной помощи, что является необходимым условием возникновения децентрализованной сети доверия.
 
 Выберите пояснение к использованию бота.
 """,
         "en":
 """
-Exodus bot is a way to organize decentralized targeted mutual assistance.
-through this, networks of trust of participants are identified and formed.
+Using the bot allows you to create a list of participants in mutual assistance, which is a necessary condition for the emergence of a decentralized network of trust.
 
 Select an explanation for using the bot.
 """
