@@ -97,43 +97,43 @@ def global_menu(message, dont_show_status=True):
             n += 1
             text_req += f'\n{n}. {requisite.name} - {requisite.value}'
 
-    list_my_socium = get_my_socium(message.chat.id)
+    # list_my_socium = get_my_socium(message.chat.id)
 
     if user is None:
         welcome(message)
-    else:
-        if user.status == "green":
-            status = GREEN_BALL + f"\n\nВ моей сети: {len(list_my_socium)}"
-        elif user.status == "orange":
-            already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
-            already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
-            left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
-            right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
-            status = f'{ORANGE_BALL}\n({int(left_sum)}{HEART_RED} / {int(right_sum)}{HELP})\n' + f"\nВ моей сети: {len(list_my_socium)}\n"
-            status += text_req
-            status += "\n\nСсылка на обсуждение \U0001F4E2"
-            if user.link == '' or user.link == None:
-                status += "\n"  # ссылка на обсуждение
-            else:
-                status += f"\n{user.link}"  # ссылка на обсуждение # ссылка на обсуждение
-            status += f"\n\nСсылка для помощи \U0001F4E9\n{link}"
-
-        elif 'red' in user.status:
-            already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
-            already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
-            left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
-            right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
-            status = f'{RED_BALL}\n({int(right_sum)}{HELP})\n' + f"\nВ моей сети: {len(list_my_socium)}\n"
-            status += text_req
-            status += "\n\nСсылка на обсуждение \U0001F4E2"
-            if user.link == '' or user.link == None:
-                status += "\n"  # ссылка на обсуждение
-            else:
-                status += f"\n{user.link}"  # ссылка на обсуждение # ссылка на обсуждение
-            status += f"\n\nСсылка для помощи \U0001F4E9\n{link}"
-        else:
-            orange_green_wizard(message)
-            dont_show_status = True
+    # else:
+        # if user.status == "green":
+        #     status = GREEN_BALL + f"\n\nВ моей сети: {len(list_my_socium)}"
+        # elif user.status == "orange":
+        #     already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
+        #     already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
+        #     left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
+        #     right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
+        #     status = f'{ORANGE_BALL}\n({int(left_sum)}{HEART_RED} / {int(right_sum)}{HELP})\n' + f"\nВ моей сети: {len(list_my_socium)}\n"
+        #     status += text_req
+        #     status += "\n\nСсылка на обсуждение \U0001F4E2"
+        #     if user.link == '' or user.link == None:
+        #         status += "\n"  # ссылка на обсуждение
+        #     else:
+        #         status += f"\n{user.link}"  # ссылка на обсуждение # ссылка на обсуждение
+        #     status += f"\n\nСсылка для помощи \U0001F4E9\n{link}"
+        #
+        # elif 'red' in user.status:
+        #     already_payments_oblig = get_intention_sum(user.telegram_id, statuses=(11, 12, 13))
+        #     already_payments_intent = get_intention_sum(user.telegram_id, statuses=(1,))
+        #     left_sum = max(already_payments_intent, already_payments_oblig - user.max_payments)
+        #     right_sum = user.max_payments - already_payments_oblig if user.max_payments - already_payments_oblig > 0 else 0
+        #     status = f'{RED_BALL}\n({int(right_sum)}{HELP})\n' + f"\nВ моей сети: {len(list_my_socium)}\n"
+        #     status += text_req
+        #     status += "\n\nСсылка на обсуждение \U0001F4E2"
+        #     if user.link == '' or user.link == None:
+        #         status += "\n"  # ссылка на обсуждение
+        #     else:
+        #         status += f"\n{user.link}"  # ссылка на обсуждение # ссылка на обсуждение
+        #     status += f"\n\nСсылка для помощи \U0001F4E9\n{link}"
+        # else:
+        #     orange_green_wizard(message)
+        #     dont_show_status = True
 
     status_button = get_status(user.status)
 
@@ -185,8 +185,8 @@ def global_menu(message, dont_show_status=True):
         if message.chat.id == config.ADMIN_ID:
             markup.row(btn1)
 
-        if not dont_show_status:
-            bot.send_message(message.chat.id, 'Ваш статус: {}'.format(status))
+        # if not dont_show_status:
+        #     bot.send_message(message.chat.id, 'Ваш статус: {}'.format(status))
         bot.send_message(message.chat.id, 'Меню:', reply_markup=markup)
 
     else:
@@ -208,8 +208,8 @@ def global_menu(message, dont_show_status=True):
         if message.chat.id == config.ADMIN_ID:
             markup.row(btn1)
 
-        if not dont_show_status:
-            bot.send_message(message.chat.id, 'Your status: {}'.format(status))
+        # if not dont_show_status:
+        #     bot.send_message(message.chat.id, 'Your status: {}'.format(status))
         bot.send_message(message.chat.id, 'Menu:', reply_markup=markup)
 
 
@@ -969,7 +969,7 @@ def select_requisite_check(message, requisite):
         return
     else:
         msg = bot.send_message(message.chat.id, exception_message(message))
-        bot.register_next_step_handler(msg, select_requisite_check)
+        bot.register_next_step_handler(msg, select_requisite_check, requisite)
         return
     return
 
