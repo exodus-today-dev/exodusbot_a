@@ -1,0 +1,9 @@
+deploy_to_production:
+  stage: deploy
+  only:
+    - master
+  script:
+    - cp $PROD_PEM_FILE prod.pem
+    - chmod 400 prod.pem
+    - ssh ubuntu@$PROD_HOST -o StrictHostKeyChecking=no -i prod.pem 'bash -s' < deploy/update-code.sh
+    - rm prod.pem $PROD_PEM_FILE
